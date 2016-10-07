@@ -1,0 +1,20 @@
+<launch>
+  <param name="robot_description"
+    command="$(find xacro)/xacro.py '$(find hal_description)/urdf/hal_arm.xacro'" />
+
+  <param name="joy_node/dev" value="/dev/input/js0" />
+    <node pkg="joy" type="joy_node" name="joy_node">
+    </node>
+  
+    
+  <!-- send fake joint values -->
+  <node name="Xbox_controller" pkg="hal_control" type="xbox_control.py">
+  </node>
+
+  <!-- Combine joint values -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+
+  <!-- Show in Rviz   -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hal_description)/launch/rrbot.rviz"/>
+
+</launch>
