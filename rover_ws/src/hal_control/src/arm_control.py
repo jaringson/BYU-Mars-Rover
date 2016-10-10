@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy, math
-from ctypes import c_ushort
+#from ctypes import c_ushort
 from rover_msgs.msg import ArmState
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
@@ -16,12 +16,13 @@ class Arm_XBOX():
         self.state = ArmState()
         self.joints = JointState()
         self.grip = 0
+        self.kill = False
         
-        # Initialize state
+        # Initialize state; default = JointControl & Medium
         self.state.mode = 'JointControl' # Arm, JointControl
         self.state.speed = 'Medium' # Slow, Medium, Fast
 
-        # Initialize joints
+        # Initialize joints = instance of JointState
         self.joints.header = Header()
         self.joints.header.stamp = rospy.Time.now()
         self.joints.name = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']
@@ -31,7 +32,11 @@ class Arm_XBOX():
 
 
     # Publishers and Subscribers
+
+    	# Subscribe to /joy_arm
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
+
+        # Publish /arm_state; /joint_states; /grip
         self.pub_state = rospy.Publisher('/arm_state', ArmState, queue_size = 10)
         self.pub_joints = rospy.Publisher('/joint_states', JointState, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
@@ -48,13 +53,13 @@ class Arm_XBOX():
            # self.wristangle.data[1] = msg.q[5]
 
 
-    def joyCallback(self,msg):
-        self.joy=msg
-        if self.joy.buttons[9] == 1:
-            if self.check==False:            
-                self.check=True
-            else:
-                self.check=False
+    # def joyCallback(self,msg):
+    #     self.joy=msg
+    #     if self.joy.buttons[9] == 1:
+    #         if self.check==False:            
+    #             self.check=True
+    #         else:
+    #             self.check=False
 
     # Functions
     def check_method(self):
@@ -70,12 +75,16 @@ class Arm_XBOX():
                 self.state.mode = 'JointControl'
             time.sleep(.25)
             
-        elif home == 1:
-            # Implement Kill Switch
-            time.sleep(.25)
-
+        # Implement Kill Switch
+        # if home == 1:
+        # 	if self.kill == False:
+        # 		self.kill = True
+        #     else:
+        #     	self.kill = False
+        #     time.sleep(.25)
 
     def speed_check(self):
+    	# toggle between arm speeds
         rb = self.joy.buttons[5]
         if rb == 1:
             if self.state.speed == 'Fast':
@@ -178,12 +187,16 @@ class Arm_XBOX():
         
         # Speed Check
         self.speed_check()
-        
-        # Pan and Tilt
-        self.cam_pan_tilt()
+
+        # Set corresponding rate
+        if self.state.speed == 'Fast':
+        	MAX_RATE = 10*np.pi/180
+        elif self.state.speed == 'Med':
+        	MAX_RATE = 5*np.pi/180
+        elif self.state.speed == 'Slow':
+        	MAX_RATE = 2*np.pi/180
 
         # Calculate how to command arm (position control)
-        MAX_RATE = 10*np.pi/180
         DEADZONE = 0.1
         
         # Set axes
@@ -194,7 +207,7 @@ class Arm_XBOX():
         hat_up = self.joy.axes[7]
         hat_right = self.joy.axes[6]
         
-        # Read in axis values
+        # make array of axes
         axes = [left_joy_right, left_joy_up, hat_up,
             hat_right, right_joy_up, right_joy_right]
         
@@ -227,15 +240,15 @@ class Arm_XBOX():
         # Gripper
         self.gripper()
 
-        # Shovel
-        if self.joy.axes[2] < 0:
-            self.cmd.shovel = self.cmd.shovel-10.0
-            if self.cmd.shovel < 1000:
-                self.cmd.shovel = 1000
-        elif self.joy.axes[5] < 0:
-            self.cmd.shovel = self.cmd.shovel+10.0
-            if self.cmd.shovel > 2000:
-                self.cmd.shovel = 2000
+        # # Shovel
+        # if self.joy.axes[2] < 0:
+        #     self.cmd.shovel = self.cmd.shovel-10.0
+        #     if self.cmd.shovel < 1000:
+        #         self.cmd.shovel = 1000
+        # elif self.joy.axes[5] < 0:
+        #     self.cmd.shovel = self.cmd.shovel+10.0
+        #     if self.cmd.shovel > 2000:
+        #         self.cmd.shovel = 2000
 
         #self.cmd.q1 = 1850
         #self.cmd.q2 = 968
@@ -251,25 +264,38 @@ class Arm_XBOX():
     # Main ===============================================
     # ==========================================================================
 if __name__ == '__main__':
-    rospy.init_node('xbox_control')
+    # init ROS node
+    rospy.init_node('xbox_arm_control')
+    
+    # set rate
     hz = 60.0
     rate = rospy.Rate(hz)
-    xbox=Arm_XBOX()
+
+    # init Arm_xbox object
+    xbox = Arm_XBOX()
     
+    # Loop
     while not rospy.is_shutdown():
 
+    	# Start when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
-            # every time check toggle of state and cameras
+            
+            # every time check toggle of state
             xbox.check_method()
 
-            if xbox.state.mode == 'JointControl':
-                xbox.joint_cmd()
-            elif xbox.state.mode == 'Arm':
-                xbox.arm_IK()
-            else:
-                xbox.joint_cmd()
-        else:
-            xbox.pub_joints.publish(xbox.joints)
+            # check for kill switch (True = Killed)
+            if xbox.kill == False:
+
+	            # call appropriate function for state
+	            # defaults to JointControl
+	            if xbox.state.mode == 'JointControl':
+	                xbox.joint_cmd()
+	            elif xbox.state.mode == 'Arm':
+	                xbox.arm_IK()
+	            else:
+	                xbox.joint_cmd()
+        #else:
+         #   xbox.pub_joints.publish(xbox.joints)
 
         rate.sleep()
 

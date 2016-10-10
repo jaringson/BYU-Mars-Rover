@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy, math
-from ctypes import c_ushort
+#from ctypes import c_ushort
 from rover_msgs.msg import RoverState, Drive
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
@@ -27,14 +27,11 @@ class XBOX():
         # Initialize Drive
         self.drive_cmd.lw = 1500
         self.drive_cmd.rw = 1500
-            
-
 
     # Publishers and Subscribers
-        self.sub_joy = rospy.Subscriber('joy_drive', Joy, self.joyCallback)
+        self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
         self.pub_drive = rospy.Publisher('/rover_drive', Drive, queue_size = 10)
         self.pub_state = rospy.Publisher('/rover_state', RoverState, queue_size = 10)
-
 
     # Functions
     def check_method(self):
@@ -43,17 +40,25 @@ class XBOX():
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
         if y == 1:
-            if self.state.mode == 'Drive'
+            if self.state.mode == 'Drive':
                 self.state.mode = 'Auto'
             else:
                 self.state.mode = 'Drive'
             time.sleep(.25)
-        elif home == 1:
-            # Implement Kill Switch
-            time.sleep(.25)
+
+         # Implement Kill Switch
+        # if home == 1:
+        # 	if self.kill == False:
+        # 		self.kill = True
+        #     else:
+        #     	self.kill = False
+        #     time.sleep(.25)
+
+        # check for camera toggle
         self.camera_select()
 
     def speed_check(self):
+    	# toggle between drive speeds
         rb = self.joy.buttons[5]
         if rb == 1:
             if self.state.speed == 'Fast':
@@ -132,13 +137,13 @@ class XBOX():
         # Calculate drive speeds
         if self.state.speed == 'Fast':
             self.drive_cmd.lw = left_joy_up*500 + 1500
-            self.drive_cmd.rw = self.joy.axes[4]*-500 + 1500
+            self.drive_cmd.rw = right_joy_up*-500 + 1500
         elif self.state.speed == 'Med':
             self.drive_cmd.lw = left_joy_up*250 + 1500
-            self.drive_cmd.rw = self.joy.axes[4]*-250 + 1500
+            self.drive_cmd.rw = right_joy_up*-250 + 1500
         elif self.state.speed == 'Slow':
             self.drive_cmd.lw = left_joy_up*175 + 1500
-            self.drive_cmd.rw = self.joy.axes[4]*-175 + 1500
+            self.drive_cmd.rw = right_joy_up*-175 + 1500
 
         # Pan and Tilt
         self.cam_pan_tilt()
@@ -180,23 +185,37 @@ class XBOX():
     # Main ===============================================
     # ==========================================================================
 if __name__ == '__main__':
-    rospy.init_node('xbox_control')
+	# init ROS node
+    rospy.init_node('xbox_drive_control')
+    
+
+    # set rate
     hz = 60.0
     rate = rospy.Rate(hz)
-    xbox=XBOX()
     
+    # init XBOX object
+    xbox = XBOX()
+    
+    # Loop
     while not rospy.is_shutdown():
 
+    	# only run when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
+
             # every time check toggle of state and cameras
             xbox.check_method()
 
-            if xbox.state.mode == 'Drive':
-                xbox.driveCommand()
-            elif xbox.state.mode == 'Auto':
-                xbox.autoCommand() # need this def
-            else:
-                xbox.driveCommand()
+            # check for kill switch (True = Killed)
+            if xbox.kill == False:
+
+            	# call appropriate function for state
+            	# defaults to 'Drive'
+	            if xbox.state.mode == 'Drive':
+	                xbox.driveCommand()
+	            elif xbox.state.mode == 'Auto':
+	                xbox.autoCommand() # NEED this def
+	            else:
+	                xbox.driveCommand()
 
         rate.sleep()
 
