@@ -1,17 +1,18 @@
 <launch>
 
-  <param name="joy_node/dev" value="/dev/input/js0" />
+  <param name="joy_node_drive/dev" value="/dev/input/js0" />
+  <param name="joy_node_arm/dev" value="/dev/input/js1" />
 
   <node pkg="joy" type="joy_node" name="joy_node_arm">
-  <remap from="Joy" to="/joy_arm"/>
+  <remap from="/joy" to="/joy_arm"/>
   </node>
 
   <node pkg="joy" type="joy_node" name="joy_node_drive">
-  <remap from="Joy" to="/joy_drive"/>
-  </node>
+  <remap from="/joy" to="/joy_drive"/>
+  </node> 
 
   <node pkg="hal_control" type="arm_control.py" name="xbox_arm_control">
-  </node>
+  </node> 
 
   <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control">
   </node>
