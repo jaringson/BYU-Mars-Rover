@@ -53,13 +53,13 @@ class Arm_XBOX():
            # self.wristangle.data[1] = msg.q[5]
 
 
-    # def joyCallback(self,msg):
-    #     self.joy=msg
-    #     if self.joy.buttons[9] == 1:
-    #         if self.check==False:            
-    #             self.check=True
-    #         else:
-    #             self.check=False
+    def joyCallback(self,msg):
+        self.joy=msg
+        if self.joy.buttons[9] == 1:
+            if self.check==False:            
+                self.check=True
+            else:
+                self.check=False
 
     # Functions
     def check_method(self):

@@ -57,6 +57,14 @@ class XBOX():
         # check for camera toggle
         self.camera_select()
 
+    def joyCallback(self,msg):
+        self.joy=msg
+        if self.joy.buttons[9] == 1:
+            if self.check==False:            
+                self.check=True
+            else:
+                self.check=False
+
     def speed_check(self):
     	# toggle between drive speeds
         rb = self.joy.buttons[5]
