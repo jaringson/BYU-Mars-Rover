@@ -13,6 +13,7 @@ void cmd_callback(const std::String::ConstPtr& msg){
 	cam_array = msg;		//must change b/c rover_command will have lots of fields
 }
 
+// decompress image and republish
 void image_callback(const sensor_msgs::ImageConstPtr& msg){
 	
 }
