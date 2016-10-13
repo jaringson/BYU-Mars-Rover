@@ -18,7 +18,8 @@ class XBOX():
         
         # Initialize state
         self.state.mode = 'Drive' # Drive, Auto 
-        self.state.speed = 'Medium' # Slow, Medium, Fast
+        self.state.speed = 'Med' # Slow, Med, Fast
+        self.state.kill = False
         self.state.pan = 1500
         self.state.tilt = 1500
         self.state.camnum = 0
@@ -34,6 +35,8 @@ class XBOX():
         self.pub_state = rospy.Publisher('/rover_state', RoverState, queue_size = 10)
 
     # Functions
+    
+    #################3
     def check_method(self):
         # Check to see whether driving or using arm and return case
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
@@ -46,17 +49,21 @@ class XBOX():
                 self.state.mode = 'Drive'
             time.sleep(.25)
 
-         # Implement Kill Switch
-        # if home == 1:
-        # 	if self.kill == False:
-        # 		self.kill = True
-        #     else:
-        #     	self.kill = False
-        #     time.sleep(.25)
+        # Implement Kill Switch
+        if home == 1:
+            if self.state.kill == False:
+                self.state.kill  = True
+            else:
+                self.state.kill  = False
+            time.sleep(.25)
 
         # check for camera toggle
-        self.camera_select()
+        #self.camera_select() # NEED TO IMPLEMENT
+        
+         # Publish state commands
+        self.pub_state.publish(self.state)
 
+#####################
     def joyCallback(self,msg):
         self.joy=msg
         if self.joy.buttons[9] == 1:
@@ -64,77 +71,118 @@ class XBOX():
                 self.check=True
             else:
                 self.check=False
-
+                
+#######################
     def speed_check(self):
     	# toggle between drive speeds
         rb = self.joy.buttons[5]
         if rb == 1:
-            if self.state.speed == 'Fast':
+            if self.state.speed == 'Slow':
                 self.state.speed = 'Med'
             elif self.state.speed == 'Med':
-                self.state.speed = 'Slow'
-            elif self.state.speed == 'Slow':
                 self.state.speed = 'Fast'
+            elif self.state.speed == 'Fast':
+                self.state.speed = 'Slow'
             time.sleep(.25)
 
-    def camera_select(self):
-        # a selects between cameras 0-2, b selects between cameras 3-5
-        # cam1_sel is lower nybble, cam2_sel is upper nybble
-        a = self.joy.buttons[0]
-        b = self.joy.buttons[1]
+######################
+#    def camera_select(self):
+#        # a selects between cameras 0-2, b selects between cameras 3-5
+#        # cam1_sel is lower nybble, cam2_sel is upper nybble
+#        a = self.joy.buttons[0]
+#        b = self.joy.buttons[1]
 
-        if a == 1:
-            if self.cam1_sel == 2:
-                self.cam1_sel = 0
-            else:
-                self.cam1_sel = self.cam1_sel + 1
-            time.sleep(.25)
-        if b == 1:
-            if self.cam2_sel == 2:
-                self.cam2_sel = 0
-            else:
-                self.cam2_sel = self.cam2_sel + 1
-            time.sleep(.25)
-        # Update command
-        self.state.camnum = (self.analog_cam << 7) | ((self.cam1_sel & 0x0f) | ((self.cam2_sel & 0x0f) << 4))
+#        if a == 1:
+#            if self.cam1_sel == 2:
+#                self.cam1_sel = 0
+#            else:
+#                self.cam1_sel = self.cam1_sel + 1
+#            time.sleep(.25)
+#        if b == 1:
+#            if self.cam2_sel == 2:
+#                self.cam2_sel = 0
+#            else:
+#                self.cam2_sel = self.cam2_sel + 1
+#            time.sleep(.25)
+#        # Update command
+#        self.state.camnum = (self.analog_cam << 7) | ((self.cam1_sel & 0x0f) | ((self.cam2_sel & 0x0f) << 4))
 
-    def cam_pan_tilt(self):
-        x = self.joy.buttons[2]
-        back = self.joy.buttons[6]
-        start = self.joy.buttons[7]
-        push_right = self.joy.buttons[10]
-        push_left = self.joy.buttons[9]
+########################
+#    def cam_pan_tilt(self):
+#        x = self.joy.buttons[2]
+#        back = self.joy.buttons[6]
+#        start = self.joy.buttons[7]
+#        push_right = self.joy.buttons[10]
+#        push_left = self.joy.buttons[9]
 
-        if x == 1:
-            self.cmd.pan = 1500
-            self.cmd.tilt = 1500
-            time.sleep(.05)
-        if start == 1:
-            self.cmd.tilt = self.cmd.tilt + 10.0
-            time.sleep(.05)
-        if back == 1:
-            self.cmd.tilt = self.cmd.tilt - 10.0
-            time.sleep(.05)
-        if push_right == 1:
-            self.cmd.pan = self.cmd.pan + 10.0
-            time.sleep(.05)
-        if push_left == 1:
-            self.cmd.pan = self.cmd.pan - 10.0
-            time.sleep(.05)
-        # bounds check
-        if self.cmd.tilt > 2000:
-            self.cmd.tilt = 2000
-        if self.cmd.tilt < 1000:
-            self.cmd.tilt = 1000
-        if self.cmd.pan > 2000:
-            self.cmd.pan = 2000
-        if self.cmd.pan < 1000:
-            self.cmd.pan = 1000
+#        if x == 1:
+#            self.cmd.pan = 1500
+#            self.cmd.tilt = 1500
+#            time.sleep(.05)
+#        if start == 1:
+#            self.cmd.tilt = self.cmd.tilt + 10.0
+#            time.sleep(.05)
+#        if back == 1:
+#            self.cmd.tilt = self.cmd.tilt - 10.0
+#            time.sleep(.05)
+#        if push_right == 1:
+#            self.cmd.pan = self.cmd.pan + 10.0
+#            time.sleep(.05)
+#        if push_left == 1:
+#            self.cmd.pan = self.cmd.pan - 10.0
+#            time.sleep(.05)
+#        # bounds check
+#        if self.cmd.tilt > 2000:
+#            self.cmd.tilt = 2000
+#        if self.cmd.tilt < 1000:
+#            self.cmd.tilt = 1000
+#        if self.cmd.pan > 2000:
+#            self.cmd.pan = 2000
+#        if self.cmd.pan < 1000:
+#            self.cmd.pan = 1000
 
     # ==========================================================================
     # Drive Control ===============================================
     # ==========================================================================
     def driveCommand(self):
+        # Check for slow/medium/fast mode
+        self.speed_check()
+
+        # set joystick commands
+        left_joy_up = self.joy.axes[1]
+        right_joy_up = self.joy.axes[4]
+
+        # Calculate drive speeds
+        # rw commands were multiplied by (-1)
+        if self.state.speed == 'Fast':
+            self.drive_cmd.lw = left_joy_up*500 + 1500
+            self.drive_cmd.rw = right_joy_up*500 + 1500
+        elif self.state.speed == 'Med':
+            self.drive_cmd.lw = left_joy_up*250 + 1500
+            self.drive_cmd.rw = right_joy_up*250 + 1500
+        elif self.state.speed == 'Slow':
+            self.drive_cmd.lw = left_joy_up*175 + 1500
+            self.drive_cmd.rw = right_joy_up*175 + 1500
+
+        # Pan and Tilt
+        #self.cam_pan_tilt() # NEED TO IMPLEMENT
+
+        # Turn analog video on or off with left bumper
+        # On/off is most significant bit in camnum in command
+#        lb = self.joy.buttons[4]
+#        if lb == 1:
+#            self.analog_cam ^= 1
+#            time.sleep(.25)
+
+        # Publish drive commands
+        self.pub_drive.publish(self.drive_cmd)
+        
+    # ==========================================================================
+    # Auto Drive Control ===============================================
+    # ==========================================================================
+    def autoCommand(self):
+    # RIGHT NOW THIS IS A COPY OF Xbox Drive
+    
         # Check for slow/medium/fast mode
         self.speed_check()
 
@@ -154,14 +202,14 @@ class XBOX():
             self.drive_cmd.rw = right_joy_up*-175 + 1500
 
         # Pan and Tilt
-        self.cam_pan_tilt()
+        #self.cam_pan_tilt() # NEED TO IMPLEMENT
 
         # Turn analog video on or off with left bumper
         # On/off is most significant bit in camnum in command
-        lb = self.joy.buttons[4]
-        if lb == 1:
-            self.analog_cam ^= 1
-            time.sleep(.25)
+#        lb = self.joy.buttons[4]
+#        if lb == 1:
+#            self.analog_cam ^= 1
+#            time.sleep(.25)
 
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
@@ -214,7 +262,7 @@ if __name__ == '__main__':
             xbox.check_method()
 
             # check for kill switch (True = Killed)
-            if xbox.kill == False:
+            if xbox.state.kill == False:
 
             	# call appropriate function for state
             	# defaults to 'Drive'

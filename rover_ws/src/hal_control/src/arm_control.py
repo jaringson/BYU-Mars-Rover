@@ -16,11 +16,11 @@ class Arm_XBOX():
         self.state = ArmState()
         self.joints = JointState()
         self.grip = 0
-        self.kill = False
         
         # Initialize state; default = JointControl & Medium
-        self.state.mode = 'JointControl' # Arm, JointControl
-        self.state.speed = 'Medium' # Slow, Medium, Fast
+        self.state.mode = 'JointControl' # JointControl, IK Arm
+        self.state.speed = 'Med' # Slow, Med, Fast
+        self.state.kill = False
 
         # Initialize joints = instance of JointState
         self.joints.header = Header()
@@ -29,7 +29,6 @@ class Arm_XBOX():
         self.joints.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.joints.velocity = []
         self.joints.effort = []      
-
 
     # Publishers and Subscribers
 
@@ -41,7 +40,6 @@ class Arm_XBOX():
         self.pub_joints = rospy.Publisher('/joint_states', JointState, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
-
     # Callbacks
     #def inversekin(self,msg):
      #   if msg.solved == 1 and self.check == True:
@@ -70,29 +68,32 @@ class Arm_XBOX():
         
         if y == 1:
             if self.state.mode == 'JointControl':
-                self.state.mode = 'Arm'
+                self.state.mode = 'IK Arm'
             else:
                 self.state.mode = 'JointControl'
             time.sleep(.25)
             
         # Implement Kill Switch
-        # if home == 1:
-        # 	if self.kill == False:
-        # 		self.kill = True
-        #     else:
-        #     	self.kill = False
-        #     time.sleep(.25)
+        if home == 1:
+            if self.state.kill == False:
+                self.state.kill  = True
+            else:
+                self.state.kill  = False
+            time.sleep(.25)
+        
+        # Publish state commands
+        self.pub_state.publish(self.state)
 
     def speed_check(self):
     	# toggle between arm speeds
         rb = self.joy.buttons[5]
         if rb == 1:
-            if self.state.speed == 'Fast':
+            if self.state.speed == 'Slow':
                 self.state.speed = 'Med'
             elif self.state.speed == 'Med':
-                self.state.speed = 'Slow'
-            elif self.state.speed == 'Slow':
                 self.state.speed = 'Fast'
+            elif self.state.speed == 'Fast':
+                self.state.speed = 'Slow'
             time.sleep(.25)
 
     def gripper(self):
@@ -113,71 +114,71 @@ class Arm_XBOX():
     # ==========================================================================
     def arm_IK(self):
 
-        self.cmd.q1=int(round(-196+(self.invkin.data[0]*np.pi/180.0+3.0*np.pi/4.0)*(4092/(3*np.pi/2))))
-        self.cmd.q2=int(round(3696+(-self.invkin.data[1]*np.pi/180)*(4092/(3*np.pi/4))))
-        self.cmd.q3=int(round(-2224+(-self.invkin.data[2]*np.pi/180+3*np.pi/4)*(4092/(np.pi))))
-        #self.cmd.q4=int(round(945+(self.invkin.data[3]*np.pi/180+15*np.pi/4)*(4092/(15*np.pi))))
-        
-        # make sure they are valid joint angles between [0, 4095]
-        # turret
-        if self.cmd.q1 < 0:
-            self.cmd.q1 = 0
-        elif self.cmd.q1 > 4095:
-            self.cmd.q1 = 4095
-        # shoulder
-        if self.cmd.q2 < 0:
-            self.cmd.q2 = 0
-        elif self.cmd.q2 > 4095:
-            self.cmd.q2 = 4095
-        # elbow
-        if self.cmd.q3 < 0:
-            self.cmd.q3 = 0
-        elif self.cmd.q3 > 4095:
-            self.cmd.q3 = 4095
+#        self.cmd.q1=int(round(-196+(self.invkin.data[0]*np.pi/180.0+3.0*np.pi/4.0)*(4092/(3*np.pi/2))))
+#        self.cmd.q2=int(round(3696+(-self.invkin.data[1]*np.pi/180)*(4092/(3*np.pi/4))))
+#        self.cmd.q3=int(round(-2224+(-self.invkin.data[2]*np.pi/180+3*np.pi/4)*(4092/(np.pi))))
+#        #self.cmd.q4=int(round(945+(self.invkin.data[3]*np.pi/180+15*np.pi/4)*(4092/(15*np.pi))))
+#        
+#        # make sure they are valid joint angles between [0, 4095]
+#        # turret
+#        if self.cmd.q1 < 0:
+#            self.cmd.q1 = 0
+#        elif self.cmd.q1 > 4095:
+#            self.cmd.q1 = 4095
+#        # shoulder
+#        if self.cmd.q2 < 0:
+#            self.cmd.q2 = 0
+#        elif self.cmd.q2 > 4095:
+#            self.cmd.q2 = 4095
+#        # elbow
+#        if self.cmd.q3 < 0:
+#            self.cmd.q3 = 0
+#        elif self.cmd.q3 > 4095:
+#            self.cmd.q3 = 4095
 
-        '''
-        # forearm
-        if self.cmd.q4 < 0:
-            self.cmd.q4 = 0
-        elif self.cmd.q4 > 4095:
-            self.cmd.q4 = 4095
+#        '''
+#        # forearm
+#        if self.cmd.q4 < 0:
+#            self.cmd.q4 = 0
+#        elif self.cmd.q4 > 4095:
+#            self.cmd.q4 = 4095
 
-        # wrist tilt
-        if self.wristangle.data[0]>90.0:
-            self.wristangle.data[0]=90.0
-        if self.wristangle.data[0]<-90.0:
-            self.wristangle.data[0]=-90.0
-        # wrist rotate
-        if self.wristangle.data[1]>180.0:
-            self.wristangle.data[1]=180.0
-        if self.wristangle.data[1]<-180.0:
-            self.wristangle.data[1]=-180.0
-        # set wrist publisher data
-        self.dyn_cmd.data[0]=math.radians(self.wristangle.data[0])
-        self.dyn_cmd.data[1]=math.radians(self.wristangle.data[1])
-        '''
+#        # wrist tilt
+#        if self.wristangle.data[0]>90.0:
+#            self.wristangle.data[0]=90.0
+#        if self.wristangle.data[0]<-90.0:
+#            self.wristangle.data[0]=-90.0
+#        # wrist rotate
+#        if self.wristangle.data[1]>180.0:
+#            self.wristangle.data[1]=180.0
+#        if self.wristangle.data[1]<-180.0:
+#            self.wristangle.data[1]=-180.0
+#        # set wrist publisher data
+#        self.dyn_cmd.data[0]=math.radians(self.wristangle.data[0])
+#        self.dyn_cmd.data[1]=math.radians(self.wristangle.data[1])
+#        '''
 
-        # Select between camera feeds with A & B on the xbox controller
-        self.camera_select()
-        
-        # Pan and Tilt
-        self.cam_pan_tilt()
+#        # Select between camera feeds with A & B on the xbox controller
+#        self.camera_select()
+#        
+#        # Pan and Tilt
+#        self.cam_pan_tilt()
 
-        # Gripper
-        self.gripper()
+#        # Gripper
+#        self.gripper()
 
-        # Shovel
-        if self.joy.axes[2] < 0:
-            self.cmd.shovel = self.cmd.shovel-10.0
-            if self.cmd.shovel < 1000:
-                self.cmd.shovel = 1000
-        elif self.joy.axes[5] < 0:
-            self.cmd.shovel = self.cmd.shovel+10.0
-            if self.cmd.shovel > 2000:
-                self.cmd.shovel = 2000
+#        # Shovel
+#        if self.joy.axes[2] < 0:
+#            self.cmd.shovel = self.cmd.shovel-10.0
+#            if self.cmd.shovel < 1000:
+#                self.cmd.shovel = 1000
+#        elif self.joy.axes[5] < 0:
+#            self.cmd.shovel = self.cmd.shovel+10.0
+#            if self.cmd.shovel > 2000:
+#                self.cmd.shovel = 2000
 
         # Publish arm commands
-        self.pub1.publish(self.cmd)
+        self.pub_joints.publish(self.joints)
         #self.pub4.publish(self.dyn_cmd)
 
     # ==========================================================================
@@ -284,13 +285,13 @@ if __name__ == '__main__':
             xbox.check_method()
 
             # check for kill switch (True = Killed)
-            if xbox.kill == False:
+            if xbox.state.kill  == False:
 
 	            # call appropriate function for state
 	            # defaults to JointControl
 	            if xbox.state.mode == 'JointControl':
 	                xbox.joint_cmd()
-	            elif xbox.state.mode == 'Arm':
+	            elif xbox.state.mode == 'IK Arm':
 	                xbox.arm_IK()
 	            else:
 	                xbox.joint_cmd()
