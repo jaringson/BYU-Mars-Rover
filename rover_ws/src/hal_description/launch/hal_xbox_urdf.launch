@@ -6,9 +6,9 @@
     <node pkg="joy" type="joy_node" name="joy_node">
     </node>
   
-    
   <!-- send fake joint values -->
-  <node name="Xbox_controller" pkg="hal_control" type="xbox_control.py">
+  <node name="Xbox_controller" pkg="hal_control" type="arm_control.py">
+  <remap from="/joy_arm" to="/joy"/>
   </node>
 
   <!-- Combine joint values -->
