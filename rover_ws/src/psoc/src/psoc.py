@@ -59,8 +59,11 @@ class PSOC():
 	# if self.ser.is_open():
 	# 	self.ser.close()
 
-        # initialize subscribers and publishers
+        # initialize subscribers
         self.sub_cmd = rospy.Subscriber('rover_command', All, self.set_rover_cmd)
+        self.sub_joint = rospy.Subscriber('/joint_cmd', sensor_msgs/JointState, se
+        
+        # initialize publishers
         self.pub_sci = rospy.Publisher('/science_feedback', SciFeedback, queue_size=1)
         self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
 
