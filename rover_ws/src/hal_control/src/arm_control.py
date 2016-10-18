@@ -18,7 +18,7 @@ class Arm_XBOX():
         self.grip = 0
         
         # Initialize state; default = JointControl & Medium
-        self.state.mode = 'JointControl' # JointControl, IK Arm
+        self.state.mode = 'JointControl' # JointControl, VelControl IK Arm
         self.state.speed = 'Med' # Slow, Med, Fast
         self.state.kill = False
 
@@ -27,7 +27,7 @@ class Arm_XBOX():
         self.joints.header.stamp = rospy.Time.now()
         self.joints.name = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']
         self.joints.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.joints.velocity = []
+        self.joints.velocity = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.joints.effort = []      
 
     # Publishers and Subscribers
@@ -68,6 +68,8 @@ class Arm_XBOX():
         
         if y == 1:
             if self.state.mode == 'JointControl':
+                self.state.mode = 'VelControl'
+            elif self.state.mode == 'VelControl':
                 self.state.mode = 'IK Arm'
             else:
                 self.state.mode = 'JointControl'
@@ -229,6 +231,7 @@ class Arm_XBOX():
                 self.joints.position[i] = -np.pi
 
         self.joints.header.stamp = rospy.Time.now()
+        self.joints.header.frame_id = 'JointControl'                
        
         # Send moved angles to IK
         #self.invkin.data[0] = -180/np.pi*((self.cmd.q1-3905)*3*np.pi/2/4092-3*np.pi/4)
@@ -258,6 +261,60 @@ class Arm_XBOX():
         #self.cmd.q5 = 0.
         #self.cmd.q6 = 0.0
         
+        # Publish arm commands
+        self.pub_joints.publish(self.joints)
+
+
+    # ==========================================================================
+    # Velocity Arm Control ===============================================
+    # ==========================================================================
+    def vel_cmd(self):
+        
+        # Speed Check
+        self.speed_check()
+
+        # Set corresponding rate
+        if self.state.speed == 'Fast':
+        	MAX_RATE = 100
+        elif self.state.speed == 'Med':
+        	MAX_RATE = 75
+        elif self.state.speed == 'Slow':
+        	MAX_RATE = 50
+
+        # Calculate how to command arm (position control)
+        DEADZONE = 0.1
+        
+        # Set axes
+        left_joy_up = self.joy.axes[1]
+        left_joy_right = self.joy.axes[0]
+        right_joy_up = self.joy.axes[4]
+        right_joy_right = self.joy.axes[3]
+        hat_up = self.joy.axes[7]
+        hat_right = self.joy.axes[6]
+        
+        # make array of axes
+        axes = [left_joy_right, left_joy_up, hat_up,
+            hat_right, right_joy_up, right_joy_right]
+        
+        # Set axis to zero in deadzone
+        for i in range(0,len(axes)):
+            if abs(axes[i])<DEADZONE:
+                axes[i] = 0
+                
+        # Update joint angles
+        for i in range(0,6):
+            self.joints.velocity[i] = axes[i]*MAX_RATE
+        
+#        # Set joint angle limits
+#        for i in range(0,len(self.joints.position)):
+#            if self.joints.position[i] > np.pi:
+#                self.joints.position[i] = np.pi
+#            elif self.joints.position[i] < -np.pi:
+#                self.joints.position[i] = -np.pi
+
+        self.joints.header.stamp = rospy.Time.now()
+        self.joints.header.frame_id = 'VelControl'        
+
         # Publish arm commands
         self.pub_joints.publish(self.joints)
 
@@ -291,6 +348,8 @@ if __name__ == '__main__':
 	            # defaults to JointControl
 	            if xbox.state.mode == 'JointControl':
 	                xbox.joint_cmd()
+	            elif xbox.state.mode == 'VelControl':
+	                xbox.vel_cmd()
 	            elif xbox.state.mode == 'IK Arm':
 	                xbox.arm_IK()
 	            else:
