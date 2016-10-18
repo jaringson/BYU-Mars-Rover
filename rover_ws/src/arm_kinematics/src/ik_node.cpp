@@ -8,16 +8,20 @@ using namespace std;
 class Arm_IK {
     private:
        double eps; 
-        
-        
+       
+       TRAC_IK::TRAC_IK ik_solver; 
         
     public:
-        Arm_IK();
+        Arm_IK(std::string, std::string, std::string, double);
 };
 
-Arm_IK::Arm_IK() {
-        
+Arm_IK::Arm_IK(std::string chain_start, std::string chain_end, std::string urdf_param, double timeout)
+ : ik_solver(chain_start, chain_end, urdf_param, timeout, 1e-5)
+{
     eps = 1e-5;
+    
+    
+    
 }
 
 
@@ -25,9 +29,9 @@ int main(int argc, char** argv) {
     
     int num_samples;
     double timeout;
-    string chain_start;
-    string chain_end;
-    string urdf_param;
+    std::string chain_start;
+    std::string chain_end;
+    std::string urdf_param;
     // Start ROS node
     ros::init(argc, argv, "arm_ik_tests");
     ros::NodeHandle nh("~");
@@ -47,7 +51,8 @@ int main(int argc, char** argv) {
     if (num_samples < 1)
         num_samples = 1;
         
-    Arm_IK ik();
+    Arm_IK ik(chain_start, chain_end, urdf_param, timeout);
+    
     cout << "Hello World" << endl;
     return 0;
 }
