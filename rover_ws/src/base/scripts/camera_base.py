@@ -40,11 +40,12 @@ class cam_hub:
 	"""
 	def joy_callback(self, data):
 		# button_pushed = data
+
 		if self.first_time:
 			print "this is the first time. counter = %d" % (self.counter)
 			self.first_time = False
 
-		elif data.buttons[0] == 1:
+		elif data.buttons[0]:
 			
 			self.counter = self.counter + 1
 			print " before mod. counter = %d" % (self.counter)
@@ -64,7 +65,7 @@ class cam_hub:
 				self.camera_array[self.counter] = 1
 				self.camera_array[self.counter-1] = 0
 				print self.camera_array
-				
+			
 
 		# 	image_pub.publish()	
 
@@ -73,10 +74,12 @@ class cam_hub:
 	def image_callback(self, data):
 		#rospy.loginfo(rospy.get_caller_id() + "hello world")
 		# if button_pushed:
-		
-		self.image0_pub.publish(data)
+		if self.camera_array[0]:
+			self.image0_pub.publish(data)
+		if self.camera_array[1]:
+			self.image1_pub.publish(data)
 
-		self.image1_pub.publish(data)	
+		
 
 def main(args):
 	'''Initializes and cleanup ros node'''
