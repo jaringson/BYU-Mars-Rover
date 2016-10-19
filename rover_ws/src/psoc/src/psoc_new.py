@@ -83,7 +83,7 @@ class PSOC():
         # initialize subscribers
         self.sub_drive = rospy.Subscriber('/drive_state', rover_msgs/Drive, self.drive_callback)
         self.sub_state = rospy.Subscriber('/rover_state_cmd', rover_msgs/RoverState, self.state_callback)
-        self.sub_joint = rospy.Subscriber('/joint_control_cmd', sensor_msgs/JointState, self.joint_callback)
+        self.sub_joint = rospy.Subscriber('/joint_cmd', sensor_msgs/JointState, self.joint_callback)
         self.sub_joint = rospy.Subscriber('/grip', Int8, self.grip_callback)        
         
         # initialize publishers

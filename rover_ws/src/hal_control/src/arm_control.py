@@ -36,8 +36,8 @@ class Arm_XBOX():
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
 
         # Publish /arm_state; /joint_states; /grip
-        self.pub_state = rospy.Publisher('/arm_state', ArmState, queue_size = 10)
-        self.pub_joints = rospy.Publisher('/joint_states', JointState, queue_size = 10)
+        self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
+        self.pub_joints = rospy.Publisher('/joint_cmd', JointState, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
     # Callbacks
