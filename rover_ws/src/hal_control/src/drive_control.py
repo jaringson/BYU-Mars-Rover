@@ -31,12 +31,12 @@ class XBOX():
 
     # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
-        self.pub_drive = rospy.Publisher('/rover_drive', Drive, queue_size = 10)
-        self.pub_state = rospy.Publisher('/rover_state', RoverState, queue_size = 10)
+        self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 10)
+        self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 10)
 
     # Functions
     
-    #################3
+    #################
     def check_method(self):
         # Check to see whether driving or using arm and return case
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
