@@ -17,23 +17,13 @@ class Arm_IK {
         ros::NodeHandle nh;
         
     public:
-        Arm_IK(string, string, string, double);
         Arm_IK(int, char**);
         void SolverInit();
 };
 
-Arm_IK::Arm_IK(string chain_start, string chain_end, string urdf_param, double timeout)
- : ik_solver("", "", "/robot_description", 0, 1e-5)
-{
-    
-    SolverInit();
-    eps = 1e-5;
-    
-    
-}
 
 Arm_IK::Arm_IK(int argc, char** argv)
- : ik_solver("", "", "", 0, 0)
+ : ik_solver("link1", "link7", "/robot_description", 0, 0)
 {
     // Start ROS node
     ros::NodeHandle nh("~");
@@ -51,6 +41,8 @@ Arm_IK::Arm_IK(int argc, char** argv)
         exit(-1);
     }
     
+    SolverInit();
+    
 }
 
 void Arm_IK::SolverInit() 
@@ -64,32 +56,8 @@ void Arm_IK::SolverInit()
 
 int main(int argc, char** argv) {
     
-    if (true) {
-        int num_samples;
-        double timeout;
-        std::string chain_start;
-        std::string chain_end;
-        std::string urdf_param;
-        // Start ROS node
-        ros::init(argc, argv, "arm_ik_tests");
-        ros::NodeHandle nh("~");
-        
-        // Get Parameters from server
-        nh.param("num_samples", num_samples, 1000);
-        nh.param("chain_start", chain_start, string(""));
-        nh.param("chain_end", chain_end, string(""));
-        nh.param("timeout",timeout,0.005);
-        nh.param("urdf_param",urdf_param, string("/robot_description"));
-        
-        // Validate if Parameters were loaded
-        if (chain_start=="" || chain_end=="") {
-            ROS_FATAL("Missing chain info in launch file");
-            exit(-1);
-        }
-        if (num_samples < 1)
-            num_samples = 1;
-            
-        Arm_IK ik(chain_start, chain_end, urdf_param, timeout);
+    if (false) {
+
     }
     else {
         ros::init(argc, argv, "arm_ik_tests");
