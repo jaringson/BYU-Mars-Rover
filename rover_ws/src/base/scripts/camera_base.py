@@ -25,8 +25,8 @@ class cam_hub:
 		self.first_time = True
 
 		# publishers
-		self.image0_pub = rospy.Publisher("hub_cam0/image_raw", CompressedImage, queue_size = 1000)
-		self.image1_pub = rospy.Publisher("hub_cam1/image_raw", , queue_size = 1000)
+		self.image0_pub = rospy.Publisher("hub_cam0/image_raw/compressed", CompressedImage, queue_size = 1000)
+		self.image1_pub = rospy.Publisher("hub_cam1/image_raw/compressed", CompressedImage, queue_size = 1000)
 		#subscribers
 		self.cam0_sub = rospy.Subscriber("joy",Joy, self.joy_callback)
 		self.cam0_sub = rospy.Subscriber("usb_cam0/image_raw/compressed",CompressedImage, self.image_callback)

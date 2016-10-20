@@ -21,8 +21,8 @@
       <remap from="output" to="cam_hub"/>
       </node>
   </group>
-
+<!-- 
   <node name="cam_hub" pkg="base" type="base">
     <remap from="input" to="usb_cam1/usb_cam"/>
-  </node>
+  </node> -->
 </launch>
