@@ -19,6 +19,7 @@ class Arm_IK {
     public:
         Arm_IK(int, char**);
         void SolverInit();
+        
 };
 
 
@@ -44,6 +45,8 @@ Arm_IK::Arm_IK(int argc, char** argv)
     SolverInit();
     
 }
+
+
 
 void Arm_IK::SolverInit() 
 {
