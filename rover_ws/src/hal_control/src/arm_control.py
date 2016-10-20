@@ -7,6 +7,10 @@ from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
 import time
 import numpy as np
+from urdf_parser_py.urdf import URDF
+from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
+from pykdl_utils.kdl_kinematics import KDLKinematics
+import random
 
 
 class Arm_XBOX():
@@ -15,6 +19,7 @@ class Arm_XBOX():
         self.joy = Joy()
         self.state = ArmState()
         self.joints = JointState()
+        self.joints_cart = Float32MultiArray()
         self.grip = 0
         
         # Initialize state; default = JointControl & Medium
@@ -28,16 +33,27 @@ class Arm_XBOX():
         self.joints.name = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']
         self.joints.position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.joints.velocity = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.joints.effort = []      
+        self.joints.effort = []
+
+        # Initialize FK
+        self.robot = URDF.from_parameter_server()
+        #self.robot = URDF.from_xml_file('/home/halrover/BYU-Mars-Rover/rover_ws/src/hal_description/urdf/hal.urdf')
+        self.tree = kdl_tree_from_urdf_model(self.robot)
+        self.base_link = self.robot.get_root()
+        self.end_link = self.robot.link_map.keys()[0]
+        self.chain = self.tree.getChain(self.base_link, self.end_link)
+        self.kdl_kin = KDLKinematics(self.robot, self.base_link, self.end_link)
+        self.pose = []
 
     # Publishers and Subscribers
 
     	# Subscribe to /joy_arm
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
 
-        # Publish /arm_state; /joint_states; /grip
+        # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
         self.pub_joints = rospy.Publisher('/joint_cmd', JointState, queue_size = 10)
+        self.pub_joints_cart = rospy.Publisher('/joint_cart_cmd', Float32MultiArray, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
     # Callbacks
@@ -243,6 +259,16 @@ class Arm_XBOX():
 
         # Gripper
         self.gripper()
+
+        # FK
+        rospy.logwarn(str(self.base_link)) 
+        rospy.logwarn(str(self.end_link)) 
+        rospy.logwarn(str(self.chain.getNrOfJoints()))
+        rospy.logwarn(str(self.tree.getNrOfJoints()))
+        q = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        #q = [float(i) for i in self.joints.position]
+        #self.pose = self.kdl_kin.forward(q)
+        #rospy.logwarn(str(self.pose)) 
 
         # # Shovel
         # if self.joy.axes[2] < 0:

@@ -32,6 +32,7 @@ class Arm_IK {
         Arm_IK(int, char**);
         bool SolverInit();
         void poseMessageReceived(const geometry_msgs::Pose&);
+
 };
 
 
