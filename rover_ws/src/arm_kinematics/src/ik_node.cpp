@@ -2,6 +2,8 @@
 #include <trac_ik/trac_ik.hpp>
 #include <ros/ros.h>
 #include <string>
+#include <geometry_msgs/Pose.h>
+#include <sensor_msgs/JointState.h>
 
 using namespace std;
 
@@ -12,13 +14,24 @@ class Arm_IK {
         string urdf_param;
         double timeout;
         double eps; 
+        
+        int numJoints;
        
         TRAC_IK::TRAC_IK ik_solver; 
         ros::NodeHandle nh;
+        ros::Publisher pub;
+        ros::Subscriber sub;
+        
+        KDL::Chain chain;
+        KDL::JntArray nominal;
+        KDL::JntArray Ll, Ul; // Upper and lower joint limits
+        KDL::Frame pose; // End Effector Pose
+        KDL::JntArray result; // New joint angles
         
     public:
         Arm_IK(int, char**);
-        void SolverInit();
+        bool SolverInit();
+        void poseMessageReceived(const geometry_msgs::Pose&);
 };
 
 
@@ -41,17 +54,55 @@ Arm_IK::Arm_IK(int argc, char** argv)
         exit(-1);
     }
     
-    SolverInit();
+    // Set up Publisher and Subscriber
+    pub = nh.advertise<sensor_msgs::JointState>("joint_cmd",1000);
+    sub = nh.subscribe("pose_cmd", 1000, &Arm_IK::poseMessageReceived, this);
+    
+    // Start Solver
+    bool valid = SolverInit();
+    
+    // Initialize Variables
+    nominal.resize(numJoints);
+    for (int i=0; i<numJoints; i++) {
+        nominal(i) = 0;
+    }
+    
     
 }
 
-void Arm_IK::SolverInit() 
+bool Arm_IK::SolverInit() 
 {
-    string chain_start = "link1";
-    string chain_end = "link7";
-    string urdf_param = "/robot_description";
-    double timeout = 0.005;
+    // Set up TRAC_IK Solver
     TRAC_IK::TRAC_IK ik_solver(chain_start, chain_end, urdf_param, timeout, eps);
+
+    // Get KDL Chain
+    bool valid = ik_solver.getKDLChain(chain);
+    if (!valid) {
+        ROS_ERROR("There was no valid KDL chain found");
+    }
+    
+    // Get Joint Limits
+    valid = ik_solver.getKDLLimits(Ll,Ul);
+    if (!valid) {
+        ROS_ERROR("There were no valid KDL joint limits found");
+    }
+    
+    // Get Number of Joints
+    numJoints = chain.getNrOfJoints();
+    assert(chain.getNrOfJoints() == Ll.data.size());
+    assert(chain.getNrOfJoints() == Ul.data.size());
+    
+    return valid;       
+}
+
+void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
+    pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
+    pose.M = KDL::Rotation::Quaternion(posemsg.orientation.x, posemsg.orientation.y, posemsg.orientation.z, posemsg.orientation.w);
+    
+    int status = -1;
+    do {
+        status = ik_solver.CartToJnt(nominal, pose, result);
+    } while(status < 0);
 }
 
 int main(int argc, char** argv) {
