@@ -16,21 +16,22 @@ class cam_hub:
 
 	def __init__(self):
 
+		self.joy = Joy()
 
 		# array of camera 0-1, If camera array at index 0 is high, then camera 0 should be publishing
 		self.camera_array = [0,0]
 		self.counter = 0
 		self.max_counter = 1
 		# flag for first time through loop
-		self.first_time = True
-
+		# self.first_time = True
+		self.camera_on = False
 		# publishers
-		self.image0_pub = rospy.Publisher("hub_cam0/image_raw/compressed", CompressedImage, queue_size = 1000)
-		self.image1_pub = rospy.Publisher("hub_cam1/image_raw/compressed", CompressedImage, queue_size = 1000)
+		self.pub_image0 = rospy.Publisher("hub_cam0/image_raw/theora", CompressedImage, queue_size = 10)
+		self.pub_image1= rospy.Publisher("hub_cam1/image_raw/theora", CompressedImage, queue_size = 10)
 		#subscribers
-		self.cam0_sub = rospy.Subscriber("joy",Joy, self.joy_callback)
-		self.cam0_sub = rospy.Subscriber("usb_cam0/image_raw/compressed",CompressedImage, self.image_callback)
-		self.cam1_sub = rospy.Subscriber("usb_cam1/image_raw/compressed",CompressedImage, self.image_callback)
+		self.sub_joy = rospy.Subscriber("joy",Joy, self.joy_callback)
+		self.sub_cam0 = rospy.Subscriber("usb_cam0/image_raw/theora",CompressedImage, self.image_callback)
+		self.sub_cam1 = rospy.Subscriber("usb_cam1/image_raw/theora",CompressedImage, self.image_callback)
 	
 
 	"""
@@ -40,44 +41,29 @@ class cam_hub:
 	"""
 	def joy_callback(self, data):
 		# button_pushed = data
-
-		if self.first_time:
-			print "this is the first time. counter = %d" % (self.counter)
-			self.first_time = False
-
-		elif data.buttons[0]:
-			
-			self.counter = self.counter + 1
-			print " before mod. counter = %d" % (self.counter)
-			print self.camera_array
-
-
-			if self.counter % 2 == 0:
-
-				self.counter = 0
-				self.camera_array[self.counter] = 1
-				self.camera_array[self.counter+1] = 0
-				print self.camera_array
-				print "after mod counter = %d" % (self.counter)
-
+		self.joy=data
+		if self.joy.buttons[0] == 1:
+			if self.camera_on==False:            
+				self.camera_on=True
 			else:
-				print "got here"
-				self.camera_array[self.counter] = 1
-				self.camera_array[self.counter-1] = 0
-				print self.camera_array
-			
+				self.camera_on=False
 
-		# 	image_pub.publish()	
-
-		# print("data = ", data.buttons[0])
 
 	def image_callback(self, data):
 		#rospy.loginfo(rospy.get_caller_id() + "hello world")
 		# if button_pushed:
-		if self.camera_array[0]:
-			self.image0_pub.publish(data)
-		if self.camera_array[1]:
-			self.image1_pub.publish(data)
+		cycle_button = self.joy.buttons[0]
+		
+		if self.camera_on:
+			# self.counter = self.counter + 1
+			# if self.counter == 1:
+			self.pub_image0.publish(data)
+
+		else:
+
+			self.pub_image1.publish(data)
+			# self.counter = 0
+		time.sleep(.25)
 
 		
 
