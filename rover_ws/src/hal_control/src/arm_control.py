@@ -4,6 +4,7 @@ import rospy, math
 #from ctypes import c_ushort
 from rover_msgs.msg import ArmState
 from sensor_msgs.msg import Joy, JointState
+from geometry_msgs.msg import Pose
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
 import time
 import numpy as np
@@ -20,6 +21,7 @@ class Arm_XBOX():
         self.state = ArmState()
         self.joints = JointState()
         self.joints_cart = Float32MultiArray()
+        self.pose = Pose()
         self.grip = 0
         
         # Initialize state; default = JointControl & Medium
@@ -36,24 +38,26 @@ class Arm_XBOX():
         self.joints.effort = []
 
         # Initialize FK
-        self.robot = URDF.from_parameter_server()
-        #self.robot = URDF.from_xml_file('/home/halrover/BYU-Mars-Rover/rover_ws/src/hal_description/urdf/hal.urdf')
-        self.tree = kdl_tree_from_urdf_model(self.robot)
-        self.base_link = self.robot.get_root()
-        self.end_link = self.robot.link_map.keys()[0]
-        self.chain = self.tree.getChain(self.base_link, self.end_link)
-        self.kdl_kin = KDLKinematics(self.robot, self.base_link, self.end_link)
-        self.pose = []
+        # self.robot = URDF.from_parameter_server()
+        # #self.robot = URDF.from_xml_file('/home/halrover/BYU-Mars-Rover/rover_ws/src/hal_description/urdf/hal.urdf')
+        # self.tree = kdl_tree_from_urdf_model(self.robot)
+        # self.base_link = self.robot.get_root()
+        # self.end_link = self.robot.link_map.keys()[0]
+        # self.chain = self.tree.getChain(self.base_link, self.end_link)
+        # self.kdl_kin = KDLKinematics(self.robot, self.base_link, self.end_link)
+        # self.pose = []
 
     # Publishers and Subscribers
 
     	# Subscribe to /joy_arm
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
+        self.sub_joint_cmd_pose = rospy.Subscriber('/joint_cmd_pose',Pose,)
 
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
         self.pub_joints = rospy.Publisher('/joint_cmd', JointState, queue_size = 10)
-        self.pub_joints_cart = rospy.Publisher('/joint_cart_cmd', Float32MultiArray, queue_size = 10)
+        #self.pub_joints_cart = rospy.Publisher('/joint_cart_cmd', Float32MultiArray, queue_size = 10)
+        self.pub_pose = rospy.Publisher('/pose_cmd', Pose, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
     # Callbacks
@@ -132,72 +136,17 @@ class Arm_XBOX():
     # ==========================================================================
     def arm_IK(self):
 
-#        self.cmd.q1=int(round(-196+(self.invkin.data[0]*np.pi/180.0+3.0*np.pi/4.0)*(4092/(3*np.pi/2))))
-#        self.cmd.q2=int(round(3696+(-self.invkin.data[1]*np.pi/180)*(4092/(3*np.pi/4))))
-#        self.cmd.q3=int(round(-2224+(-self.invkin.data[2]*np.pi/180+3*np.pi/4)*(4092/(np.pi))))
-#        #self.cmd.q4=int(round(945+(self.invkin.data[3]*np.pi/180+15*np.pi/4)*(4092/(15*np.pi))))
-#        
-#        # make sure they are valid joint angles between [0, 4095]
-#        # turret
-#        if self.cmd.q1 < 0:
-#            self.cmd.q1 = 0
-#        elif self.cmd.q1 > 4095:
-#            self.cmd.q1 = 4095
-#        # shoulder
-#        if self.cmd.q2 < 0:
-#            self.cmd.q2 = 0
-#        elif self.cmd.q2 > 4095:
-#            self.cmd.q2 = 4095
-#        # elbow
-#        if self.cmd.q3 < 0:
-#            self.cmd.q3 = 0
-#        elif self.cmd.q3 > 4095:
-#            self.cmd.q3 = 4095
+    	# read in & initialize position of arm
+    	# if first time
+    	# FK on last commanded angles
 
-#        '''
-#        # forearm
-#        if self.cmd.q4 < 0:
-#            self.cmd.q4 = 0
-#        elif self.cmd.q4 > 4095:
-#            self.cmd.q4 = 4095
+    	# change pose with Xbox
 
-#        # wrist tilt
-#        if self.wristangle.data[0]>90.0:
-#            self.wristangle.data[0]=90.0
-#        if self.wristangle.data[0]<-90.0:
-#            self.wristangle.data[0]=-90.0
-#        # wrist rotate
-#        if self.wristangle.data[1]>180.0:
-#            self.wristangle.data[1]=180.0
-#        if self.wristangle.data[1]<-180.0:
-#            self.wristangle.data[1]=-180.0
-#        # set wrist publisher data
-#        self.dyn_cmd.data[0]=math.radians(self.wristangle.data[0])
-#        self.dyn_cmd.data[1]=math.radians(self.wristangle.data[1])
-#        '''
-
-#        # Select between camera feeds with A & B on the xbox controller
-#        self.camera_select()
-#        
-#        # Pan and Tilt
-#        self.cam_pan_tilt()
-
-#        # Gripper
-#        self.gripper()
-
-#        # Shovel
-#        if self.joy.axes[2] < 0:
-#            self.cmd.shovel = self.cmd.shovel-10.0
-#            if self.cmd.shovel < 1000:
-#                self.cmd.shovel = 1000
-#        elif self.joy.axes[5] < 0:
-#            self.cmd.shovel = self.cmd.shovel+10.0
-#            if self.cmd.shovel > 2000:
-#                self.cmd.shovel = 2000
+    	# send pose to IK
 
         # Publish arm commands
         self.pub_joints.publish(self.joints)
-        #self.pub4.publish(self.dyn_cmd)
+        self.pub_pose.publish(self.pose)
 
     # ==========================================================================
     # Xbox Arm Control ===============================================
