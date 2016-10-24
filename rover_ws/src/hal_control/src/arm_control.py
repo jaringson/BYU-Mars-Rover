@@ -20,8 +20,9 @@ class Arm_XBOX():
         self.joy = Joy()
         self.state = ArmState()
         self.joints = JointState()
-        self.joints_cart = Float32MultiArray()
-        self.pose = Pose()
+        #self.joints_cart = Float32MultiArray()
+        self.pose_current = Pose()
+        self.pose_cmd = Pose()
         self.grip = 0
         
         # Initialize state; default = JointControl & Medium
@@ -38,6 +39,10 @@ class Arm_XBOX():
         self.joints.effort = []
 
         # Initialize FK
+        self.init_ik = True
+        self.pose_current.position.x = 0.0
+        self.pose_current.position.y = 0.0
+        self.pose_current.position.z = 0.0
         # self.robot = URDF.from_parameter_server()
         # #self.robot = URDF.from_xml_file('/home/halrover/BYU-Mars-Rover/rover_ws/src/hal_description/urdf/hal.urdf')
         # self.tree = kdl_tree_from_urdf_model(self.robot)
@@ -49,15 +54,15 @@ class Arm_XBOX():
 
     # Publishers and Subscribers
 
-    	# Subscribe to /joy_arm
+    	# Subscribe to /joy_arm /pose_cmd
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
-        self.sub_joint_cmd_pose = rospy.Subscriber('/joint_cmd_pose',Pose,)
+        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd', Pose, self.ikPoseCallback)
 
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
         self.pub_joints = rospy.Publisher('/joint_cmd', JointState, queue_size = 10)
-        #self.pub_joints_cart = rospy.Publisher('/joint_cart_cmd', Float32MultiArray, queue_size = 10)
-        self.pub_pose = rospy.Publisher('/pose_cmd', Pose, queue_size = 10)
+        self.pub_joint_ik = rospy.Publisher('/joint_ik', JointState, queue_size = 10)
+        self.pub_pose_ik = rospy.Publisher('/pose_ik', Pose, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
     # Callbacks
@@ -78,6 +83,9 @@ class Arm_XBOX():
                 self.check=True
             else:
                 self.check=False
+
+    def ikPoseCallback(self,msg):
+        self.pose_current = self.msg
 
     # Functions
     def check_method(self):
@@ -138,15 +146,53 @@ class Arm_XBOX():
 
     	# read in & initialize position of arm
     	# if first time
+        if self.init_ik:
+            # Publish current joint position
+            self.pub_joint_ik.publish(self.joints)
+            time.sleep(.25)
+            self.pose_cmd = self.pose_current
+            self.init_ik = False
     	# FK on last commanded angles
 
-    	# change pose with Xbox
+    	###### change pose with Xbox
+        # Speed Check
+        self.speed_check()
+
+        # Set corresponding rate
+        if self.state.speed == 'Fast':
+            MAX_RATE = .01
+        elif self.state.speed == 'Med':
+            MAX_RATE = .001
+        elif self.state.speed == 'Slow':
+            MAX_RATE = .0001
+
+        # Calculate how to command arm (position control)
+        DEADZONE = 0.1
+        
+        # Set axes
+        left_joy_up = self.joy.axes[1]
+        left_joy_right = self.joy.axes[0]
+        right_joy_up = self.joy.axes[4]
+        right_joy_right = self.joy.axes[3]
+        hat_up = self.joy.axes[7]
+        hat_right = self.joy.axes[6]
+        
+        # make array of axes
+        axes = [left_joy_right, left_joy_up, hat_up,
+            hat_right, right_joy_up, right_joy_right]
+        
+        # Set axis to zero in deadzone
+        for i in range(0,len(axes)):
+            if abs(axes[i])<DEADZONE:
+                axes[i] = 0
+
+        # Update Cartesian Positions
+        self.pose_cmd.position.x += -axes[0]*MAX_RATE
+        self.pose_cmd.position.y += axes[1]*MAX_RATE
+        self.pose_cmd.position.z += axes[4]*MAX_RATE
 
     	# send pose to IK
-
-        # Publish arm commands
-        self.pub_joints.publish(self.joints)
-        self.pub_pose.publish(self.pose)
+        self.pub_pose_ik.publish(self.pose_cmd)
 
     # ==========================================================================
     # Xbox Arm Control ===============================================
@@ -209,16 +255,6 @@ class Arm_XBOX():
         # Gripper
         self.gripper()
 
-        # FK
-        rospy.logwarn(str(self.base_link)) 
-        rospy.logwarn(str(self.end_link)) 
-        rospy.logwarn(str(self.chain.getNrOfJoints()))
-        rospy.logwarn(str(self.tree.getNrOfJoints()))
-        q = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        #q = [float(i) for i in self.joints.position]
-        #self.pose = self.kdl_kin.forward(q)
-        #rospy.logwarn(str(self.pose)) 
-
         # # Shovel
         # if self.joy.axes[2] < 0:
         #     self.cmd.shovel = self.cmd.shovel-10.0
@@ -236,6 +272,9 @@ class Arm_XBOX():
         #self.cmd.q5 = 0.
         #self.cmd.q6 = 0.0
         
+        # set flag so IK knows must init when entered again
+        self.init_ik = True
+
         # Publish arm commands
         self.pub_joints.publish(self.joints)
 
