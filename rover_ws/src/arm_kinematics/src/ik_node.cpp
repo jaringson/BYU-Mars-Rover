@@ -4,6 +4,7 @@
 #include <string>
 #include <geometry_msgs/Pose.h>
 #include <sensor_msgs/JointState.h>
+#include <kdl/chainfksolverpos_recursive.hpp>
 
 using namespace std;
 
@@ -19,20 +20,24 @@ class Arm_IK {
        
         TRAC_IK::TRAC_IK ik_solver; 
         ros::NodeHandle nh;
-        ros::Publisher pub;
-        ros::Subscriber sub;
+        ros::Publisher pub_joints;
+        ros::Subscriber sub_joints;
+        ros::Publisher pub_pose;
+        ros::Subscriber sub_pose;
         
         KDL::Chain chain;
+        KDL::ChainFkSolverPos_recursive*  fk_solver;
         KDL::JntArray nominal;
         KDL::JntArray Ll, Ul; // Upper and lower joint limits
         KDL::Frame pose; // End Effector Pose
-        KDL::JntArray result; // New joint angles
+        KDL::JntArray JointAngles; // New joint angles
         
     public:
         Arm_IK(int, char**);
+        ~Arm_IK() {delete fk_solver;};
         bool SolverInit();
         void poseMessageReceived(const geometry_msgs::Pose&);
-
+        void jointMessageReceived(const sensor_msgs::JointState&);
 };
 
 
@@ -56,9 +61,13 @@ Arm_IK::Arm_IK(int argc, char** argv)
     }
     
     // Set up Publisher and Subscriber
-    pub = nh.advertise<sensor_msgs::JointState>("joint_cmd",1000);
-    sub = nh.subscribe("pose_cmd", 1000, &Arm_IK::poseMessageReceived, this);
+    sub_joints = nh.subscribe("joint_controller",1000, &Arm_IK::jointMessageReceived, this);
+    pub_pose = nh.advertise<geometry_msgs::Pose>("pose_cmd",1000);
     
+    sub_pose = nh.subscribe("pose_controller", 1000, &Arm_IK::poseMessageReceived, this);
+    pub_joints = nh.advertise<sensor_msgs::JointState>("joint_cmd",1000);
+    
+
     // Start Solver
     bool valid = SolverInit();
     
@@ -92,18 +101,54 @@ bool Arm_IK::SolverInit()
     numJoints = chain.getNrOfJoints();
     assert(chain.getNrOfJoints() == Ll.data.size());
     assert(chain.getNrOfJoints() == Ul.data.size());
-    
+
+    // Set up KDL Forward Kinematics Solver
+    fk_solver = new KDL::ChainFkSolverPos_recursive(chain);
     return valid;       
 }
 
 void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
+    // Convert from Pose message to KDL Frame
     pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
     pose.M = KDL::Rotation::Quaternion(posemsg.orientation.x, posemsg.orientation.y, posemsg.orientation.z, posemsg.orientation.w);
     
+    // Run IK Solver
     int status = -1;
     do {
-        status = ik_solver.CartToJnt(nominal, pose, result);
+        status = ik_solver.CartToJnt(nominal, pose, JointAngles);
     } while(status < 0);
+
+    // Convert from KDL Joints to JointState Message
+    sensor_msgs::JointState ikmsg;
+    for (int i = 0; i<numJoints; i++) {
+        ikmsg.position[i] = JointAngles(i);
+    }
+
+    pub_joints.publish(ikmsg);
+}
+
+void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
+    // Convert jointstate message to KDL
+    for (int i = 0; i <numJoints; i++) {
+        JointAngles(i) = jointmsgs.position[i];
+    }
+    
+    // Run FK Solver
+    fk_solver->JntToCart(JointAngles,pose);
+
+    // Convert KDL Frame to Pose Message
+    geometry_msgs::Pose posemsg;
+    posemsg.position.x = pose.p[1];
+    posemsg.position.y = pose.p[2];
+    posemsg.position.z = pose.p[3];
+    double x,y,z,w;
+    pose.M.GetQuaternion(x,y,z,w);
+    posemsg.orientation.x = x;
+    posemsg.orientation.y = y;
+    posemsg.orientation.z = z;  
+    posemsg.orientation.w = w;
+
+    pub_pose.publish(posemsg);
 }
 
 int main(int argc, char** argv) {
