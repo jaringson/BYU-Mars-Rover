@@ -57,6 +57,7 @@ class Arm_XBOX():
     	# Subscribe to /joy_arm /pose_cmd
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
         self.sub_pose_cmd= rospy.Subscriber('/pose_cmd', Pose, self.ikPoseCallback)
+        self.sub_joint_cmd_ik = rospy.Subscriber('/joint_cmd_ik',JointState, self.ikjointCallback)
 
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
@@ -86,6 +87,10 @@ class Arm_XBOX():
 
     def ikPoseCallback(self,msg):
         self.pose_current = self.msg
+
+    def ikjointCallback(self, msg):
+        self.joints.position = msg.position
+        self.pub_joints.publish(self.joints)
 
     # Functions
     def check_method(self):
