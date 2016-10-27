@@ -23,13 +23,13 @@ include_directories(
   ${orocos_kdl_INCLUDE_DIRS}
 )
 
-add_executable(arm_ik src/ik_node.cpp)
-target_link_libraries(arm_ik
+add_executable(ik_node src/ik_node.cpp)
+target_link_libraries(ik_node
     ${catkin_LIBRARIES}
     ${orocos_kdl_LIBRARIES}
 )
 
-install(TARGETS arm_ik
+install(TARGETS ik_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
