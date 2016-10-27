@@ -9,7 +9,7 @@
     command="$(find xacro)/xacro.py '$(find hal_description)/urdf/rover_arm.xacro'" />
 
 
-  <node name="arm_ik_test" pkg="arm_kinematics" type="arm_ik" output="screen">
+  <node name="arm_ik_test" pkg="arm_kinematics" type="ik_node" output="screen">
     <param name="num_samples" value="$(arg num_samples)"/>
     <param name="chain_start" value="$(arg chain_start)"/>
     <param name="chain_end" value="$(arg chain_end)"/>
