@@ -61,21 +61,25 @@ Arm_IK::Arm_IK(int argc, char** argv)
     }
     
     // Set up Publisher and Subscriber
-    sub_joints = nh.subscribe("joint_controller",1000, &Arm_IK::jointMessageReceived, this);
-    pub_pose = nh.advertise<geometry_msgs::Pose>("pose_cmd",1000);
+    sub_joints = nh.subscribe("/joint_ik",1000, &Arm_IK::jointMessageReceived, this);
+    pub_pose = nh.advertise<geometry_msgs::Pose>("/pose_cmd",1000);
     
-    sub_pose = nh.subscribe("pose_controller", 1000, &Arm_IK::poseMessageReceived, this);
-    pub_joints = nh.advertise<sensor_msgs::JointState>("joint_cmd",1000);
+    sub_pose = nh.subscribe("/pose_ik", 1000, &Arm_IK::poseMessageReceived, this);
+    pub_joints = nh.advertise<sensor_msgs::JointState>("/joint_cmd",1000);
     
-
+    cout << "Subscribers set up" << endl;
+    
     // Start Solver
     bool valid = SolverInit();
     
     // Initialize Variables
     nominal.resize(numJoints);
+    JointAngles.resize(numJoints);
     for (int i=0; i<numJoints; i++) {
         nominal(i) = 0;
+        JointAngles(i) = 0;
     }
+    
     
     
 }
@@ -108,6 +112,8 @@ bool Arm_IK::SolverInit()
 }
 
 void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
+    cout << "Received message: convert to joints" << endl;
+    /*
     // Convert from Pose message to KDL Frame
     pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
     pose.M = KDL::Rotation::Quaternion(posemsg.orientation.x, posemsg.orientation.y, posemsg.orientation.z, posemsg.orientation.w);
@@ -125,9 +131,12 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
     }
 
     pub_joints.publish(ikmsg);
+    */
 }
 
 void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
+    cout << "Received message: convert to pose" << endl;
+    
     // Convert jointstate message to KDL
     for (int i = 0; i <numJoints; i++) {
         JointAngles(i) = jointmsgs.position[i];
@@ -135,12 +144,16 @@ void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
     
     // Run FK Solver
     fk_solver->JntToCart(JointAngles,pose);
-
+    
+    cout << pose.p[0] << endl;
+    cout << pose.p[1] << endl;
+    cout << pose.p[2] << endl;
+    
     // Convert KDL Frame to Pose Message
     geometry_msgs::Pose posemsg;
-    posemsg.position.x = pose.p[1];
-    posemsg.position.y = pose.p[2];
-    posemsg.position.z = pose.p[3];
+    posemsg.position.x = 0;//pose.p[0];
+    posemsg.position.y = pose.p[1];
+    posemsg.position.z = pose.p[2];
     double x,y,z,w;
     pose.M.GetQuaternion(x,y,z,w);
     posemsg.orientation.x = x;
@@ -149,17 +162,16 @@ void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
     posemsg.orientation.w = w;
 
     pub_pose.publish(posemsg);
+    
 }
 
 int main(int argc, char** argv) {
     
-    if (false) {
-
-    }
-    else {
-        ros::init(argc, argv, "arm_ik_tests");
-        Arm_IK(argc,argv);
-    }
+    ros::init(argc, argv, "arm_ik_tests");
+    
+    Arm_IK a(argc,argv);
+    
+    ros::spin();
     
     cout << "Hello World" << endl;
     return 0;
