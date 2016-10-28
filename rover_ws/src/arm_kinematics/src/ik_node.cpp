@@ -113,25 +113,32 @@ bool Arm_IK::SolverInit()
 
 void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
     cout << "Received message: convert to joints" << endl;
-    /*
+    
     // Convert from Pose message to KDL Frame
     pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
     pose.M = KDL::Rotation::Quaternion(posemsg.orientation.x, posemsg.orientation.y, posemsg.orientation.z, posemsg.orientation.w);
     
     // Run IK Solver
     int status = -1;
-    do {
-        status = ik_solver.CartToJnt(nominal, pose, JointAngles);
-    } while(status < 0);
+    //do {
+        //status = ik_solver.CartToJnt(nominal, pose, JointAngles);
+    //} while(status < 0);
+	status = ik_solver.CartToJnt(nominal, pose, JointAngles);
+	cout << status << endl;
+	cout << "Finished Solving" << endl;
+	cout << posemsg.position.x << " " << posemsg.position.y << " " << posemsg.position.z << endl;
+	cout << posemsg.orientation.x << " " << posemsg.orientation.y << " " << posemsg.orientation.z << " " << posemsg.orientation.w << endl;
 
     // Convert from KDL Joints to JointState Message
     sensor_msgs::JointState ikmsg;
     for (int i = 0; i<numJoints; i++) {
         ikmsg.position[i] = JointAngles(i);
+		cout << JointAngles(i) << " ";
     }
+	cout << endl;
 
     pub_joints.publish(ikmsg);
-    */
+    
 }
 
 void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
@@ -145,6 +152,8 @@ void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
     // Run FK Solver
     fk_solver->JntToCart(JointAngles,pose);
     
+	cout << numJoints << endl;
+	cout << chain_end << endl;
     cout << pose.p[0] << endl;
     cout << pose.p[1] << endl;
     cout << pose.p[2] << endl;
