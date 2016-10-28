@@ -63,6 +63,8 @@ void test(ros::NodeHandle& nh, double num_samples, std::string chain_start, std:
   // This constructor parses the URDF loaded in rosparm urdf_param into the
   // needed KDL structures.  We then pull these out to compare against the KDL
   // IK solver.
+  //TRAC_IK::TRAC_IK tracik_solver("link1", "link7", "/robot_description", 0, 0);
+  cout << chain_start << " " << chain_end << " " << urdf_param << " " << timeout << " " << eps << " " << endl;
   TRAC_IK::TRAC_IK tracik_solver(chain_start, chain_end, urdf_param, timeout, eps);
 
   KDL::Chain chain;
@@ -114,8 +116,10 @@ void test(ros::NodeHandle& nh, double num_samples, std::string chain_start, std:
 	
 	fk_solver.JntToCart(TestAngles,pose);
 	printPose(pose);
+	
 	int rc;
 	rc=tracik_solver.CartToJnt(nominal,pose,result);
+	printJoints(result);
 	
 	/*
   // Set up KDL IK

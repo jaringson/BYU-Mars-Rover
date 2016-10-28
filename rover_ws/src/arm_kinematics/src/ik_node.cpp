@@ -18,7 +18,7 @@ class Arm_IK {
         
         int numJoints;
        
-        TRAC_IK::TRAC_IK ik_solver; 
+        TRAC_IK::TRAC_IK* ik_solver; 
         ros::NodeHandle nh;
         ros::Publisher pub_joints;
         ros::Subscriber sub_joints;
@@ -42,7 +42,7 @@ class Arm_IK {
 
 
 Arm_IK::Arm_IK(int argc, char** argv)
- : ik_solver("link1", "link7", "/robot_description", 0, 0)
+// : ik_solver("link1", "link7", "/robot_description", 0, 0)
 {
     // Start ROS node
     ros::NodeHandle nh("~");
@@ -52,7 +52,7 @@ Arm_IK::Arm_IK(int argc, char** argv)
     nh.param("chain_end", chain_end, string(""));
     nh.param("timeout",timeout,0.005);
     nh.param("urdf_param",urdf_param, string("/robot_description"));
-    cout << urdf_param << endl;
+    eps = 1e-5;
     
     // Validate if Parameters were loaded
     if (chain_start=="" || chain_end=="") {
@@ -71,6 +71,8 @@ Arm_IK::Arm_IK(int argc, char** argv)
     
     // Start Solver
     bool valid = SolverInit();
+    cout << "Number of Segments: " << chain.getNrOfSegments() << endl;
+    cout << "Number of Joints: " << chain.getNrOfJoints() << endl;
     
     // Initialize Variables
     nominal.resize(numJoints);
@@ -79,24 +81,24 @@ Arm_IK::Arm_IK(int argc, char** argv)
         nominal(i) = 0;
         JointAngles(i) = 0;
     }
-    
-    
-    
+
 }
 
 bool Arm_IK::SolverInit() 
 {
     // Set up TRAC_IK Solver
-    TRAC_IK::TRAC_IK ik_solver(chain_start, chain_end, urdf_param, timeout, eps);
-
+    //TRAC_IK::TRAC_IK ik_solver(chain_start, chain_end, urdf_param, timeout, eps);
+    cout << chain_start << " " << chain_end << " " << urdf_param << " " << timeout << " " << eps << " " << endl;
+	ik_solver = new TRAC_IK::TRAC_IK(chain_start, chain_end, urdf_param, timeout, eps);
+	
     // Get KDL Chain
-    bool valid = ik_solver.getKDLChain(chain);
+    bool valid = ik_solver->getKDLChain(chain);
     if (!valid) {
         ROS_ERROR("There was no valid KDL chain found");
     }
     
     // Get Joint Limits
-    valid = ik_solver.getKDLLimits(Ll,Ul);
+    valid = ik_solver->getKDLLimits(Ll,Ul);
     if (!valid) {
         ROS_ERROR("There were no valid KDL joint limits found");
     }
@@ -108,7 +110,7 @@ bool Arm_IK::SolverInit()
 
     // Set up KDL Forward Kinematics Solver
     fk_solver = new KDL::ChainFkSolverPos_recursive(chain);
-    return valid;       
+    return valid;  
 }
 
 void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
@@ -118,25 +120,32 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
     pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
     pose.M = KDL::Rotation::Quaternion(posemsg.orientation.x, posemsg.orientation.y, posemsg.orientation.z, posemsg.orientation.w);
     
+    cout << pose.p[0] << endl;
+    cout << pose.p[1] << endl;
+    cout << pose.p[2] << endl;
+    
     // Run IK Solver
     int status = -1;
-    //do {
-        //status = ik_solver.CartToJnt(nominal, pose, JointAngles);
-    //} while(status < 0);
-	status = ik_solver.CartToJnt(nominal, pose, JointAngles);
+    do {
+        status = ik_solver->CartToJnt(nominal, pose, JointAngles);
+    } while(status < 0);
+	//status = ik_solver->CartToJnt(nominal, pose, JointAngles);
 	cout << status << endl;
 	cout << "Finished Solving" << endl;
-	cout << posemsg.position.x << " " << posemsg.position.y << " " << posemsg.position.z << endl;
-	cout << posemsg.orientation.x << " " << posemsg.orientation.y << " " << posemsg.orientation.z << " " << posemsg.orientation.w << endl;
 
     // Convert from KDL Joints to JointState Message
     sensor_msgs::JointState ikmsg;
     for (int i = 0; i<numJoints; i++) {
-        ikmsg.position[i] = JointAngles(i);
+        //ikmsg.position[i] = JointAngles(i);
 		cout << JointAngles(i) << " ";
     }
 	cout << endl;
-
+	
+	fk_solver->JntToCart(JointAngles,pose);
+	cout << pose.p[0] << endl;
+    cout << pose.p[1] << endl;
+    cout << pose.p[2] << endl;
+    
     pub_joints.publish(ikmsg);
     
 }
