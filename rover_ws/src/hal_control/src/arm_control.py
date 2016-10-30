@@ -86,7 +86,7 @@ class Arm_XBOX():
                 self.check=False
 
     def ikPoseCallback(self,msg):
-        self.pose_current = self.msg
+        self.pose_current = self.pose_current
 
     def ikjointCallback(self, msg):
         self.joints.position = msg.position
