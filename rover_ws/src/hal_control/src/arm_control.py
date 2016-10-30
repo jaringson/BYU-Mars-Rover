@@ -159,11 +159,11 @@ class Arm_XBOX():
             self.pose_cmd = self.pose_current
             self.init_ik = False
     	# FK on last commanded angles
-
+        
     	###### change pose with Xbox
         # Speed Check
         self.speed_check()
-
+        
         # Set corresponding rate
         if self.state.speed == 'Fast':
             MAX_RATE = .01
@@ -191,14 +191,20 @@ class Arm_XBOX():
         for i in range(0,len(axes)):
             if abs(axes[i])<DEADZONE:
                 axes[i] = 0
-
+        
         # Update Cartesian Positions
         self.pose_cmd.position.x += -axes[0]*MAX_RATE
         self.pose_cmd.position.y += axes[1]*MAX_RATE
         self.pose_cmd.position.z += axes[4]*MAX_RATE
-
+        self.pose_cmd.orientation.x = 0
+        self.pose_cmd.orientation.y = 0
+        self.pose_cmd.orientation.z = 0
+        self.pose_cmd.orientation.w = 1
+        
     	# send pose to IK
         self.pub_pose_ik.publish(self.pose_cmd)
+        """
+        """
 
     # ==========================================================================
     # Xbox Arm Control ===============================================
@@ -283,6 +289,7 @@ class Arm_XBOX():
 
         # Publish arm commands
         self.pub_joints.publish(self.joints)
+        self.pub_joint_ik.publish(self.joints)
 
 
     # ==========================================================================
