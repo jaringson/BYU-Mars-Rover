@@ -89,7 +89,6 @@ bool Arm_IK::SolverInit()
 {
     // Set up TRAC_IK Solver
     //TRAC_IK::TRAC_IK ik_solver(chain_start, chain_end, urdf_param, timeout, eps);
-    cout << chain_start << " " << chain_end << " " << urdf_param << " " << timeout << " " << eps << " " << endl;
 	ik_solver = new TRAC_IK::TRAC_IK(chain_start, chain_end, urdf_param, timeout, eps);
 	
     // Get KDL Chain
@@ -121,10 +120,6 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
     pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
     pose.M = KDL::Rotation::Quaternion(posemsg.orientation.x, posemsg.orientation.y, posemsg.orientation.z, posemsg.orientation.w);
     
-    cout << pose.p[0] << endl;
-    cout << pose.p[1] << endl;
-    cout << pose.p[2] << endl;
-    
     // Run IK Solver
     int status = -1;
     do {
@@ -149,11 +144,7 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
 	ikmsg.header.stamp = ros::Time::now();
 	ikmsg.header.frame_id = "IK_Node";
 	
-	fk_solver->JntToCart(JointAngles,pose);
-	cout << pose.p[0] << endl;
-    cout << pose.p[1] << endl;
-    cout << pose.p[2] << endl;
-    
+	fk_solver->JntToCart(JointAngles,pose);      
     pub_joints.publish(ikmsg);
     
 }
@@ -168,12 +159,6 @@ void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
     
     // Run FK Solver
     fk_solver->JntToCart(JointAngles,pose);
-    
-	cout << numJoints << endl;
-	cout << chain_end << endl;
-    cout << pose.p[0] << endl;
-    cout << pose.p[1] << endl;
-    cout << pose.p[2] << endl;
     
     // Convert KDL Frame to Pose Message
     geometry_msgs::Pose posemsg;
