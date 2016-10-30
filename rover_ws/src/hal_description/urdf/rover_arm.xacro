@@ -249,14 +249,14 @@
     <collision>
       <origin xyz="0 ${-(d6-dyn)/2} 0" rpy="0 0 0"/>
       <geometry>
-	<box size="${width} ${d6-dyn} ${width}"/>
+				<box size="${width} ${d6-dyn} ${width}"/>
       </geometry>
     </collision>
 
     <visual>
       <origin xyz="0 ${-(d6-dyn)/2} 0" rpy="0 0 0"/>
       <geometry>
-	<box size="${width} ${d6-dyn} ${width}"/>
+				<box size="${width} ${d6-dyn} ${width}"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -269,5 +269,31 @@
 	  iyy="${mass / 12.0 * ((d6-dyn)*(d6-dyn) + width*width)}" iyz="0.0"
 	  ixx="${mass / 12.0 * (width*width + width*width)}"/>
     </inertial>
-  </link> 
+  </link>
+  
+  <joint name="joint7" type="fixed">
+		<parent link="link7"/>
+		<child link="end"/>
+		<origin xyz="0 ${-(d6-dyn)} 0" rpy="0 0 0"/>
+	</joint>
+	
+	<!-- Dummy Link to force KDL chain point to tip of claw -->
+	<link name="end">
+		<visual>
+			<geometry>
+				<box size="0 0 0"/>
+			</geometry>
+		</visual>
+		<inertial>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<mass value="0"/>
+			<inertia
+				ixx="0" ixy="0" ixz="0"
+				iyy="0" iyz="0"
+				izz="0"
+			/>
+		</inertial>
+	</link>
+			
+			
 </robot>
