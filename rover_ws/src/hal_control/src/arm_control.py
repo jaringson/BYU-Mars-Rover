@@ -107,6 +107,7 @@ class Arm_XBOX():
             else:
                 self.state.mode = 'JointControl'
             time.sleep(.25)
+            rospy.loginfo(self.state.mode)
             
         # Implement Kill Switch
         if home == 1:
