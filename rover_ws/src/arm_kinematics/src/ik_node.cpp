@@ -5,6 +5,7 @@
 #include <geometry_msgs/Pose.h>
 #include <sensor_msgs/JointState.h>
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <ostream>
 
 using namespace std;
 
@@ -136,10 +137,17 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
     // Convert from KDL Joints to JointState Message
     sensor_msgs::JointState ikmsg;
     for (int i = 0; i<numJoints; i++) {
-        //ikmsg.position[i] = JointAngles(i);
-		cout << JointAngles(i) << " ";
+        ikmsg.position.push_back(JointAngles(i));
+		ikmsg.velocity.push_back(0);
+		string joint = "joint";
+		stringstream sstm;
+		sstm << joint << i+1;
+		ikmsg.name.push_back(sstm.str());
     }
-	cout << endl;
+
+	// Update header
+	ikmsg.header.stamp = ros::Time::now();
+	ikmsg.header.frame_id = "IK_Node";
 	
 	fk_solver->JntToCart(JointAngles,pose);
 	cout << pose.p[0] << endl;
