@@ -114,7 +114,7 @@ bool Arm_IK::SolverInit()
 }
 
 void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
-    cout << "Received message: convert to joints" << endl;
+    //cout << "Received message: convert to joints" << endl;
     
     // Convert from Pose message to KDL Frame
     pose.p = KDL::Vector(posemsg.position.x, posemsg.position.y, posemsg.position.z);
@@ -122,35 +122,49 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
     
     // Run IK Solver
     int status = -1;
+    int iter = 0;
+    //cout << pose.p[0] << " " << pose.p[1] << " " << pose.p[2] << endl;
     do {
         status = ik_solver->CartToJnt(nominal, pose, JointAngles);
+        iter++;
+        if (iter > 2) {
+        	JointAngles = nominal;
+        	ROS_INFO("LIMIT REACHED");
+        	break;
+        }
     } while(status < 0);
 	//status = ik_solver->CartToJnt(nominal, pose, JointAngles);
-	cout << status << endl;
-	cout << "Finished Solving" << endl;
+	//cout << status << endl;
+	//cout << "Finished Solving" << endl;
 
     // Convert from KDL Joints to JointState Message
-    sensor_msgs::JointState ikmsg;
+    sensor_msgs::JointState jointmsg;
     for (int i = 0; i<numJoints; i++) {
-        ikmsg.position.push_back(JointAngles(i));
-		ikmsg.velocity.push_back(0);
+        jointmsg.position.push_back(JointAngles(i));
+		jointmsg.velocity.push_back(0);
 		string joint = "joint";
 		stringstream sstm;
 		sstm << joint << i+1;
-		ikmsg.name.push_back(sstm.str());
+		jointmsg.name.push_back(sstm.str());
     }
 
 	// Update header
-	ikmsg.header.stamp = ros::Time::now();
-	ikmsg.header.frame_id = "IK_Node";
+	jointmsg.header.stamp = ros::Time::now();
+	jointmsg.header.frame_id = "IK_Node";
+	
+	// Update Nominal
+	nominal = JointAngles;
 	
 	fk_solver->JntToCart(JointAngles,pose);      
-    pub_joints.publish(ikmsg);
+    pub_joints.publish(jointmsg);
+    
+    // Publish Pose Again
+    jointMessageReceived(jointmsg);
     
 }
 
 void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
-    cout << "Received message: convert to pose" << endl;
+    //cout << "Received message: convert to pose" << endl;
     
     // Convert jointstate message to KDL
     for (int i = 0; i <numJoints; i++) {
@@ -162,7 +176,7 @@ void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
     
     // Convert KDL Frame to Pose Message
     geometry_msgs::Pose posemsg;
-    posemsg.position.x = 0;//pose.p[0];
+    posemsg.position.x = pose.p[0];
     posemsg.position.y = pose.p[1];
     posemsg.position.z = pose.p[2];
     double x,y,z,w;

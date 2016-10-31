@@ -9,8 +9,8 @@ from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
 import time
 import numpy as np
 from urdf_parser_py.urdf import URDF
-from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
-from pykdl_utils.kdl_kinematics import KDLKinematics
+#from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
+#from pykdl_utils.kdl_kinematics import KDLKinematics
 import random
 
 
@@ -58,7 +58,7 @@ class Arm_XBOX():
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
         self.sub_pose_cmd= rospy.Subscriber('/pose_cmd', Pose, self.ikPoseCallback)
         self.sub_joint_cmd_ik = rospy.Subscriber('/joint_cmd_ik',JointState, self.ikjointCallback)
-
+	
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
         self.pub_joints = rospy.Publisher('/joint_cmd', JointState, queue_size = 10)
@@ -86,7 +86,7 @@ class Arm_XBOX():
                 self.check=False
 
     def ikPoseCallback(self,msg):
-        self.pose_current = self.pose_current
+        self.pose_current = msg
 
     def ikjointCallback(self, msg):
         self.joints.position = msg.position
@@ -191,9 +191,12 @@ class Arm_XBOX():
         for i in range(0,len(axes)):
             if abs(axes[i])<DEADZONE:
                 axes[i] = 0
+                
+        # update pose_cmd with result from IK Node
+        self.pose_cmd = self.pose_current
         
         # Update Cartesian Positions
-        self.pose_cmd.position.x += -axes[0]*MAX_RATE
+        self.pose_cmd.position.x -= axes[0]*MAX_RATE
         self.pose_cmd.position.y += axes[1]*MAX_RATE
         self.pose_cmd.position.z += axes[4]*MAX_RATE
         self.pose_cmd.orientation.x = 0
@@ -201,10 +204,13 @@ class Arm_XBOX():
         self.pose_cmd.orientation.z = 0
         self.pose_cmd.orientation.w = 1
         
+        print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
+        
     	# send pose to IK
         self.pub_pose_ik.publish(self.pose_cmd)
-        """
-        """
+        
+        #print self.pose_cmd
+        
 
     # ==========================================================================
     # Xbox Arm Control ===============================================
