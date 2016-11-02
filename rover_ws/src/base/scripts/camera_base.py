@@ -6,6 +6,7 @@ from sensor_msgs.msg import Joy
 
 
 
+
 """
 This node is meant to receive compressed image data from all 5 cameras on the rover and receive joy commands to 
 decide which compressed images to send to the control station. 
@@ -26,12 +27,12 @@ class cam_hub:
 		# self.first_time = True
 		self.camera_on = False
 		# publishers
-		self.pub_image0 = rospy.Publisher("hub_cam0/image_raw/theora", CompressedImage, queue_size = 10)
-		self.pub_image1= rospy.Publisher("hub_cam1/image_raw/theora", CompressedImage, queue_size = 10)
+		self.pub_image0 = rospy.Publisher("hub_cam0/image_raw/compressed", CompressedImage, queue_size = 10)
+		self.pub_image1= rospy.Publisher("hub_cam1/image_raw/compressed", CompressedImage, queue_size = 10)
 		#subscribers
 		self.sub_joy = rospy.Subscriber("joy",Joy, self.joy_callback)
-		self.sub_cam0 = rospy.Subscriber("usb_cam0/image_raw/theora",CompressedImage, self.image_callback)
-		self.sub_cam1 = rospy.Subscriber("usb_cam1/image_raw/theora",CompressedImage, self.image_callback)
+		self.sub_cam0 = rospy.Subscriber("usb_cam0/image_raw/compressed",CompressedImage, self.image_callback)
+		self.sub_cam1 = rospy.Subscriber("usb_cam1/image_raw/compressed",CompressedImage, self.image_callback)
 	
 
 	"""
@@ -43,19 +44,20 @@ class cam_hub:
 		# button_pushed = data
 		self.joy=data
 		if self.joy.buttons[0] == 1:
-			if self.camera_on==False:            
+			if self.camera_on==False: 
 				self.camera_on=True
 			else:
 				self.camera_on=False
-
+		
 
 	def image_callback(self, data):
 		#rospy.loginfo(rospy.get_caller_id() + "hello world")
 		# if button_pushed:
 		cycle_button = self.joy.buttons[0]
-		
+		print("cycle button", cycle_button)
 		if self.camera_on:
 			# self.counter = self.counter + 1
+			print("got here")           
 			# if self.counter == 1:
 			self.pub_image0.publish(data)
 
