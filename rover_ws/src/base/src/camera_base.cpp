@@ -21,6 +21,9 @@ controller and its images are being published as compressed images over the rock
 // }
 
 // // decompress image and republish
+
+
+
 void image_callback(const sensor_msgs::ImageConstPtr& msg){
 	ROS_INFO_STREAM("message recieved");
 	

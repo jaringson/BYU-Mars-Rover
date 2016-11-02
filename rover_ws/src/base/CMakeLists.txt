@@ -128,7 +128,8 @@ include_directories(
 # add_dependencies(base ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(base src/camera_base.cpp)
+add_executable(base src/rover_hub.cpp src/rover_hub_node.cpp include/rover_hub.h)
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
