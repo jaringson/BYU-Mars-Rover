@@ -21,14 +21,15 @@ public:
     Rover_hub();
     ~Rover_hub();
 
-protected:
+private:
     // ros stuff for this node
-    #define NUM_CAM 5
+    #define NUM_CAM 3
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
     image_transport::ImageTransport it;
 
-
+    //joy subsciber
+    ros::Subscriber joy_sub;
 
     //image subsribers
     image_transport::Subscriber img_sub0;
@@ -48,7 +49,11 @@ protected:
     //calback functions
     void joy_callback(const sensor_msgs::Joy::ConstPtr& joy);
 
-    void image_callback(const sensor_msgs::ImageConstPtr& msg);
+    void image_callback0(const sensor_msgs::ImageConstPtr& msg);
+    void image_callback1(const sensor_msgs::ImageConstPtr& msg);
+    void image_callback2(const sensor_msgs::ImageConstPtr& msg);
+    void image_callback3(const sensor_msgs::ImageConstPtr& msg);
+    void image_callback4(const sensor_msgs::ImageConstPtr& msg);
     //JOY OBJECT
 
 

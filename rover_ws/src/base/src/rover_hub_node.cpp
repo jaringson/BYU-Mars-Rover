@@ -5,15 +5,16 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "rover_hub_node");
 
-    ros::NodeHandle nh;
+//    ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
     int rate;
-    nh_private.param<int>("rate", rate, 10);
+    nh_private.param<int>("rate", rate, 100);
 
     rover_hub::Rover_hub rh;
     ros::Rate loop_rate(rate);
     while(ros::ok())
     {
+        rh;
         ros::spinOnce();
 //        ro.publish_image();
 
