@@ -12,7 +12,7 @@ from urdf_parser_py.urdf import URDF
 #from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 #from pykdl_utils.kdl_kinematics import KDLKinematics
 import random
-
+import tf
 
 class Arm_XBOX():
     def __init__(self):
@@ -67,14 +67,14 @@ class Arm_XBOX():
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
     # Callbacks
-    #def inversekin(self,msg):
-     #   if msg.solved == 1 and self.check == True:
-      #      self.invkin.data[0] = msg.q[0]
-       #     self.invkin.data[1] = msg.q[1]
-        #    self.invkin.data[2] = msg.q[2]
-         #   self.invkin.data[3] = msg.q[3]
-          #  self.wristangle.data[0] = msg.q[4]
-           # self.wristangle.data[1] = msg.q[5]
+    # def inversekin(self,msg):
+    #   if msg.solved == 1 and self.check == True:
+    #      self.invkin.data[0] = msg.q[0]
+    #     self.invkin.data[1] = msg.q[1]
+    #    self.invkin.data[2] = msg.q[2]
+    #   self.invkin.data[3] = msg.q[3]
+    #  self.wristangle.data[0] = msg.q[4]
+    # self.wristangle.data[1] = msg.q[5]
 
 
     def joyCallback(self,msg):
@@ -150,7 +150,7 @@ class Arm_XBOX():
     # ==========================================================================
     def arm_IK(self):
 
-    	# read in & initialize position of arm
+        # read in & initialize position of arm
     	# if first time
         if self.init_ik:
             # Publish current joint position
@@ -158,7 +158,7 @@ class Arm_XBOX():
             time.sleep(.25)
             self.pose_cmd = self.pose_current
             self.init_ik = False
-    	# FK on last commanded angles
+        # FK on last commanded angles
         
     	###### change pose with Xbox
         # Speed Check
@@ -171,10 +171,12 @@ class Arm_XBOX():
             MAX_RATE = .001
         elif self.state.speed == 'Slow':
             MAX_RATE = .0001
-
+            
+        ANGLE_RATE = 5
+        
         # Calculate how to command arm (position control)
         DEADZONE = 0.1
-        
+
         # Set axes
         left_joy_up = self.joy.axes[1]
         left_joy_right = self.joy.axes[0]
@@ -196,21 +198,41 @@ class Arm_XBOX():
         self.pose_cmd = self.pose_current
         
         # Update Cartesian Positions
-        self.pose_cmd.position.x -= axes[0]*MAX_RATE
-        self.pose_cmd.position.y += axes[1]*MAX_RATE
-        self.pose_cmd.position.z += axes[4]*MAX_RATE
-        self.pose_cmd.orientation.x = 0
-        self.pose_cmd.orientation.y = 0
-        self.pose_cmd.orientation.z = 0
-        self.pose_cmd.orientation.w = 1
+        curRot = self.posemsg_to_matrix(self.pose_cmd)
+        origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
         
-        print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
+        self.pose_cmd.position.x += axes[0]*MAX_RATE
+        self.pose_cmd.position.y -= axes[1]*MAX_RATE
+        self.pose_cmd.position.z += axes[4]*MAX_RATE
+        alpha = axes[2]*MAX_RATE*ANGLE_RATE
+        beta = axes[5]*MAX_RATE*ANGLE_RATE
+        gamma = axes[3]*MAX_RATE*ANGLE_RATE
+        Rx = tf.transformations.rotation_matrix(alpha, xaxis)
+        Ry = tf.transformations.rotation_matrix(beta,  yaxis)
+        Rz = tf.transformations.rotation_matrix(gamma, zaxis)
+        newRot = tf.transformations.concatenate_matrices(curRot,Rx,Ry,Rz)
+        quat = tf.transformations.quaternion_from_matrix(newRot)
+
+        self.pose_cmd.orientation.x = quat[0]
+        self.pose_cmd.orientation.y = quat[1]
+        self.pose_cmd.orientation.z = quat[2]
+        self.pose_cmd.orientation.w = quat[3]
+        
+       # print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
         
     	# send pose to IK
         self.pub_pose_ik.publish(self.pose_cmd)
         
         #print self.pose_cmd
-        
+
+    def posemsg_to_matrix(self,posemsg):
+        quaternion = (
+            posemsg.orientation.x,
+            posemsg.orientation.y,
+            posemsg.orientation.z,
+            posemsg.orientation.w)
+        H = tf.transformations.quaternion_matrix(quaternion)
+        return H
 
     # ==========================================================================
     # Xbox Arm Control ===============================================

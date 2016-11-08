@@ -18,14 +18,14 @@ class Arm_IK {
         double eps; 
         
         int numJoints;
-       
+
         TRAC_IK::TRAC_IK* ik_solver; 
         ros::NodeHandle nh;
         ros::Publisher pub_joints;
         ros::Subscriber sub_joints;
         ros::Publisher pub_pose;
         ros::Subscriber sub_pose;
-        
+
         KDL::Chain chain;
         KDL::ChainFkSolverPos_recursive*  fk_solver;
         KDL::JntArray nominal;
@@ -47,7 +47,7 @@ Arm_IK::Arm_IK(int argc, char** argv)
 {
     // Start ROS node
     ros::NodeHandle nh("~");
-    
+
     // Get Parameters from server
     nh.param("chain_start", chain_start, string(""));
     nh.param("chain_end", chain_end, string(""));
