@@ -26,7 +26,7 @@ class Arm_XBOX():
         self.grip = 0
         
         # Initialize state; default = JointControl & Medium
-        self.state.mode = 'JointControl' # JointControl, VelControl IK Arm
+        self.state.mode = 'JointControl' # 'JointControl', 'IK Arm - Base,Tool', 'IK Arm - Tool,Tool'
         self.state.speed = 'Med' # Slow, Med, Fast
         self.state.kill = False
 
@@ -101,9 +101,9 @@ class Arm_XBOX():
         
         if y == 1:
             if self.state.mode == 'JointControl':
-                self.state.mode = 'VelControl'
-            elif self.state.mode == 'VelControl':
-                self.state.mode = 'IK Arm'
+                self.state.mode = 'IK Arm - Base,Tool'
+            elif self.state.mode == 'IK Arm - Base,Tool':
+                self.state.mode = 'IK Arm - Tool,Tool'
             else:
                 self.state.mode = 'JointControl'
             time.sleep(.25)
@@ -146,9 +146,9 @@ class Arm_XBOX():
             self.grip = 0
 
     # ==========================================================================
-    # INVERSE KINEMATICS CONTROL ===============================================
+    # INVERSE KINEMATICS CONTROL Position = Base Frame; Orientation = End effector frame
     # ==========================================================================
-    def arm_IK(self):
+    def arm_IK_base_tool(self):
 
         # read in & initialize position of arm
     	# if first time
@@ -221,6 +221,102 @@ class Arm_XBOX():
        # print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
         
     	# send pose to IK
+        self.pub_pose_ik.publish(self.pose_cmd)
+        
+        #print self.pose_cmd
+
+    def posemsg_to_matrix(self,posemsg):
+        quaternion = (
+            posemsg.orientation.x,
+            posemsg.orientation.y,
+            posemsg.orientation.z,
+            posemsg.orientation.w)
+        H = tf.transformations.quaternion_matrix(quaternion)
+        return H
+
+    # ==========================================================================
+    # INVERSE KINEMATICS CONTROL 2 Position = End Effector Frame; Orientation = End effector frame
+    # ==========================================================================
+    def arm_IK_tool_tool(self):
+
+        # read in & initialize position of arm
+        # if first time
+        if self.init_ik:
+            # Publish current joint position
+            self.pub_joint_ik.publish(self.joints)
+            time.sleep(.25)
+            self.pose_cmd = self.pose_current
+            self.init_ik = False
+        # FK on last commanded angles
+        
+        ###### change pose with Xbox
+        # Speed Check
+        self.speed_check()
+        
+        # Set corresponding rate
+        if self.state.speed == 'Fast':
+            MAX_RATE = .01
+        elif self.state.speed == 'Med':
+            MAX_RATE = .001
+        elif self.state.speed == 'Slow':
+            MAX_RATE = .0001
+            
+        ANGLE_RATE = 5
+        
+        # Calculate how to command arm (position control)
+        DEADZONE = 0.1
+
+        # Set axes
+        left_joy_up = self.joy.axes[1]
+        left_joy_right = self.joy.axes[0]
+        right_joy_up = self.joy.axes[4]
+        right_joy_right = self.joy.axes[3]
+        hat_up = self.joy.axes[7]
+        hat_right = self.joy.axes[6]
+        
+        # make array of axes
+        axes = [left_joy_right, left_joy_up, hat_up,
+            hat_right, right_joy_up, right_joy_right]
+        
+        # Set axis to zero in deadzone
+        for i in range(0,len(axes)):
+            if abs(axes[i])<DEADZONE:
+                axes[i] = 0
+                
+        # update pose_cmd with result from IK Node
+        self.pose_cmd = self.pose_current
+        
+        # Update Cartesian Positions
+        curRot = self.posemsg_to_matrix(self.pose_cmd)
+        origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
+        
+        # x,y,z movement in tool frame
+        x_mvnt = (axes[0]*MAX_RATE, 0, 0)
+        y_mvnt = (0, -axes[1]*MAX_RATE, 0)
+        z_mvnt = (0, 0, axes[4]*MAX_RATE)
+
+        # multiply the x,y,z_mvnt vectors by the current rotation matrix to yield their equivalents in x,y,z base frame then
+        self.pose_cmd.position.x += 0# x_mvnt_base
+        self.pose_cmd.position.y += 0# y_mvnt_base
+        self.pose_cmd.position.z += 0# z_mvnt_base
+
+        alpha = axes[2]*MAX_RATE*ANGLE_RATE
+        beta = axes[5]*MAX_RATE*ANGLE_RATE
+        gamma = axes[3]*MAX_RATE*ANGLE_RATE
+        Rx = tf.transformations.rotation_matrix(alpha, xaxis)
+        Ry = tf.transformations.rotation_matrix(beta,  yaxis)
+        Rz = tf.transformations.rotation_matrix(gamma, zaxis)
+        newRot = tf.transformations.concatenate_matrices(curRot,Rx,Ry,Rz)
+        quat = tf.transformations.quaternion_from_matrix(newRot)
+
+        self.pose_cmd.orientation.x = quat[0]
+        self.pose_cmd.orientation.y = quat[1]
+        self.pose_cmd.orientation.z = quat[2]
+        self.pose_cmd.orientation.w = quat[3]
+        
+       # print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
+        
+        # send pose to IK
         self.pub_pose_ik.publish(self.pose_cmd)
         
         #print self.pose_cmd
@@ -320,58 +416,58 @@ class Arm_XBOX():
         self.pub_joint_ik.publish(self.joints)
 
 
-    # ==========================================================================
-    # Velocity Arm Control ===============================================
-    # ==========================================================================
-    def vel_cmd(self):
+#     # ==========================================================================
+#     # Velocity Arm Control ===============================================
+#     # ==========================================================================
+#     def vel_cmd(self):
         
-        # Speed Check
-        self.speed_check()
+#         # Speed Check
+#         self.speed_check()
 
-        # Set corresponding rate
-        if self.state.speed == 'Fast':
-        	MAX_RATE = 100
-        elif self.state.speed == 'Med':
-        	MAX_RATE = 75
-        elif self.state.speed == 'Slow':
-        	MAX_RATE = 50
+#         # Set corresponding rate
+#         if self.state.speed == 'Fast':
+#         	MAX_RATE = 100
+#         elif self.state.speed == 'Med':
+#         	MAX_RATE = 75
+#         elif self.state.speed == 'Slow':
+#         	MAX_RATE = 50
 
-        # Calculate how to command arm (position control)
-        DEADZONE = 0.1
+#         # Calculate how to command arm (position control)
+#         DEADZONE = 0.1
         
-        # Set axes
-        left_joy_up = self.joy.axes[1]
-        left_joy_right = self.joy.axes[0]
-        right_joy_up = self.joy.axes[4]
-        right_joy_right = self.joy.axes[3]
-        hat_up = self.joy.axes[7]
-        hat_right = self.joy.axes[6]
+#         # Set axes
+#         left_joy_up = self.joy.axes[1]
+#         left_joy_right = self.joy.axes[0]
+#         right_joy_up = self.joy.axes[4]
+#         right_joy_right = self.joy.axes[3]
+#         hat_up = self.joy.axes[7]
+#         hat_right = self.joy.axes[6]
         
-        # make array of axes
-        axes = [left_joy_right, left_joy_up, hat_up,
-            hat_right, right_joy_up, right_joy_right]
+#         # make array of axes
+#         axes = [left_joy_right, left_joy_up, hat_up,
+#             hat_right, right_joy_up, right_joy_right]
         
-        # Set axis to zero in deadzone
-        for i in range(0,len(axes)):
-            if abs(axes[i])<DEADZONE:
-                axes[i] = 0
+#         # Set axis to zero in deadzone
+#         for i in range(0,len(axes)):
+#             if abs(axes[i])<DEADZONE:
+#                 axes[i] = 0
                 
-        # Update joint angles
-        for i in range(0,6):
-            self.joints.velocity[i] = axes[i]*MAX_RATE
+#         # Update joint angles
+#         for i in range(0,6):
+#             self.joints.velocity[i] = axes[i]*MAX_RATE
         
-#        # Set joint angle limits
-#        for i in range(0,len(self.joints.position)):
-#            if self.joints.position[i] > np.pi:
-#                self.joints.position[i] = np.pi
-#            elif self.joints.position[i] < -np.pi:
-#                self.joints.position[i] = -np.pi
+# #        # Set joint angle limits
+# #        for i in range(0,len(self.joints.position)):
+# #            if self.joints.position[i] > np.pi:
+# #                self.joints.position[i] = np.pi
+# #            elif self.joints.position[i] < -np.pi:
+# #                self.joints.position[i] = -np.pi
 
-        self.joints.header.stamp = rospy.Time.now()
-        self.joints.header.frame_id = 'VelControl'        
+#         self.joints.header.stamp = rospy.Time.now()
+#         self.joints.header.frame_id = 'VelControl'        
 
-        # Publish arm commands
-        self.pub_joints.publish(self.joints)
+#         # Publish arm commands
+#         self.pub_joints.publish(self.joints)
 
     # ==========================================================================
     # Main ===============================================
@@ -403,10 +499,10 @@ if __name__ == '__main__':
 	            # defaults to JointControl
 	            if xbox.state.mode == 'JointControl':
 	                xbox.joint_cmd()
-	            elif xbox.state.mode == 'VelControl':
-	                xbox.vel_cmd()
-	            elif xbox.state.mode == 'IK Arm':
-	                xbox.arm_IK()
+	            elif xbox.state.mode == 'IK Arm - Base,Tool':
+	                xbox.arm_IK_base_tool()
+	            elif xbox.state.mode == 'IK Arm - Tool,Tool':
+	                xbox.arm_IK_tool_tool()
 	            else:
 	                xbox.joint_cmd()
         #else:
