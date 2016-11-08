@@ -6,6 +6,7 @@ project(arm_kinematics)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  roscpp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -100,8 +101,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES arm_kinematics
-#  CATKIN_DEPENDS rospy
-#  DEPENDS system_lib
+  CATKIN_DEPENDS rospy roscpp pykdl_utils
+  DEPENDS system_lib
 )
 
 ###########
@@ -126,7 +127,7 @@ include_directories(
 # add_dependencies(arm_kinematics ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(arm_kinematics_node src/arm_kinematics_node.cpp)
+ add_executable(kdl_test src/kdl_test.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

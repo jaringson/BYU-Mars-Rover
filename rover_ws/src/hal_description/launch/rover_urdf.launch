@@ -1,14 +1,10 @@
 <launch>
   <param name="robot_description"
-    command="$(find xacro)/xacro.py '$(find hal_description)/urdf/hal_arm.xacro'" />
+    command="$(find xacro)/xacro.py '$(find hal_description)/urdf/rover_arm.xacro'" />
 
-  <param name="joy_node/dev" value="/dev/input/js0" />
-    <node pkg="joy" type="joy_node" name="joy_node">
-    </node>
-  
   <!-- send fake joint values -->
-  <node name="Xbox_controller" pkg="hal_control" type="arm_control.py">
-  <remap from="/joy_arm" to="/joy"/>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="TRUE"/>
   </node>
 
   <!-- Combine joint values -->

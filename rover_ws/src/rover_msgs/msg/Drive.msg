@@ -1,2 +1,2 @@
-uint16 lw
-uint16 rw
+int16 lw
+int16 rw
