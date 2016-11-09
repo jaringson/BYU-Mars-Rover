@@ -43,14 +43,6 @@ class Arm_XBOX():
         self.pose_current.position.x = 0.0
         self.pose_current.position.y = 0.0
         self.pose_current.position.z = 0.0
-        # self.robot = URDF.from_parameter_server()
-        # #self.robot = URDF.from_xml_file('/home/halrover/BYU-Mars-Rover/rover_ws/src/hal_description/urdf/hal.urdf')
-        # self.tree = kdl_tree_from_urdf_model(self.robot)
-        # self.base_link = self.robot.get_root()
-        # self.end_link = self.robot.link_map.keys()[0]
-        # self.chain = self.tree.getChain(self.base_link, self.end_link)
-        # self.kdl_kin = KDLKinematics(self.robot, self.base_link, self.end_link)
-        # self.pose = []
 
     # Publishers and Subscribers
 
@@ -66,16 +58,7 @@ class Arm_XBOX():
         self.pub_pose_ik = rospy.Publisher('/pose_ik', Pose, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
        
-    # Callbacks
-    #def inversekin(self,msg):
-     #   if msg.solved == 1 and self.check == True:
-      #      self.invkin.data[0] = msg.q[0]
-       #     self.invkin.data[1] = msg.q[1]
-        #    self.invkin.data[2] = msg.q[2]
-         #   self.invkin.data[3] = msg.q[3]
-          #  self.wristangle.data[0] = msg.q[4]
-           # self.wristangle.data[1] = msg.q[5]
-
+    ##### Callbacks ###########
 
     def joyCallback(self,msg):
         self.joy=msg
@@ -261,14 +244,6 @@ class Arm_XBOX():
 
         self.joints.header.stamp = rospy.Time.now()
         self.joints.header.frame_id = 'JointControl'                
-       
-        # Send moved angles to IK
-        #self.invkin.data[0] = -180/np.pi*((self.cmd.q1-3905)*3*np.pi/2/4092-3*np.pi/4)
-        #self.invkin.data[1] = -180/np.pi*((self.cmd.q2-3696)*3*np.pi/4/4092)
-        #self.invkin.data[2] = 180/np.pi*((self.cmd.q3-1500)*np.pi/4092-3*np.pi/4)
-        #self.invkin.data[3] = 180/np.pi((self.cmd.q4-945)*15*np.pi/4092-15*np.pi/4)
-        #self.dyn.data[0]=self.dyn_cmd.data[0]
-        #self.dyn.data[1]=self.dyn_cmd.data[1]
 
         # Gripper
         self.gripper()
@@ -282,13 +257,6 @@ class Arm_XBOX():
         #     self.cmd.shovel = self.cmd.shovel+10.0
         #     if self.cmd.shovel > 2000:
         #         self.cmd.shovel = 2000
-
-        #self.cmd.q1 = 1850
-        #self.cmd.q2 = 968
-        #self.cmd.q3 = 2891
-        #self.cmd.q4 = 1968
-        #self.cmd.q5 = 0.
-        #self.cmd.q6 = 0.0
         
         # set flag so IK knows must init when entered again
         self.init_ik = True
