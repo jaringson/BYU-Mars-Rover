@@ -199,7 +199,7 @@ class Arm_XBOX():
         self.pose_cmd = self.pose_current
         
         # Update Cartesian Positions
-        curRot = self.posemsg_to_matrix(self.pose_cmd)
+        curRot = self.posemsg_to_rotmatrix(self.pose_cmd)
         origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
         
         self.pose_cmd.position.x += axes[0]*MAX_RATE
@@ -225,15 +225,6 @@ class Arm_XBOX():
         self.pub_pose_ik.publish(self.pose_cmd)
         
         #print self.pose_cmd
-
-    def posemsg_to_matrix(self,posemsg):
-        quaternion = (
-            posemsg.orientation.x,
-            posemsg.orientation.y,
-            posemsg.orientation.z,
-            posemsg.orientation.w)
-        H = tf.transformations.quaternion_matrix(quaternion)
-        return H
 
     # ==========================================================================
     # INVERSE KINEMATICS CONTROL 2 Position = End Effector Frame; Orientation = End effector frame
@@ -290,6 +281,7 @@ class Arm_XBOX():
         ### Update Cartesian Position
 
         # Get Current Transformation to End Effector Tip
+        curRot = self.posemsg_to_rotmatrix(self.pose_cmd)
         T = self.posemsg_to_matrix(self.pose_cmd)
         origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
         
@@ -300,7 +292,7 @@ class Arm_XBOX():
         mvnt = np.matrix([x_mvnt, y_mvnt, z_mvnt])
         dTool = tr.translation_matrix(mvnt)
         dBase = tr.concatenate_matrices(T, dTool)
-
+	
         self.pose_cmd.position.x = dBase.item(0, 3)
         self.pose_cmd.position.y = dBase.item(1, 3)
         self.pose_cmd.position.z = dBase.item(2, 3)
@@ -311,7 +303,7 @@ class Arm_XBOX():
         Rx = tr.rotation_matrix(alpha, xaxis)
         Ry = tr.rotation_matrix(beta,  yaxis)
         Rz = tr.rotation_matrix(gamma, zaxis)
-        newRot = tr.concatenate_matrices(T, Rx, Ry, Rz)
+        newRot = tr.concatenate_matrices(curRot, Rx, Ry, Rz)
         quat = tr.quaternion_from_matrix(newRot)
 
         self.pose_cmd.orientation.x = quat[0]
@@ -327,13 +319,28 @@ class Arm_XBOX():
         #print self.pose_cmd
 
     def posemsg_to_matrix(self,posemsg):
+        R = self.posemsg_to_rotmatrix(posemsg)
+        T = self.posemsg_to_transmatrix(posemsg)
+        H = tr.concatenate_matrices(T,R)
+        return H
+    
+    def posemsg_to_rotmatrix(self,posemsg):
         quaternion = (
             posemsg.orientation.x,
             posemsg.orientation.y,
             posemsg.orientation.z,
             posemsg.orientation.w)
-        H = tf.transformations.quaternion_matrix(quaternion)
+        H = tr.quaternion_matrix(quaternion)
         return H
+        
+    def posemsg_to_transmatrix(self,posemsg):
+	    trans = np.matrix([posemsg.position.x,posemsg.position.y,posemsg.position.z])
+	    H = tr.translation_matrix(trans)
+	    return H
+	    
+    
+        
+        
 
     # ==========================================================================
     # Xbox Arm Control ===============================================
