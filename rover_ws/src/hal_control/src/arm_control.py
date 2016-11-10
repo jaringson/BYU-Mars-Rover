@@ -13,6 +13,7 @@ from urdf_parser_py.urdf import URDF
 #from pykdl_utils.kdl_kinematics import KDLKinematics
 import random
 import tf
+import tf.transformations as tr
 
 class Arm_XBOX():
     def __init__(self):
@@ -285,29 +286,33 @@ class Arm_XBOX():
                 
         # update pose_cmd with result from IK Node
         self.pose_cmd = self.pose_current
-        
-        # Update Cartesian Positions
-        curRot = self.posemsg_to_matrix(self.pose_cmd)
+
+        ### Update Cartesian Position
+
+        # Get Current Transformation to End Effector Tip
+        T = self.posemsg_to_matrix(self.pose_cmd)
         origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
         
         # x,y,z movement in tool frame
-        x_mvnt = (axes[0]*MAX_RATE, 0, 0)
-        y_mvnt = (0, -axes[1]*MAX_RATE, 0)
-        z_mvnt = (0, 0, axes[4]*MAX_RATE)
+        x_mvnt = axes[0]*MAX_RATE
+        y_mvnt = -axes[1]*MAX_RATE
+        z_mvnt = axes[4]*MAX_RATE
+        mvnt = np.matrix([x_mvnt, y_mvnt, z_mvnt])
+        dTool = tr.translation_matrix(mvnt)
+        dBase = tr.concatenate_matrices(T, dTool)
 
-        # multiply the x,y,z_mvnt vectors by the current rotation matrix to yield their equivalents in x,y,z base frame then
-        self.pose_cmd.position.x += 0# x_mvnt_base
-        self.pose_cmd.position.y += 0# y_mvnt_base
-        self.pose_cmd.position.z += 0# z_mvnt_base
+        self.pose_cmd.position.x = dBase.item(0, 3)
+        self.pose_cmd.position.y = dBase.item(1, 3)
+        self.pose_cmd.position.z = dBase.item(2, 3)
 
         alpha = axes[2]*MAX_RATE*ANGLE_RATE
         beta = axes[5]*MAX_RATE*ANGLE_RATE
         gamma = axes[3]*MAX_RATE*ANGLE_RATE
-        Rx = tf.transformations.rotation_matrix(alpha, xaxis)
-        Ry = tf.transformations.rotation_matrix(beta,  yaxis)
-        Rz = tf.transformations.rotation_matrix(gamma, zaxis)
-        newRot = tf.transformations.concatenate_matrices(curRot,Rx,Ry,Rz)
-        quat = tf.transformations.quaternion_from_matrix(newRot)
+        Rx = tr.rotation_matrix(alpha, xaxis)
+        Ry = tr.rotation_matrix(beta,  yaxis)
+        Rz = tr.rotation_matrix(gamma, zaxis)
+        newRot = tr.concatenate_matrices(T, Rx, Ry, Rz)
+        quat = tr.quaternion_from_matrix(newRot)
 
         self.pose_cmd.orientation.x = quat[0]
         self.pose_cmd.orientation.y = quat[1]
