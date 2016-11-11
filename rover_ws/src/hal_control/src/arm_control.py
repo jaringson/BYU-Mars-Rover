@@ -27,7 +27,7 @@ class Arm_XBOX():
         
         # Initialize state; default = JointControl & Medium
         self.state.mode = 'JointControl' # 'JointControl', 'IK Arm - Base,Tool', 'IK Arm - Tool,Tool'
-        self.state.speed = 'Med' # Slow, Med, Fast
+        self.state.speed = 'Slow' # Slow, Med, Fast
         self.state.kill = False
 
         # Initialize joints = instance of JointState
