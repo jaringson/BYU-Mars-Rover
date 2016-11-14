@@ -64,10 +64,11 @@ class Arm_XBOX():
     def joyCallback(self,msg):
         self.joy=msg
         if self.joy.buttons[9] == 1:
-            if self.check==False:            
-                self.check=True
-            else:
-                self.check=False
+            pass
+            # if self.check==False:            
+            #     self.check=True
+            # else:
+            #     self.check=False
 
     def ikPoseCallback(self,msg):
         self.pose_current = msg

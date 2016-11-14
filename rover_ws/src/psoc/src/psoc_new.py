@@ -52,22 +52,22 @@ class PSOC_class():
 		self.psoc = PSOC()
 
 		# initialize Drive msg stuff
-		self.psoc.lw = 0
-		self.psoc.rw = 0
+		self.psoc.lw = 1500
+		self.psoc.rw = 1500
 
 		# initialize RoverState stuff
-		self.psoc.pan = 0
-		self.psoc.tilt = 0
+		self.psoc.pan = 1500
+		self.psoc.tilt = 1500
 		self.psoc.camnum = 0
 		self.psoc.chutes = 0
 
 		# initialize JointState Stuff
-		self.psoc.q1 = 0
-		self.psoc.q2 = 0
-		self.psoc.q3 = 0
-		self.psoc.q4 = 0
-		self.psoc.q5 = 0
-		self.psoc.q6 = 0
+		self.psoc.q1 = 2046
+		self.psoc.q2 = 2046
+		self.psoc.q3 = 2046
+		self.psoc.q4 = 2046
+		self.psoc.q5 = 2046
+		self.psoc.q6 = 2046
 
 		# initialize Grip Stuff
 		self.psoc.grip = 0
@@ -193,7 +193,11 @@ class PSOC_class():
 		string = ''
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
-			self.ser.write(string)
+		self.ser.write(string)
+		print self.msg.data
+
+		# publish values just written to psoc
+		self.pub_psoc.publish(self.psoc)
 
 	def remove_non_ascii(self,text):
 		return ''.join([i if ord(i)<128 else ' ' for i in text])
