@@ -52,25 +52,25 @@ class PSOC_class():
 		self.psoc = PSOC()
 
 		# initialize Drive msg stuff
-		self.psoc.lw = 1500
-		self.psoc.rw = 1500
+		self.psoc.lw = np.uint16(1500)
+		self.psoc.rw = np.uint16(1500)
 
 		# initialize RoverState stuff
-		self.psoc.pan = 1500
-		self.psoc.tilt = 1500
-		self.psoc.camnum = 0
-		self.psoc.chutes = 0
+		self.psoc.pan = np.uint16(1500)
+		self.psoc.tilt = np.uint16(1500)
+		self.psoc.camnum = np.uint16(0)
+		self.psoc.chutes = np.uint16(0)
 
 		# initialize JointState Stuff
-		self.psoc.q1 = 2046
-		self.psoc.q2 = 2046
-		self.psoc.q3 = 2046
-		self.psoc.q4 = 2046
-		self.psoc.q5 = 2046
-		self.psoc.q6 = 2046
+		self.psoc.q1 = np.uint16(2046)
+		self.psoc.q2 = np.uint16(2046)
+		self.psoc.q3 = np.uint16(2046)
+		self.psoc.q4 = np.uint16(2046)
+		self.psoc.q5 = np.uint16(2046)
+		self.psoc.q6 = np.uint16(2046)
 
 		# initialize Grip Stuff
-		self.psoc.grip = 0
+		self.psoc.grip = np.uint16(0)
 
 		# feedback: 0xE3, turret-low, turret-high, shoulder-low, shoulder-high,
 		# elbow-low, elbow-high, forearm-low, forearm-high, temperature-low,
@@ -85,10 +85,10 @@ class PSOC_class():
 		# 	self.ser.close()
 
 		# initialize subscribers
-		self.sub_drive = rospy.Subscriber('/drive_state', Drive, self.drive_callback)
-		self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
+		# self.sub_drive = rospy.Subscriber('/drive_state', Drive, self.drive_callback)
+		# self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
 		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback)
-		self.sub_joint = rospy.Subscriber('/grip', Int8, self.grip_callback)        
+		# self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
         # initialize publishers
 		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC, queue_size=1)
@@ -105,18 +105,18 @@ class PSOC_class():
 		lw_temp = 1500 + (5*drive.lw)
 		rw_temp = 1500 + (5*drive.rw)
 
-		self.psoc.lw = lw_temp
-		self.psoc.rw = rw_temp
+		self.psoc.lw = np.uint16(lw_temp)
+		self.psoc.rw = np.uint16(rw_temp)
 
     # Rover State Callback
     #     
 	def state_callback(self, state):
 		# self.state.pan = state.pan
 		# self.state.tilt = state.tilt 
-		self.psoc.pan = 1500
-		self.psoc.tilt = 1500 
-		self.psoc.camnum = state.camnum
-		self.psoc.chutes = state.chutes
+		self.psoc.pan = np.uint16(1500)
+		self.psoc.tilt = np.uint16(1500) 
+		self.psoc.camnum = np.uint16(state.camnum)
+		self.psoc.chutes = np.uint16(state.chutes)
 
     # Joint Callback
     # Last year = values from 0 to 4092 for each joint, representing commanded angle
@@ -140,10 +140,47 @@ class PSOC_class():
 		self.psoc.q5 = np.uint16(pos_temp[4])
 		self.psoc.q6 = np.uint16(pos_temp[5])
 
+		self.msg.data[0] = 0xEA
+		self.msg.data[1] = self.psoc.lw & 0xff
+		self.msg.data[2] = (self.psoc.lw & 0xff00) >> 8
+		self.msg.data[3] = self.psoc.rw & 0xff
+		self.msg.data[4] = (self.psoc.rw & 0xff00) >> 8
+		self.msg.data[5] = self.psoc.pan & 0xff
+		self.msg.data[6] = (self.psoc.pan & 0xff00) >> 8
+		self.msg.data[7] = self.psoc.tilt & 0xff
+		self.msg.data[8] = (self.psoc.tilt & 0xff00) >> 8
+		self.msg.data[9] = self.psoc.camnum
+		self.msg.data[10] = self.psoc.q1 & 0xff
+		self.msg.data[11] = (self.psoc.q1 & 0xff00) >> 8
+		self.msg.data[12] = self.psoc.q2 & 0xff
+		self.msg.data[13] = (self.psoc.q2 & 0xff00) >> 8
+		self.msg.data[14] = self.psoc.q3 & 0xff
+		self.msg.data[15] = (self.psoc.q3 & 0xff00) >> 8
+		self.msg.data[16] = self.psoc.q4 & 0xff
+		self.msg.data[17] = (self.psoc.q4 & 0xff00) >> 8
+		self.msg.data[18] = self.psoc.q5 & 0xff
+		self.msg.data[19] = 0
+		self.msg.data[20] = 0
+		self.msg.data[21] = 0
+		self.msg.data[22] = self.psoc.grip & 0xff
+		self.msg.data[23] = (self.psoc.grip & 0xff00) >> 8
+		self.msg.data[24] = self.psoc.chutes
+		self.msg.data[25] = np.uint16(1500) & 0xff #cmd.psoc.shovel & 0xff
+		self.msg.data[26] = (np.uint16(1500) & 0xff00) >> 8#(cmd.psoc.shovel & 0xff00) >> 8
+
+		# print 'Ser open?'
+		# print self.ser.isOpen()
+
+		string = ''
+		for i in self.msg.data:
+			string += struct.pack('!B',i)
+		bwrite = self.ser.write(string)
+		print bwrite
+
 		# rospy.logwarn(str(pos_temp))
 
 	def grip_callback(self, grip):
-		self.psoc.grip = grip
+		self.psoc.grip = np.uint16(grip)
     
 	def set_rover_cmd(self):
 
@@ -171,7 +208,7 @@ class PSOC_class():
 		self.msg.data[6] = (self.psoc.pan & 0xff00) >> 8
 		self.msg.data[7] = self.psoc.tilt & 0xff
 		self.msg.data[8] = (self.psoc.tilt & 0xff00) >> 8
-		self.msg.data[9] = 0 #self.psoc.camnum
+		self.msg.data[9] = self.psoc.camnum
 		self.msg.data[10] = self.psoc.q1 & 0xff
 		self.msg.data[11] = (self.psoc.q1 & 0xff00) >> 8
 		self.msg.data[12] = self.psoc.q2 & 0xff
@@ -180,21 +217,24 @@ class PSOC_class():
 		self.msg.data[15] = (self.psoc.q3 & 0xff00) >> 8
 		self.msg.data[16] = self.psoc.q4 & 0xff
 		self.msg.data[17] = (self.psoc.q4 & 0xff00) >> 8
-		self.msg.data[18] = 0 #cmd.q5 & 0xff
+		self.msg.data[18] = self.psoc.q5 & 0xff
 		self.msg.data[19] = 0
 		self.msg.data[20] = 0
 		self.msg.data[21] = 0
-		self.msg.data[22] = 0 #self.psoc.grip & 0xff
-		self.msg.data[23] = 0 #(self.psoc.grip & 0xff00) >> 8
-		self.msg.data[24] = 0 #self.psoc.chutes
-		self.msg.data[25] = 1500 & 0xff #cmd.psoc.shovel & 0xff
-		self.msg.data[26] = (1500 & 0xff00) >> 8#(cmd.psoc.shovel & 0xff00) >> 8
+		self.msg.data[22] = self.psoc.grip & 0xff
+		self.msg.data[23] = (self.psoc.grip & 0xff00) >> 8
+		self.msg.data[24] = self.psoc.chutes
+		self.msg.data[25] = np.uint16(1500) & 0xff #cmd.psoc.shovel & 0xff
+		self.msg.data[26] = (np.uint16(1500) & 0xff00) >> 8#(cmd.psoc.shovel & 0xff00) >> 8
+
+		# print 'Ser open?'
+		# print self.ser.isOpen()
 
 		string = ''
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
-		self.ser.write(string)
-		print self.msg.data
+		bwrite = self.ser.write(string)
+		print bwrite
 
 		# publish values just written to psoc
 		self.pub_psoc.publish(self.psoc)
@@ -226,7 +266,7 @@ if __name__ == '__main__':
 	psoc = PSOC_class()
 
 	while not rospy.is_shutdown():
-		psoc.set_rover_cmd()
+		# psoc.set_rover_cmd()
 		# psoc.read_feedback()
 		rate.sleep()
 
