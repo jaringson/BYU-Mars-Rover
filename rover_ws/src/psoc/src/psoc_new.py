@@ -80,7 +80,7 @@ class PSOC_class():
 		#self.arm_feedback = Pololu()
 
 		# initialize serial port here
-		self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
+		self.ser = serial.Serial('/dev/ttyUSB3', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
@@ -175,7 +175,6 @@ class PSOC_class():
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
 		bwrite = self.ser.write(string)
-		print bwrite
 
 		# rospy.logwarn(str(pos_temp))
 
