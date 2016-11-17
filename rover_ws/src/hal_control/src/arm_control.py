@@ -336,11 +336,11 @@ class Arm_XBOX():
 
         # Set corresponding rate
         if self.state.speed == 'Fast':
-        	MAX_RATE = 10*np.pi/180
+        	MAX_RATE = 2*np.pi/180.0
         elif self.state.speed == 'Med':
-        	MAX_RATE = 5*np.pi/180
+        	MAX_RATE = 1*np.pi/180.0
         elif self.state.speed == 'Slow':
-        	MAX_RATE = 2*np.pi/180
+        	MAX_RATE = 0.5*np.pi/180.0
 
         # Calculate how to command arm (position control)
         DEADZONE = 0.1
@@ -458,7 +458,7 @@ if __name__ == '__main__':
     rospy.init_node('xbox_arm_control')
     
     # set rate
-    hz = 60.0
+    hz = 10.0#60.0
     rate = rospy.Rate(hz)
 
     # init Arm_xbox object

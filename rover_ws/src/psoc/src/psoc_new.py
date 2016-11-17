@@ -80,7 +80,7 @@ class PSOC_class():
 		#self.arm_feedback = Pololu()
 
 		# initialize serial port here
-		self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
+		self.ser = serial.Serial('/dev/ttyUSB3', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
@@ -108,6 +108,8 @@ class PSOC_class():
 		self.psoc.lw = np.uint16(lw_temp)
 		self.psoc.rw = np.uint16(rw_temp)
 
+		self.set_rover_cmd()
+
     # Rover State Callback
     #     
 	def state_callback(self, state):
@@ -117,6 +119,8 @@ class PSOC_class():
 		self.psoc.tilt = np.uint16(1500) 
 		self.psoc.camnum = np.uint16(state.camnum)
 		self.psoc.chutes = np.uint16(state.chutes)
+
+		self.set_rover_cmd()
 
     # Joint Callback
     # Last year = values from 0 to 4092 for each joint, representing commanded angle
@@ -140,47 +144,50 @@ class PSOC_class():
 		self.psoc.q5 = np.uint16(pos_temp[4])
 		self.psoc.q6 = np.uint16(pos_temp[5])
 
-		self.msg.data[0] = 0xEA
-		self.msg.data[1] = self.psoc.lw & 0xff
-		self.msg.data[2] = (self.psoc.lw & 0xff00) >> 8
-		self.msg.data[3] = self.psoc.rw & 0xff
-		self.msg.data[4] = (self.psoc.rw & 0xff00) >> 8
-		self.msg.data[5] = self.psoc.pan & 0xff
-		self.msg.data[6] = (self.psoc.pan & 0xff00) >> 8
-		self.msg.data[7] = self.psoc.tilt & 0xff
-		self.msg.data[8] = (self.psoc.tilt & 0xff00) >> 8
-		self.msg.data[9] = self.psoc.camnum
-		self.msg.data[10] = self.psoc.q1 & 0xff
-		self.msg.data[11] = (self.psoc.q1 & 0xff00) >> 8
-		self.msg.data[12] = self.psoc.q2 & 0xff
-		self.msg.data[13] = (self.psoc.q2 & 0xff00) >> 8
-		self.msg.data[14] = self.psoc.q3 & 0xff
-		self.msg.data[15] = (self.psoc.q3 & 0xff00) >> 8
-		self.msg.data[16] = self.psoc.q4 & 0xff
-		self.msg.data[17] = (self.psoc.q4 & 0xff00) >> 8
-		self.msg.data[18] = self.psoc.q5 & 0xff
-		self.msg.data[19] = 0
-		self.msg.data[20] = 0
-		self.msg.data[21] = 0
-		self.msg.data[22] = self.psoc.grip & 0xff
-		self.msg.data[23] = (self.psoc.grip & 0xff00) >> 8
-		self.msg.data[24] = self.psoc.chutes
-		self.msg.data[25] = np.uint16(1500) & 0xff #cmd.psoc.shovel & 0xff
-		self.msg.data[26] = (np.uint16(1500) & 0xff00) >> 8#(cmd.psoc.shovel & 0xff00) >> 8
+		self.set_rover_cmd()
 
-		# print 'Ser open?'
-		# print self.ser.isOpen()
+		# self.msg.data[0] = 0xEA
+		# self.msg.data[1] = self.psoc.lw & 0xff
+		# self.msg.data[2] = (self.psoc.lw & 0xff00) >> 8
+		# self.msg.data[3] = self.psoc.rw & 0xff
+		# self.msg.data[4] = (self.psoc.rw & 0xff00) >> 8
+		# self.msg.data[5] = self.psoc.pan & 0xff
+		# self.msg.data[6] = (self.psoc.pan & 0xff00) >> 8
+		# self.msg.data[7] = self.psoc.tilt & 0xff
+		# self.msg.data[8] = (self.psoc.tilt & 0xff00) >> 8
+		# self.msg.data[9] = self.psoc.camnum
+		# self.msg.data[10] = self.psoc.q1 & 0xff
+		# self.msg.data[11] = (self.psoc.q1 & 0xff00) >> 8
+		# self.msg.data[12] = self.psoc.q2 & 0xff
+		# self.msg.data[13] = (self.psoc.q2 & 0xff00) >> 8
+		# self.msg.data[14] = self.psoc.q3 & 0xff
+		# self.msg.data[15] = (self.psoc.q3 & 0xff00) >> 8
+		# self.msg.data[16] = self.psoc.q4 & 0xff
+		# self.msg.data[17] = (self.psoc.q4 & 0xff00) >> 8
+		# self.msg.data[18] = self.psoc.q5 & 0xff
+		# self.msg.data[19] = 0
+		# self.msg.data[20] = 0
+		# self.msg.data[21] = 0
+		# self.msg.data[22] = self.psoc.grip & 0xff
+		# self.msg.data[23] = (self.psoc.grip & 0xff00) >> 8
+		# self.msg.data[24] = self.psoc.chutes
+		# self.msg.data[25] = np.uint16(1500) & 0xff #cmd.psoc.shovel & 0xff
+		# self.msg.data[26] = (np.uint16(1500) & 0xff00) >> 8#(cmd.psoc.shovel & 0xff00) >> 8
 
-		string = ''
-		for i in self.msg.data:
-			string += struct.pack('!B',i)
-		bwrite = self.ser.write(string)
-		print bwrite
+		# # print 'Ser open?'
+		# # print self.ser.isOpen()
+
+		# string = ''
+		# for i in self.msg.data:
+		# 	string += struct.pack('!B',i)
+		# bwrite = self.ser.write(string)
 
 		# rospy.logwarn(str(pos_temp))
 
 	def grip_callback(self, grip):
 		self.psoc.grip = np.uint16(grip)
+
+		self.set_rover_cmd()
     
 	def set_rover_cmd(self):
 
