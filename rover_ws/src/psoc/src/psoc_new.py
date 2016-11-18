@@ -241,7 +241,7 @@ class PSOC_class():
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
 #		bwrite = self.ser.write(string)
-		print bwrite
+#		print bwrite
 
 		# publish values just written to psoc
 		self.pub_psoc.publish(self.psoc)
