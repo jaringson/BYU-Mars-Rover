@@ -85,10 +85,10 @@ class PSOC_class():
 		# 	self.ser.close()
 
 		# initialize subscribers
-		# self.sub_drive = rospy.Subscriber('/drive_state', Drive, self.drive_callback)
-		# self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
+		self.sub_drive = rospy.Subscriber('/drive_state', Drive, self.drive_callback)
+		self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
 		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback)
-		# self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
+		self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
         # initialize publishers
 		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC, queue_size=1)
@@ -102,11 +102,11 @@ class PSOC_class():
     # Lastyear .lw & .rw were from 1000 to 2000, 1500 is no movement
     # This year .l1 & .rw are from -100 to 100
 
-		lw_temp = 1500 + (5*drive.lw)
-		rw_temp = 1500 + (5*drive.rw)
+		# lw_temp = 1500 + (5*drive.lw)
+		# rw_temp = 1500 + (5*drive.rw)
 
-		self.psoc.lw = np.uint16(lw_temp)
-		self.psoc.rw = np.uint16(rw_temp)
+		self.psoc.lw = np.uint16(drive.lw)
+		self.psoc.rw = np.uint16(drive.rw)
 
 		self.set_rover_cmd()
 
@@ -241,7 +241,7 @@ class PSOC_class():
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
 		bwrite = self.ser.write(string)
-		print bwrite
+#		print bwrite
 
 		# publish values just written to psoc
 		self.pub_psoc.publish(self.psoc)
