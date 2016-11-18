@@ -80,7 +80,7 @@ class PSOC_class():
 		#self.arm_feedback = Pololu()
 
 		# initialize serial port here
-		self.ser = serial.Serial('/dev/ttyUSB3', 57600, timeout = 1)
+#		self.ser = serial.Serial('/dev/ttyUSB3', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
@@ -240,7 +240,7 @@ class PSOC_class():
 		string = ''
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
-		bwrite = self.ser.write(string)
+#		bwrite = self.ser.write(string)
 		print bwrite
 
 		# publish values just written to psoc
@@ -277,4 +277,4 @@ if __name__ == '__main__':
 		# psoc.read_feedback()
 		rate.sleep()
 
-	psoc.ser.close()
+#	psoc.ser.close()
