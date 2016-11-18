@@ -17,9 +17,13 @@ class DynPub():
         self.sub = rospy.Subscriber('/joint_cmd',JointState,self.dynCallback)
 
     def dynCallback(self,msg):
-        self.c_angles.data[0] = msg.position[4]
-        self.c_angles.data[1] = msg.position[5]
-        print self.c_angles
+        theta5 = msg.position[4] #hinge
+        theta6 = msg.position[5] #twist
+        
+        self.c_angles.data[0] = theta6+theta5 #dyn1
+        self.c_angles.data[1] = theta5-theta6 #dyn2
+        
+        #print self.c_angles
 
 if __name__ == "__main__":
     rospy.init_node('dynamixel_feedback_node',anonymous = True)
@@ -29,21 +33,25 @@ if __name__ == "__main__":
 
     dynpub.r_angles.data.append(0.0)
     dynpub.r_angles.data.append(0.0)
-
+    
     dyn = lr.USB2Dynamixel_Device('/dev/ttyUSB0',57600)
-    flop = lr.Robotis_Servo(dyn, 1, series = 'MX')
-    #flop = flop.write_address(0x0E, [255,3])
-    twist = lr.Robotis_Servo(dyn, 2, series = 'MX')
-    #twist = twist.write_address(0x0E, [255,3])
-    # twist.multi_turn()
+    #dyn1 = old code's twist
+    #dyn2 = old code's flop
+    
+    dyn2 = lr.Robotis_Servo(dyn, 1, series = 'MX')
+    #dyn2 = dyn2.write_address(0x0E, [255,3])
+    dyn1 = lr.Robotis_Servo(dyn, 2, series = 'MX')
+    #dyn1 = dyn1.write_address(0x0E, [255,3])
+    dyn1.multi_turn()
+    dyn2.multi_turn()
     
     print "Successful"
     while not rospy.is_shutdown():
-        dynpub.r_angles.data[0] = flop.read_angle()#+15.0*math.pi/180.0
-        dynpub.r_angles.data[1] = twist.read_angle()
+        dynpub.r_angles.data[0] = dyn2.read_angle()
+        dynpub.r_angles.data[1] = dyn1.read_angle()
         dynpub.pub.publish(dynpub.r_angles)
-        twist.move_angle(dynpub.c_angles.data[1], blocking = False)
-        flop.move_angle(dynpub.c_angles.data[0], blocking = False)
+        dyn1.move_angle(dynpub.c_angles.data[1], blocking = False)
+        dyn2.move_angle(dynpub.c_angles.data[0], blocking = False)
         
 
         rate.sleep()
