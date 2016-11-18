@@ -6,7 +6,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <image_transport/image_transport.h>
-#include "rover_msgs/RoverState.h"
+//#include "rover_msgs/RoverState.h"
 #include "sensor_msgs/Joy.h"
 #include "sensor_msgs/CompressedImage.h"
 
