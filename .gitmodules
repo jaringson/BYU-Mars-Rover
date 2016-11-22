@@ -2,3 +2,9 @@
 	path = rover_ws/src/hrl-kdl
 	url = https://github.com/gt-ros-pkg/hrl-kdl.git
 
+[submodule "rover_ws/src/usb_cam"]
+	path = rover_ws/src/usb_cam
+	url = https://github.com/bosch-ros-pkg/usb_cam.git
+[submodule "rover_ws/src/image_common"]
+	path = rover_ws/src/image_common
+	url = https://github.com/ros-perception/image_common.git
