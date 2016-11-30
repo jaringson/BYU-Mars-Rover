@@ -1,0 +1,11 @@
+<launch>
+
+<!-- RUN THIS FIRST -->
+<!-- rosrun xacro xacro 537.xacro > 537.urdf  -->
+
+<include file= "$(find urdf_tutorial)/launch/display.launch">
+	<arg name="model" value="$(find hal_description)/urdf/537.urdf"/>
+	<arg name="gui" value="True"/>
+</include>
+
+</launch>

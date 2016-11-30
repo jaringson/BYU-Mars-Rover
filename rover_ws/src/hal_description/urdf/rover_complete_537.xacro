@@ -54,7 +54,8 @@
     <visual>
       <origin xyz="0 0 ${flattop_offground + (1/2)*flattopheight}" rpy="0 0 0"/>
       <geometry>
-	<box size="${flattoplength} ${flattopwidth} ${flattopheight}"/>
+	  <box size="${flattoplength} ${flattopwidth} ${flattopheight}"/>
+	  <box size="1.0 1.0 1.0"/>
       </geometry>
       <material name="white"/>
     </visual>
