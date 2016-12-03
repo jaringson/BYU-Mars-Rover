@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # toplevel CMakeLists.txt for a catkin workspace
 # catkin/cmake/toplevel.cmake
 
@@ -67,3 +68,5 @@ else()
 endif()
 
 catkin_workspace()
+
+/opt/ros/indigo/share/catkin/cmake/toplevel.cmake
