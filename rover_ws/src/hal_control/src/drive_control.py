@@ -33,6 +33,7 @@ class XBOX():
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
         self.pub_drive = rospy.Publisher('/rover_drive', Drive, queue_size = 10)
         self.pub_state = rospy.Publisher('/rover_state', RoverState, queue_size = 10)
+        # self.pub_cam = rospy.Publisher('/camera_state', camera_select, queue_size = 10)
 
     # Functions
     
@@ -86,7 +87,11 @@ class XBOX():
             time.sleep(.25)
 
 ######################
-#    def camera_select(self):
+    def camera_select(self):
+
+        a = self.joy.buttons[0]
+
+
 #        # a selects between cameras 0-2, b selects between cameras 3-5
 #        # cam1_sel is lower nybble, cam2_sel is upper nybble
 #        a = self.joy.buttons[0]
