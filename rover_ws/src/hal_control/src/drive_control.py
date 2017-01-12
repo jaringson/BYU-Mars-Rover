@@ -26,8 +26,8 @@ class XBOX():
         self.state.chutes = 0
         
         # Initialize Drive
-        self.drive_cmd.lw = 1500
-        self.drive_cmd.rw = 1500
+        self.drive_cmd.lw = 0
+        self.drive_cmd.rw = 0
 
     # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
@@ -42,12 +42,12 @@ class XBOX():
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
-        if y == 1:
-            if self.state.mode == 'Drive':
-                self.state.mode = 'Auto'
-            else:
-                self.state.mode = 'Drive'
-            time.sleep(.25)
+        # if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
+        #     if self.state.mode == 'Drive':
+        #         self.state.mode = 'Auto'
+        #     else:
+        #         self.state.mode = 'Drive'
+            # time.sleep(.25)
 
         # Implement Kill Switch
         if home == 1:
@@ -154,15 +154,15 @@ class XBOX():
 
         # Calculate drive speeds
         # rw commands were multiplied by (-1)
-        if self.state.speed == 'Fast':
-            self.drive_cmd.lw = left_joy_up*500 + 1500
-            self.drive_cmd.rw = right_joy_up*500 + 1500
-        elif self.state.speed == 'Med':
-            self.drive_cmd.lw = left_joy_up*250 + 1500
-            self.drive_cmd.rw = right_joy_up*250 + 1500
-        elif self.state.speed == 'Slow':
-            self.drive_cmd.lw = left_joy_up*175 + 1500
-            self.drive_cmd.rw = right_joy_up*175 + 1500
+        if self.state.speed == 'Fast': # max = 2000
+            self.drive_cmd.lw = left_joy_up*100
+            self.drive_cmd.rw = right_joy_up*100 
+        elif self.state.speed == 'Med': # max = 1750
+            self.drive_cmd.lw = left_joy_up*50
+            self.drive_cmd.rw = right_joy_up*50
+        elif self.state.speed == 'Slow': # max = 1675
+            self.drive_cmd.lw = left_joy_up*35
+            self.drive_cmd.rw = right_joy_up*35
 
         # Pan and Tilt
         #self.cam_pan_tilt() # NEED TO IMPLEMENT
@@ -191,15 +191,16 @@ class XBOX():
         right_joy_up = self.joy.axes[4]
 
         # Calculate drive speeds
-        if self.state.speed == 'Fast':
-            self.drive_cmd.lw = left_joy_up*500 + 1500
-            self.drive_cmd.rw = right_joy_up*-500 + 1500
-        elif self.state.speed == 'Med':
-            self.drive_cmd.lw = left_joy_up*250 + 1500
-            self.drive_cmd.rw = right_joy_up*-250 + 1500
-        elif self.state.speed == 'Slow':
-            self.drive_cmd.lw = left_joy_up*175 + 1500
-            self.drive_cmd.rw = right_joy_up*-175 + 1500
+        # rw commands were multiplied by (-1)
+        if self.state.speed == 'Fast': # max = 2000
+            self.drive_cmd.lw = left_joy_up*100
+            self.drive_cmd.rw = right_joy_up*100 
+        elif self.state.speed == 'Med': # max = 1750
+            self.drive_cmd.lw = left_joy_up*50
+            self.drive_cmd.rw = right_joy_up*50
+        elif self.state.speed == 'Slow': # max = 1675
+            self.drive_cmd.lw = left_joy_up*35
+            self.drive_cmd.rw = right_joy_up*35
 
         # Pan and Tilt
         #self.cam_pan_tilt() # NEED TO IMPLEMENT
