@@ -20,7 +20,7 @@
   <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control">
   </node>
 
-<!--   <node pkg="psoc" type="nousb_psoc.py" name="testPSOC">
+  <!-- <node pkg="psoc" type="onboard_psoc.py" name="testPSOC">
   </node> -->
   
 </launch>
