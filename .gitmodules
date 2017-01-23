@@ -1,3 +1,22 @@
 [submodule "rover_ws/src/hrl-kdl"]
 	path = rover_ws/src/hrl-kdl
 	url = https://github.com/gt-ros-pkg/hrl-kdl.git
+
+[submodule "rover_ws/src/usb_cam"]
+	path = rover_ws/src/usb_cam
+	url = https://github.com/bosch-ros-pkg/usb_cam.git
+[submodule "rover_ws/src/image_common"]
+	path = rover_ws/src/image_common
+	url = https://github.com/ros-perception/image_common.git
+[submodule "rover_ws/src/robot_localization"]
+	path = rover_ws/src/robot_localization
+	url = https://github.com/cra-ros-pkg/robot_localization.git
+[submodule "rover_ws/src/geographic_info"]
+	path = rover_ws/src/geographic_info
+	url = https://github.com/ros-geographic-info/geographic_info.git
+[submodule "rover_ws/unique_identifier"]
+	path = rover_ws/unique_identifier
+	url = https://github.com/ros-geographic-info/unique_identifier.git
+[submodule "rover_ws/src/unique_identifier"]
+	path = rover_ws/src/unique_identifier
+	url = https://github.com/ros-geographic-info/unique_identifier.git

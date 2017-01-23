@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hal_description)
+project(base)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  image_transport
+  roscpp
+  std_msgs
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -97,8 +101,8 @@ find_package(catkin REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES hal_description
-#  CATKIN_DEPENDS other_catkin_pkg
+#  LIBRARIES base
+#  CATKIN_DEPENDS image_transport roscpp stdmsgs
 #  DEPENDS system_lib
 )
 
@@ -108,29 +112,33 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(include)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a C++ library
-# add_library(hal_description
-#   src/${PROJECT_NAME}/hal_description.cpp
+# add_library(base
+#   src/${PROJECT_NAME}/base.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(hal_description ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(base ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(hal_description_node src/hal_description_node.cpp)
+add_executable(base src/rover_hub.cpp src/rover_hub_node.cpp include/rover_hub.h)
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(hal_description_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(base ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(hal_description_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(base
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -147,7 +155,7 @@ catkin_package(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS hal_description hal_description_node
+# install(TARGETS base base_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -172,7 +180,7 @@ catkin_package(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_hal_description.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_base.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
