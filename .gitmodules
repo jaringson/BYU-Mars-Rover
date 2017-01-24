@@ -20,3 +20,12 @@
 [submodule "rover_ws/src/unique_identifier"]
 	path = rover_ws/src/unique_identifier
 	url = https://github.com/ros-geographic-info/unique_identifier.git
+[submodule "onboard_ws/src/razor_imu_9dof"]
+	path = onboard_ws/src/razor_imu_9dof
+	url = https://github.com/KristofRobot/razor_imu_9dof.git
+[submodule "onboard_ws/src/gps_umd"]
+	path = onboard_ws/src/gps_umd
+	url = https://github.com/swri-robotics/gps_umd.git
+[submodule "onboard_ws/src/robot_localization"]
+	path = onboard_ws/src/robot_localization
+	url = https://github.com/cra-ros-pkg/robot_localization.git
