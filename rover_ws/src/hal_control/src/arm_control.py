@@ -84,15 +84,15 @@ class Arm_XBOX():
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
         
-        if y == 1:
-            if self.state.mode == 'JointControl':
-                self.state.mode = 'IK Arm - Base,Tool'
-            elif self.state.mode == 'IK Arm - Base,Tool':
-                self.state.mode = 'IK Arm - Tool,Tool'
-            else:
-                self.state.mode = 'JointControl'
-            time.sleep(.25)
-            rospy.loginfo(self.state.mode)
+        # if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES
+        #     if self.state.mode == 'JointControl':
+        #         self.state.mode = 'IK Arm - Base,Tool'
+        #     elif self.state.mode == 'IK Arm - Base,Tool':
+        #         self.state.mode = 'IK Arm - Tool,Tool'
+        #     else:
+        #         self.state.mode = 'JointControl'
+            # time.sleep(.25)
+            # rospy.loginfo(self.state.mode)
             
         # Implement Kill Switch
         if home == 1:
