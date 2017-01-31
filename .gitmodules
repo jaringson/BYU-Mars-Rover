@@ -29,3 +29,9 @@
 [submodule "onboard_ws/src/robot_localization"]
 	path = onboard_ws/src/robot_localization
 	url = https://github.com/cra-ros-pkg/robot_localization.git
+[submodule "onboard_ws/src/geographic_info"]
+	path = onboard_ws/src/geographic_info
+	url = https://github.com/ros-geographic-info/geographic_info.git
+[submodule "onboard_ws/src/unique_identifier"]
+	path = onboard_ws/src/unique_identifier
+	url = https://github.com/ros-geographic-info/unique_identifier.git
