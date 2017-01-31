@@ -13,5 +13,5 @@ class Controller:
         return theta
 
     def GetOutputs(self):
-
+        u, v = 0, 0
         return [u,v]
