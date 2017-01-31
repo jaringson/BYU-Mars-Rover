@@ -1,0 +1,8 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: hal_description
+    relative_path: urdf/rover_arm.xacro
+  SRDF:
+    relative_path: config/rrbot.srdf
+  CONFIG:
+    generated_timestamp: 1478988872
