@@ -2,16 +2,15 @@ import numpy as np
 import tf.transformations as tr
 from PID import PID
 
-class Controller:
-    def __init__(self):
-        self.pid = PID()
-        ki, kd, kp = 3, 4, 0
-        self.pid.SetGains(ki, kd, kp)
 
-    def GetHeading(self,robotState):
-        x, y, theta = robotState.GetPose()
+class Controller:
+    def __init__(self, params):
+        self.pid = PID(params)
+
+    def get_heading(self, robot):
+        x, y, theta = robot.GetPose()
         return theta
 
-    def GetOutputs(self):
+    def get_outputs(self, robot):
         u, v = 0, 0
-        return [u,v]
+        return [u, v]
