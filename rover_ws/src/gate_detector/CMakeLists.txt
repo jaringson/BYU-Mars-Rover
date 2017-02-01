@@ -8,7 +8,6 @@ find_package(OpenCV ..)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   rospy
-  rospy
   sensor_msgs
   std_msgs
 )

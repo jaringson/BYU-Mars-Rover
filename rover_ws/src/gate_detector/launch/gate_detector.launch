@@ -1,11 +1,18 @@
 <launch>
 
   <node name="gate_detector" pkg="gate_detector" type="gate_detector.py">
+    <param name="_hue_lower" value="35" />
+    <param name="_sat_lower" value="147" />
+    <param name="_val_lower" value="98" />
+    <param name="_hue_upper" value="56" />
+    <param name="_sat_upper" value="255" />
+    <param name="_val_upper" value="255" />
+
 
   </node>
-
+  
   <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/video0" />
+    <param name="video_device" value="/dev/video1" />
     <param name="image_width" value="640" />
     <param name="image_height" value="480" />
     <param name="pixel_format" value="yuyv" />
