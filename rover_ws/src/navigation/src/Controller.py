@@ -6,6 +6,7 @@ from PID import PID
 class Controller:
     def __init__(self, params):
         self.pid = PID(params)
+        self.name = "default"
 
     def get_heading(self, robot):
         x, y, theta = robot.GetPose()

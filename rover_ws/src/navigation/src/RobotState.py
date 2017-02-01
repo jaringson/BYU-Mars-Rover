@@ -10,6 +10,8 @@ class RobotState:
 
         self.goal = [0.0, 0.0]
 
+        self.goal_distance = 0.2
+
     def set_goal(self, goal):
         self.goal = goal
 
@@ -30,4 +32,7 @@ class RobotState:
     def dist_to_goal(self):
         x, y , theta = self.get_pose()
         return math.sqrt((self.goal[0]-x)**2 + (self.goal[1]-y)**2)
+
+    def at_goal(self):
+        return self.dist_to_goal() < self.goal_distance
 
