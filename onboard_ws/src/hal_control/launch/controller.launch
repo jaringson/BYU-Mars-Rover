@@ -1,0 +1,9 @@
+<launch>
+
+  <param name="joy_node/dev" value="/dev/input/js0" />
+  <node pkg="joy" type="joy_node" name="joy_node">
+  </node>
+  <node pkg="arm_teleop" type="xbox_control.py" name="xbox_control">
+  </node>
+  
+</launch>
