@@ -52,7 +52,6 @@ class PID:
         if self.ki != 0:
             self.X += self.dt/self.ki*(u-u_unsat)
 
-        print error
         return u
 
     def sat(self, val):

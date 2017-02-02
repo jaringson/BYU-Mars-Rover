@@ -3,6 +3,7 @@ import rospy
 import time
 import math
 import tf
+import sys
 import tf.transformations as tr
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
@@ -13,21 +14,13 @@ from gotogoal import GoToGoal, Stop
 
 
 class Supervisor:
-    def __init__(self):
+    def __init__(self, baseframe=False):
         # init ROS node
         rospy.init_node('navigation')
 
         # set rate
         hz = 10.0 # 60.0
         self.rate = rospy.Rate(hz)
-
-        # Subscribe to /joy_arm /pose_cmd
-        self.sub_estimate = rospy.Subscriber('/odometry/filtered', Odometry, self.odomCallback)
-        self.sub_navdata = rospy.Subscriber('/navigation_data', NavigationData, self.navdataCallback)
-        self.sub_obst = rospy.Subscriber('/obstacles', Obstacles, self.obstacleCallback)
-
-        # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
-        self.pub_drive = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 
         # Set Params
         dt = 0.01
@@ -39,6 +32,31 @@ class Supervisor:
         self.robot = RobotState()
         self.gtg = GoToGoal(params)
         self.stop = Stop(params)
+
+        # Other admin stuff
+        self.msgread = {'odom': False, 'navdata': False}
+        self.goal_in_base_frame = baseframe
+        if baseframe:
+            print "Goal in Base Frame"
+        else:
+            print "Goal in Odom Frame"
+
+        # Subscribe to /joy_arm /pose_cmd
+        self.sub_estimate = rospy.Subscriber('/odometry/filtered', Odometry, self.odomCallback)
+        self.sub_navdata = rospy.Subscriber('/navigation_data', NavigationData, self.navdataCallback)
+        self.sub_obst = rospy.Subscriber('/obstacles', Obstacles, self.obstacleCallback)
+
+        # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
+        self.pub_drive = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+
+        # TF Listener
+        self.listener = tf.TransformListener()
+
+        # Get initial pose
+        pose = -1
+        while pose == -1:
+            pose = self.base_transform()
+        self.initial_pose = pose
 
         # Set Goal
         goal = [5, 5]
@@ -52,8 +70,7 @@ class Supervisor:
         # Set default controller
         self.control = self.gtg
 
-        # Other admin stuff
-        self.msgread = {'odom': False, 'navdata': False}
+
 
     def execute(self):
         while not rospy.is_shutdown():
@@ -66,6 +83,7 @@ class Supervisor:
                 # print self.get_goal()
                 # print self.control.vector_to_goal
                 # print self.control.get_angle()
+                # print self.base_transform()
                 self.rate.sleep()
 
     def check_states(self):
@@ -84,6 +102,13 @@ class Supervisor:
         cmd.linear.x = v
         cmd.angular.z = w
         self.pub_drive.publish(cmd)
+
+    def base_transform(self):
+        try:
+            (trans, rot) = self.listener.lookupTransform('/odom', '/base_link', rospy.Time(0))
+            return (trans, rot)
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            return -1
 
     def odomCallback(self, msg):
         self.robot.pose = msg.pose.pose
@@ -105,7 +130,22 @@ class Supervisor:
         return ready
 
     def get_goal(self):
-        return [self.wp_x[self.cur_waypoint], self.wp_y[self.cur_waypoint]]
+        if self.goal_in_base_frame:
+            goal_b = [self.wp_x[self.cur_waypoint], self.wp_y[self.cur_waypoint], 0, 1]
+            (trans, rot) = self.initial_pose
+            H = self.tr2matrix(trans, rot)
+            goal_odom = np.dot(H, goal_b)
+            goal = goal_odom[0:2].tolist()
+        else:
+            goal = [self.wp_x[self.cur_waypoint], self.wp_y[self.cur_waypoint]]
+        return goal
+
+    def tr2matrix(self,trans,rot):
+        # Returns the homogenous transformation matrix of the /base_link in the /odom frame
+        Htrans = tr.translation_matrix(trans)
+        Hrot = tr.quaternion_matrix(rot)
+        H = tr.concatenate_matrices(Htrans, Hrot)
+        return H
 
 
 
@@ -119,7 +159,11 @@ class Params:
 
 
 if __name__ == '__main__':
-    Sup = Supervisor()
+    if len(sys.argv) == 2:
+        baseframe = sys.argv[1]
+    else:
+        baseframe = False
+    Sup = Supervisor(baseframe)
     Sup.execute()
 
 

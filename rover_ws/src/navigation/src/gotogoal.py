@@ -16,8 +16,8 @@ class GoToGoal(Controller):
         
         # Extract goal
         x_goal, y_goal = robotstate.goal[0], robotstate.goal[1]
-        # print x_goal, y_goal
-        
+        #print x_goal, y_goal
+
         # Robot pose
         x_cur, y_cur, theta = robotstate.get_pose()
         
