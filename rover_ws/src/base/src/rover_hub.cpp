@@ -3,7 +3,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <image_transport/image_transport.h>
-//#include "rover_msgs/RoverState.h"
+#include "rover_msgs/RoverState.h"
 #include "rover_hub.h"
 
 
@@ -52,13 +52,13 @@ Rover_hub::~Rover_hub()
 
 }
 
-void Rover_hub::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
+void Rover_hub::joy_callback(const rover_msgs::RoverState::ConstPtr& cam_toggle){
 //ASK BRIAN AND MICHAEL
 
 //use ROS timer for debouncing
 ros::Time tempTime = ros::Time::now();
 
-int joy_button = joy->buttons[0];
+int cam_button = cam_toggle->buttons[0];
 //if it's been over 1/4 second since you switched, switch
 if((tempTime - begin).toSec() > 0.25 && joy_button == 1){
     counter ++;
