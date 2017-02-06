@@ -4,3 +4,6 @@
 [submodule "DocumentationImages"]
 	path = DocumentationImages
 	url = https://github.com/BYUMarsRover/DocumentationImages.git
+[submodule "rover_ws/src/usb_cam"]
+	path = rover_ws/src/usb_cam
+	url = https://github.com/bosch-ros-pkg/usb_cam.git
