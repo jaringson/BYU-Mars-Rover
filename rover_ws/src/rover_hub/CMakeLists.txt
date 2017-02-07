@@ -128,7 +128,7 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(rover_hub_node src/rover_hub_node.cpp 
-src/rover_hub.h)
+include/rover_hub/rover_hub.h)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
