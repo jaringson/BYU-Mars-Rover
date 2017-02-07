@@ -35,3 +35,6 @@
 [submodule "onboard_ws/src/unique_identifier"]
 	path = onboard_ws/src/unique_identifier
 	url = https://github.com/ros-geographic-info/unique_identifier.git
+[submodule "onboard_ws/src/nmea_navsat_driver"]
+	path = onboard_ws/src/nmea_navsat_driver
+	url = https://github.com/ros-drivers/nmea_navsat_driver.git
