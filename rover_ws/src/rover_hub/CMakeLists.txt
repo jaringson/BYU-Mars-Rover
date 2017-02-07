@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(base)
+project(rover_hub)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -67,7 +67,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   std_msgs
 # )
 
 ################################################
@@ -101,8 +101,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES base
-#  CATKIN_DEPENDS image_transport roscpp stdmsgs
+#  LIBRARIES rover_hub
+#  CATKIN_DEPENDS image_transport roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -118,25 +118,24 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(base
-#   src/${PROJECT_NAME}/base.cpp
-# )
+#add_library(rover_hub
+#  src/${PROJECT_NAME}/rover_hub.cpp
+#)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(base ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+## either from message generation or dynamic reconfigure add_dependencies(rover_hub ${${PROJECT_NAME}_EXPORTED_TARGETS} catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(base src/rover_hub.cpp src/rover_hub_node.cpp include/rover_hub.h)
-
+add_executable(rover_hub_node src/rover_hub_node.cpp 
+src/rover_hub.h)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(base ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rover_hub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(base
+target_link_libraries(rover_hub_node
   ${catkin_LIBRARIES}
 )
 
@@ -155,7 +154,7 @@ target_link_libraries(base
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS base base_node
+# install(TARGETS rover_hub rover_hub_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -180,7 +179,7 @@ target_link_libraries(base
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_base.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_rover_hub.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

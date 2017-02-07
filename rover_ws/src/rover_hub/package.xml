@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
-  <name>base</name>
+  <name>rover_hub</name>
   <version>0.0.0</version>
-  <description>The base package</description>
+  <description>The rover_hub package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="peter@todo.todo">peter</maintainer>
+  <maintainer email="westley@todo.todo">westley</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/base</url> -->
+  <!-- <url type="website">http://wiki.ros.org/rover_hub</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->

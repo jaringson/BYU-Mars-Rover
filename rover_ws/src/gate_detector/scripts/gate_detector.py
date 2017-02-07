@@ -48,6 +48,10 @@ class gate_detector:
         blur = cv2.medianBlur(cv_image, 3)
         hsv = cv2.cvtColor(cv_image, cv2.COLOR_RGB2HSV)
         thrImg = cv2.inRange(hsv,lower,upper)
+        # try hihat function that erodes dilate
+        # look up ransac
+        # use GPS data to weight images
+        # object recognition, machine learning
 
         erode = cv2.erode(thrImg, None, iterations=2)
         dilate = cv2.dilate(erode, None, iterations=2)
@@ -59,10 +63,10 @@ class gate_detector:
             x, y, w, h = cv2.boundingRect(cnt)
             cx, cy = x + w / 2, y + h / 2
 
-            if (abs(h * w)**2) > cv2.getTrackbarPos('Box filter', 'Trackbars'):
+  #         if (abs(h * w)**2) > cv2.getTrackbarPos('Box filter', 'Trackbars'):
 
-                cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
-                self.isDetected = True
+            cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
+            self.isDetected = True
 
         if cv2.getTrackbarPos('Caliberate', 'Trackbars') == 1:
             cv2.imshow('Output', thrImg)
