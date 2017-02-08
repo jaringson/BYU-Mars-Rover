@@ -148,7 +148,6 @@ class Supervisor:
         return H
 
 
-
 class Params:
     def __init__(self, ki=1, kd=0.1, kp=5, dt=0.01, sigma=0.05):
         self.ki = ki
