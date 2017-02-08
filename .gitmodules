@@ -1,3 +1,40 @@
 [submodule "rover_ws/src/hrl-kdl"]
 	path = rover_ws/src/hrl-kdl
 	url = https://github.com/gt-ros-pkg/hrl-kdl.git
+
+[submodule "rover_ws/src/usb_cam"]
+	path = rover_ws/src/usb_cam
+	url = https://github.com/bosch-ros-pkg/usb_cam.git
+[submodule "rover_ws/src/image_common"]
+	path = rover_ws/src/image_common
+	url = https://github.com/ros-perception/image_common.git
+[submodule "rover_ws/src/robot_localization"]
+	path = rover_ws/src/robot_localization
+	url = https://github.com/cra-ros-pkg/robot_localization.git
+[submodule "rover_ws/src/geographic_info"]
+	path = rover_ws/src/geographic_info
+	url = https://github.com/ros-geographic-info/geographic_info.git
+[submodule "rover_ws/unique_identifier"]
+	path = rover_ws/unique_identifier
+	url = https://github.com/ros-geographic-info/unique_identifier.git
+[submodule "rover_ws/src/unique_identifier"]
+	path = rover_ws/src/unique_identifier
+	url = https://github.com/ros-geographic-info/unique_identifier.git
+[submodule "onboard_ws/src/razor_imu_9dof"]
+	path = onboard_ws/src/razor_imu_9dof
+	url = https://github.com/KristofRobot/razor_imu_9dof.git
+[submodule "onboard_ws/src/gps_umd"]
+	path = onboard_ws/src/gps_umd
+	url = https://github.com/swri-robotics/gps_umd.git
+[submodule "onboard_ws/src/robot_localization"]
+	path = onboard_ws/src/robot_localization
+	url = https://github.com/cra-ros-pkg/robot_localization.git
+[submodule "onboard_ws/src/geographic_info"]
+	path = onboard_ws/src/geographic_info
+	url = https://github.com/ros-geographic-info/geographic_info.git
+[submodule "onboard_ws/src/unique_identifier"]
+	path = onboard_ws/src/unique_identifier
+	url = https://github.com/ros-geographic-info/unique_identifier.git
+[submodule "onboard_ws/src/nmea_navsat_driver"]
+	path = onboard_ws/src/nmea_navsat_driver
+	url = https://github.com/ros-drivers/nmea_navsat_driver.git

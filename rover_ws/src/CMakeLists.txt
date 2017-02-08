@@ -29,10 +29,13 @@ if(_res EQUAL 0)
 
 else()
 
+
 #  set(CMAKE_PREFIX_PATH "/home/halrover/git/kyle/rover_nav_gui_ws/devel:/opt/ros/indigo")
 #  if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
 #    string(REPLACE ":" ";" CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH})
 #  endif()
+
+
 
   # use either CMAKE_PREFIX_PATH explicitly passed to CMake as a command line argument
   # or CMAKE_PREFIX_PATH from the environment
