@@ -1,0 +1,19 @@
+<launch>
+  
+  <!--GPS-->
+<param name="~frame_id" value="gps"/>  
+<node name="gps_node"  pkg="gpsd_client"   type="gpsd_client" output="screen">
+	
+
+  </node>
+
+  <!--IMU-->
+  <arg name="razor_config_file" default="$(find hal_launch)/config/my_razor.yaml"/>
+  <node pkg="razor_imu_9dof" type="imu_node.py" name="imu_node" output="screen">
+    <!--<rosparam file="$(arg razor_config_file)" command="load"/>-->
+  </node>
+
+  <!--Navigation Estimator-->
+  <!--<node name="nav_estimator" pkg="nav_estimation" type="nav_estimation_node" output="screen"/>-->
+
+</launch>

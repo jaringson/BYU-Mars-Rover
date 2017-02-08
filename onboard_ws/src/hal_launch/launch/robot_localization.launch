@@ -6,11 +6,11 @@
     <node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ubuntu/git/BYU-Mars-Rover/onboard_ws/src/hal_launch/launch/dan.bag"/>    
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="bf_bl" args="0 0 -0.180 0 0 0 1 base_footprint base_link" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_imu" args="0.060 -0.880 0.005 0 0 0 1 base_link Imu_link" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_ukf" args="0.060 -0.880 0.005 0 0 0 1 odom_ukf base_footprint" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_imu" args="0.060 -0.880 0.005 0 0 0 1 base_link imu_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_ekf" args="0.060 -0.880 0.005 0 0 0 1 odom_ekf base_footprint" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="bl_gps" args="0.060 -0.880 0.005 0 0 0 1 base_footprint gps" />
 
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_localization" output= "screen" clear_params="true">
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" output= "screen" clear_params="true">
 
       <param name="frequency" value="10"/>
       <param name="sensor_timeout" value="0.1"/>
@@ -18,21 +18,21 @@
       <param name="two_d_mode" value="true"/>
 
       <param name="map_frame" value="map_gps"/> 
-      <param name="odom_frame" value="odom_ukf"/>
+      <param name="odom_frame" value="odom_ekf"/>
       <param name="base_link_frame" value="base_footprint"/>
-      <param name="world_frame" value="odom_ukf"/>
+      <param name="world_frame" value="odom_ekf"/>
       
-      <remap from="/odometry/filtered" to="/odom_ukf"/> 
+      <remap from="/odometry/filtered" to="/odom_ekf"/> 
 
       <param name="transform_time_offset" value="0.0"/>
-      <param name="odom0" value="odom_wheels"/>      
-      <param name="imu0" value="imu_center"/>
+      <!--<param name="odom0" value="odom_wheels"/>  -->    
+      <param name="imu0" value="imu"/>
 
-      <rosparam param="odom0_config">[false, false, false,
+      <!--<rosparam param="odom0_config">[false, false, false,
                                       false, false, false,
                                       true,  true, false,
                                       false, false, false,
-                                      false, false, false]</rosparam>
+                                      false, false, false]</rosparam>-->
                                          
       <rosparam param="imu0_config">[false, false, false, 
                                      true,  true,  false,
@@ -53,14 +53,14 @@
       <param name="use_odometry_yaw" value="false" />   
       <param name="wait_for_datum" value="false" />   
 
-      <remap from="/imu/data" to="/imu_center" />
+      <remap from="/imu/data" to="/imu" />
       <remap from="/gps/fix" to="/fix" />
       <remap from="/odometry/filtered" to="/odom_gps" />
       <remap from="/odometry/gps" to="/odom_navsat" /> 
 
     </node>
 
-    <node pkg="robot_localization" type="ukf_localization_node" name="gps_ukf_localization" output= "screen" clear_params="true">
+    <node pkg="robot_localization" type="ekf_localization_node" name="gps_ekf_localization" output= "screen" clear_params="true">
 
       <param name="frequency" value="10"/>
       <param name="sensor_timeout" value="0.1"/>
@@ -68,24 +68,24 @@
       <param name="two_d_mode" value="true"/>
 
       <param name="map_frame" value="map_gps"/> 
-      <param name="odom_frame" value="odom_ukf"/>
+      <param name="odom_frame" value="odom_ekf"/>
       <param name="base_link_frame" value="base_footprint"/>
       <param name="world_frame" value="map_gps"/>
       
       <remap from="/odometry/filtered" to="/odom_gps"/> 
 
       <param name="transform_time_offset" value="0.0"/>
-      <param name="odom0" value="odom_wheels"/>
-      <param name="odom1" value="odom_navsat"/>
-      <param name="imu0" value="imu_center"/>
+      <!--<param name="odom0" value="odom_wheels"/>-->
+      <param name="odom0" value="odom_navsat"/>
+      <param name="imu0" value="imu"/>
 
-      <rosparam param="odom0_config">[false, false, false,
+      <!--<rosparam param="odom0_config">[false, false, false,
                                       false, false, false,
                                       true,  true, false,
                                       false, false, false,
-                                      false, false, false]</rosparam>
+                                      false, false, false]</rosparam>-->
 
-      <rosparam param="odom1_config">[true,  true,  false,
+      <rosparam param="odom0_config">[true,  true,  false,
                                       false, false, false,
                                       false, false, false,
                                       false, false, false,
