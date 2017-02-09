@@ -3,12 +3,13 @@
 
     <param name="/use_sim_time" value="true"/>
     
-    <node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ubuntu/git/BYU-Mars-Rover/onboard_ws/src/hal_launch/launch/dan.bag"/>    
+    <!--<node pkg="rosbag" type="play" name="player" output="screen" args="clock /home/ubuntu/git/BYU-Mars-Rover/onboard_ws/src/hal_launch/launch/IMUGPS.bag"/>  --> 
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="bf_bl" args="0 0 -0.180 0 0 0 1 base_footprint base_link" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_imu" args="0.060 -0.880 0.005 0 0 0 1 base_link imu_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_imu" args="0.060 -0.880 0.005 0 0 0 1 base_link base_imu_link" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="bl_ekf" args="0.060 -0.880 0.005 0 0 0 1 odom_ekf base_footprint" />
     <node pkg="tf2_ros" type="static_transform_publisher" name="bl_gps" args="0.060 -0.880 0.005 0 0 0 1 base_footprint gps" />
+<node pkg="tf2_ros" type="static_transform_publisher" name="bf_map" args="0 0 0 0 0 0 1 base_footprint map_gps" />
 
     <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" output= "screen" clear_params="true">
 

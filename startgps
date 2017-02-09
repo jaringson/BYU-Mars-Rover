@@ -1,3 +1,6 @@
+sudo killall gpsd
+sudo rm /var/run/gpsd.sock
+
 sudo systemctl stop gpsd.socket
 sudo systemctl disable gpsd.socket
 
