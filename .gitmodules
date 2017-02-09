@@ -41,6 +41,3 @@
 [submodule "onboard_ws/src/image_common"]
 	path = onboard_ws/src/image_common
 	url = https://github.com/ros-perception/image_common.git
-[submodule "onboard_ws/src/usb_cam"]
-	path = onboard_ws/src/usb_cam
-	url = https://github.com/bosch-ros-pkg/usb_cam.git
