@@ -29,6 +29,7 @@ private:
     image_transport::ImageTransport it;
 
     //joy subsciber
+    //change
     ros::Subscriber joy_sub;
 
     //image subsribers
@@ -47,6 +48,7 @@ private:
 
 
     //calback functions
+    //change
     void joy_callback(const sensor_msgs::Joy::ConstPtr& joy);
 
     void image_callback0(const sensor_msgs::ImageConstPtr& msg);
