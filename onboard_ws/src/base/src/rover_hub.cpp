@@ -15,7 +15,8 @@ Rover_hub::Rover_hub():
 
 {
     //set image_transport node
-    //joy subscriber
+
+    // TODO change this subscriber to subscribe to rover states
     joy_sub = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &Rover_hub::joy_callback, this);
 
     //initialize subscribers
@@ -41,7 +42,7 @@ Rover_hub::Rover_hub():
     //initialize camera control stuff
     counter = 0;
 
-
+    //camera_toggle = RoverState();
 
     //initialize timer
     begin = ros::Time::now();
@@ -52,12 +53,14 @@ Rover_hub::~Rover_hub()
 
 }
 
+// TODO instead of sensor Msgs, we wand RoverState msgs.
 void Rover_hub::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 //ASK BRIAN AND MICHAEL
 
 //use ROS timer for debouncing
 ros::Time tempTime = ros::Time::now();
 
+// camera_toggle.cameratoggle1 == true
 int joy_button = joy->buttons[0];
 //if it's been over 1/4 second since you switched, switch
 if((tempTime - begin).toSec() > 0.25 && joy_button == 1){
