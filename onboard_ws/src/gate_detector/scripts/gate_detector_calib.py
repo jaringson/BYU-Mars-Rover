@@ -3,54 +3,52 @@ import cv2
 import numpy as np
 import rospy
 from std_msgs.msg import UInt8MultiArray
+from rover_msgs.msg import HsvVals
 
-def getthresholdedimg(hsv):
-    # type: (object) -> object
-    threshImg = cv2.inRange(hsv, np.array((cv2.getTrackbarPos('Hue_Low', 'Trackbars'),
-                                           cv2.getTrackbarPos('Saturation_Low', 'Trackbars'),
-                                           cv2.getTrackbarPos('Value_Low', 'Trackbars'))), np.array((cv2.getTrackbarPos(
-        'Hue_High', 'Trackbars'), cv2.getTrackbarPos('Saturation_High', 'Trackbars'), cv2.getTrackbarPos('Value_High',
-                                                                                                         'Trackbars'))))
+class gate_detector_calib:
+    def __init__(self):
+        self.hsv_pub = rospy.Publisher('/gate_detector_calib/hsv_vals', HsvVals, queue_size=1)
+        self.hsv = HsvVals()
 
 
-    return threshImg
+    def getthresholdedimg():
+        # type: (object) -> object
+
+        cv2.namedWindow('Output')
+        cv2.namedWindow('Trackbars', cv2.WINDOW_NORMAL)
+        cv2.createTrackbar('Hue_Low',         'Trackbars', 0, 255, self.getTrackValue)
+        cv2.createTrackbar('Hue_High',        'Trackbars', 0, 255, self.getTrackValue)
+        cv2.createTrackbar('Value_Low',       'Trackbars', 0, 255, self.getTrackValue)
+        cv2.createTrackbar('Value_High',      'Trackbars', 0, 255, self.getTrackValue)
+        cv2.createTrackbar('Saturation_Low',  'Trackbars', 0, 255, self.getTrackValue)
+        cv2.createTrackbar('Saturation_High', 'Trackbars', 0, 255, self.getTrackValue)
+
+        hsv.hue_low = cv2.getTrackbarPos('Hue_Low', 'Trackbars')
+        hsv.sat_low = cv2.getTrackbarPos('Saturation_Low', 'Trackbars')
+        hsv.val_low = cv2.getTrackbarPos('Value_Low', 'Trackbars')
+
+        hsv.hue_high = cv2.getTrackbarPos('Hue_High', 'Trackbars')
+        hsv.sat_high = cv2.getTrackbarPos('Saturation_High', 'Trackbars')
+        hsv.val_high = cv2.getTrackbarPos('Value_High', 'Trackbars')
+
+        return hsv
 
 
-def getTrackValue(value):
-    return value
+    def getTrackValue(self, value):
+        return value
 
 
-
-cv2.namedWindow('Output')
-cv2.namedWindow('Trackbars', cv2.WINDOW_NORMAL)
-cv2.createTrackbar('Hue_Low', 'Trackbars', 0, 255, getTrackValue)
-cv2.createTrackbar('Hue_High', 'Trackbars', 0, 255, getTrackValue)
-cv2.createTrackbar('Value_Low', 'Trackbars', 0, 255, getTrackValue)
-cv2.createTrackbar('Value_High', 'Trackbars', 0, 255, getTrackValue)
-cv2.createTrackbar('Saturation_Low', 'Trackbars', 0, 255, getTrackValue)
-cv2.createTrackbar('Saturation_High', 'Trackbars', 0, 255, getTrackValue)
-
-def gate_detector_calib():
+    def gate_detector_calib(self):
+        self.hsv = getthresholdedimg()
 
 
-    
-    hsvHigh_pub = rospy.Publisher('/gate_detector_calib/hsv_low', UInt8MultiArray, queue_size=1)
-    hsvLow_pub = rospy.Publisher('/gate_detector_calib/hsv_low', UInt8MultiArray, queue_size=1)
-    rospy.init_node('gate_detector_calib', anonymous=True)
-    rate = rospy.Rate(15)
+        rospy.init_node('gate_detector_calib', anonymous=True)
+        rate = rospy.Rate(15)
 
-    while not rospy.is_shutdown():
-        hsv_low = np.array((cv2.getTrackbarPos('Hue_Low', 'Trackbars'),
-                                        cv2.getTrackbarPos('Saturation_Low', 'Trackbars'),
-                                        cv2.getTrackbarPos('Value_Low', 'Trackbars')))
+        while not rospy.is_shutdown():
 
-        hsv_high =  np.array((cv2.getTrackbarPos('Hue_High', 'Trackbars'),
-                                        cv2.getTrackbarPos('Saturation_High', 'Trackbars'),
-                                        cv2.getTrackbarPos('Value_High', 'Trackbars')))
-
-        hsvLow_pub.publish(hsv_low)
-        hsvHigh_pub.publish(hsv_high)
-        rate.sleep()
+            hsv_pub.publish(self.hsv)
+            rate.sleep()
 
 
 if __name__=='__main__':
