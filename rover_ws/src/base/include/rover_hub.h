@@ -6,9 +6,8 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <image_transport/image_transport.h>
-#include <rover_msgs/RoverState.h>
-//#include <rover_msgs/PSOC.h>
-//#include "sensor_msgs/Joy.h"
+//#include "rover_msgs/RoverState.h"
+#include "sensor_msgs/Joy.h"
 #include "sensor_msgs/CompressedImage.h"
 
 namespace rover_hub
@@ -29,15 +28,9 @@ private:
     ros::NodeHandle nh_private_;
     image_transport::ImageTransport it;
 
-<<<<<<< HEAD
-    //roverstate subsciber
-    ros::Subscriber rover_state_sub;
-    //rover_msgs::RoverState::camtoggle1 camtoggle;
-=======
     //joy subsciber
     //change
     ros::Subscriber joy_sub;
->>>>>>> 55c7e6c3e167e6459c1c0e99759ddddabc81c33b
 
     //image subsribers
     image_transport::Subscriber img_sub0;
@@ -55,12 +48,8 @@ private:
 
 
     //calback functions
-<<<<<<< HEAD
-    void toggle_callback(const rover_msgs::RoverState::ConstPtr& msg);
-=======
     //change
     void joy_callback(const sensor_msgs::Joy::ConstPtr& joy);
->>>>>>> 55c7e6c3e167e6459c1c0e99759ddddabc81c33b
 
     void image_callback0(const sensor_msgs::ImageConstPtr& msg);
     void image_callback1(const sensor_msgs::ImageConstPtr& msg);

@@ -3,7 +3,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <image_transport/image_transport.h>
-//#include "rover_msgs/msg/RoverState.msg"
+//#include "rover_msgs/RoverState.h"
 #include "rover_hub.h"
 
 
@@ -15,14 +15,9 @@ Rover_hub::Rover_hub():
 
 {
     //set image_transport node
-<<<<<<< HEAD
-    //joy subscriber
-    rover_state_sub = nh_.subscribe<rover_msgs::RoverState>("roverstates", 1, &Rover_hub::toggle_callback, this);
-=======
 
     // TODO change this subscriber to subscribe to rover states
     joy_sub = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &Rover_hub::joy_callback, this);
->>>>>>> 55c7e6c3e167e6459c1c0e99759ddddabc81c33b
 
     //initialize subscribers
     img_sub0 = it.subscribe("/usb_cam0/image_raw",10, &Rover_hub::image_callback0, this);
@@ -58,26 +53,17 @@ Rover_hub::~Rover_hub()
 
 }
 
-<<<<<<< HEAD
-void Rover_hub::toggle_callback(const rover_msgs::RoverState::ConstPtr& msg){
-=======
 // TODO instead of sensor Msgs, we wand RoverState msgs.
 void Rover_hub::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
->>>>>>> 55c7e6c3e167e6459c1c0e99759ddddabc81c33b
 //ASK BRIAN AND MICHAEL
 
 //use ROS timer for debouncing
 ros::Time tempTime = ros::Time::now();
 
-<<<<<<< HEAD
-bool camtoggle = msg->camtoggle1;
-//int joy_button = joy->buttons[0];
-=======
 // camera_toggle.cameratoggle1 == true
 int joy_button = joy->buttons[0];
->>>>>>> 55c7e6c3e167e6459c1c0e99759ddddabc81c33b
 //if it's been over 1/4 second since you switched, switch
-if((tempTime - begin).toSec() > 0.25 && camtoggle){
+if((tempTime - begin).toSec() > 0.25 && joy_button == 1){
     counter ++;
     if(counter == NUM_CAM)
         counter = 0;

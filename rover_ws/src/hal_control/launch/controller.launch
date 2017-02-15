@@ -1,12 +1,9 @@
 <launch>
-	
 
-	<param name="joy_node/dev" value="/dev/input/js1" />
-  
-  <node pkg="hal_control" type="drive_control.py" name="drive_control">
+  <param name="joy_node/dev" value="/dev/input/js0" />
+  <node pkg="joy" type="joy_node" name="joy_node">
   </node>
-  <node pkg="joy" type="joy_node" name="joy_drive">
-
+  <node pkg="arm_teleop" type="xbox_control.py" name="xbox_control">
   </node>
   
 </launch>
