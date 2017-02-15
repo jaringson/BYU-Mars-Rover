@@ -78,7 +78,7 @@ class gate_detector:
         erode = cv2.erode(thrImg, None, iterations=2)
         dilate = cv2.dilate(erode, None, iterations=2)
 
-        contours, hierarchy, _ = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
         self.isDetected = False
         for cnt in contours:
