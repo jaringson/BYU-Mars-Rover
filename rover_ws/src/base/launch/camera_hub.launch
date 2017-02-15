@@ -1,5 +1,14 @@
 <launch>
-  <node name="usb_cam0" pkg="usb_cam" type="usb_cam_node" output="screen" >
+
+
+
+    <param name="joy_node/dev" value="/dev/input/js1" />
+    <node pkg="joy" type="joy_node" name="joy_drive">
+    </node>
+    <node pkg="hal_control" type="drive_control.py" name="drive_control">
+    </node>
+
+<!--   <node name="usb_cam0" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video0" />
     <param name="image_width" value="640" />
     <param name="image_height" value="480" />
@@ -32,7 +41,7 @@
     <param name="pixel_format" value="yuyv" />
     <param name="camera_frame_id" value="usb_cam" />
     <param name="io_method" value="mmap"/>
-    </node>
+    </node> -->
 
 <!--   <node name="usb_cam3" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video3" />
