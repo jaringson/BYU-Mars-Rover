@@ -9,7 +9,7 @@
     <param name="io_method" value="mmap"/>
   </node>
 
-  <node name="gate_detector" pkg="gate_detector" type="gate_detector.py">
+  <node name="gate_detector" pkg="gate_detector" type="detector.py">
     <param name="_hue_lower" value="35" />
     <param name="_sat_lower" value="147" />
     <param name="_val_lower" value="98" />
