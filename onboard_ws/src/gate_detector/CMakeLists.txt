@@ -10,6 +10,15 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  cmake_modules
+  rover_msgs
+  dynamic_reconfigure
+)
+
+#add dynamic reconfigure api
+#find_package(catkin REQUIRED dynamic_reconfigure)
+generate_dynamic_reconfigure_options(
+  cfg/Detector.cfg
 )
 
 ## System dependencies are found with CMake's conventions
@@ -104,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES gate_detector
-#  CATKIN_DEPENDS cv_bridge opencv2 rospy sensor_msgs std_msgs
+  CATKIN_DEPENDS cv_bridge opencv2 rospy sensor_msgs std_msgs rover_msgs
 #  DEPENDS system_lib
 )
 
@@ -150,10 +159,13 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
+#install(PROGRAMS
+#   scripts/gate_detector
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+#)
+
+ # make sure configure headers are built before any node using them
+ # add_dependencies(gate_detector ${PROJECT_NAME}_gencfg)
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS gate_detector gate_detector_node
