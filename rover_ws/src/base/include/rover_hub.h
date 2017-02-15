@@ -22,7 +22,8 @@ public:
 
 private:
     // ros stuff for this node
-    #define NUM_CAM 3
+    
+
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
     image_transport::ImageTransport it;
@@ -59,6 +60,7 @@ private:
 
     //camera control stuff
     int counter;
+    #define num_cam 4
 
     ros::Time begin;
 

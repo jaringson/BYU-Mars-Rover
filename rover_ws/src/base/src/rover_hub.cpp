@@ -17,7 +17,7 @@ Rover_hub::Rover_hub():
     //set image_transport node
 
     // TODO change this subscriber to subscribe to rover states
-    state_sub = nh_.subscribe<rover_msgs::RoverState>("roverstates", 1, &Rover_hub::toggle_callback, this);
+    state_sub = nh_.subscribe<rover_msgs::RoverState>("rover_state_cmd", 1, &Rover_hub::toggle_callback, this);
 
     //initialize subscribers
     img_sub0 = it.subscribe("/usb_cam0/image_raw",10, &Rover_hub::image_callback0, this);
@@ -37,7 +37,6 @@ Rover_hub::Rover_hub():
     img_pub3 = it.advertise("base_cam3",1);
     img_pub4 = it.advertise("base_cam4",1);
 
-    //INITIALIZE JOY OBJECT
 
     //initialize camera control stuff
     counter = 0;
@@ -64,7 +63,7 @@ bool camtoggle = msg->camtoggle1;
 //if it's been over 1/4 second since you switched, switch
 if((tempTime - begin).toSec() > 0.25 && camtoggle){
     counter ++;
-    if(counter == NUM_CAM)
+    if(counter == num_cam)
         counter = 0;
     begin = tempTime;
 }
