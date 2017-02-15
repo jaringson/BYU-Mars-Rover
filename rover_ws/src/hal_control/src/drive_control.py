@@ -89,7 +89,7 @@ class XBOX():
     def camera_toggle(self):
 
         self.state.camtoggle1 = self.joy.buttons[0]
-        if self.state.camtoggle:
+        if self.state.camtoggle1:
            self.pub_state.publish(self.state)
         else:
           self.pub_state.publish(self.state)
