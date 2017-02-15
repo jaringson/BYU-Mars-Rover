@@ -22,7 +22,7 @@ class XBOX():
         self.state.kill = False
         self.state.pan = 1500
         self.state.tilt = 1500
-        self.state.camnum = 0
+        # self.state.camnum = 0
         self.state.chutes = 0
         
         # Initialize Drive
