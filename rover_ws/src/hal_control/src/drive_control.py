@@ -22,7 +22,7 @@ class XBOX():
         self.state.kill = False
         self.state.pan = 1500
         self.state.tilt = 1500
-        self.state.camnum = 0
+        self.state.camtoggle1 = False
         self.state.chutes = 0
         
         # Initialize Drive
@@ -30,7 +30,7 @@ class XBOX():
         self.drive_cmd.rw = 0
 
     # Publishers and Subscribers
-        self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
+        self.sub_joy = rospy.Subscriber('/joy_node', Joy, self.joyCallback)
         self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 10)
         self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 10)
 
@@ -86,26 +86,12 @@ class XBOX():
             time.sleep(.25)
 
 ######################
-#    def camera_select(self):
-#        # a selects between cameras 0-2, b selects between cameras 3-5
-#        # cam1_sel is lower nybble, cam2_sel is upper nybble
-#        a = self.joy.buttons[0]
-#        b = self.joy.buttons[1]
-
-#        if a == 1:
-#            if self.cam1_sel == 2:
-#                self.cam1_sel = 0
-#            else:
-#                self.cam1_sel = self.cam1_sel + 1
-#            time.sleep(.25)
-#        if b == 1:
-#            if self.cam2_sel == 2:
-#                self.cam2_sel = 0
-#            else:
-#                self.cam2_sel = self.cam2_sel + 1
-#            time.sleep(.25)
-#        # Update command
-#        self.state.camnum = (self.analog_cam << 7) | ((self.cam1_sel & 0x0f) | ((self.cam2_sel & 0x0f) << 4))
+    def camera_toggle(self):
+	self.state.camtoggle1 = self.joy.buttons[0]
+	if self.state.camtoggle1:
+		 self.pub_state.publish(self.state)
+	else:
+		self.pub_state.publish(self.state)
 
 ########################
 #    def cam_pan_tilt(self):
@@ -174,6 +160,8 @@ class XBOX():
 #            self.analog_cam ^= 1
 #            time.sleep(.25)
 
+	self.camera_toggle()
+	
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
         
@@ -264,7 +252,6 @@ if __name__ == '__main__':
 
             # check for kill switch (True = Killed)
             if xbox.state.kill == False:
-
             	# call appropriate function for state
             	# defaults to 'Drive'
 	            if xbox.state.mode == 'Drive':
