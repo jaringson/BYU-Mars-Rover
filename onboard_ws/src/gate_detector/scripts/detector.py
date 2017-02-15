@@ -20,13 +20,13 @@ class gate_detector:
         self._server = Server(DetectorConfig, self.reconfigure_callback)
 
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.callback)
-        self._params.hl = rospy.get_param('hue_lower', 28)
-        self._params.hu = rospy.get_param('hue_upper', 54)
-        self._params.sl = rospy.get_param('sat_lower', 136)
-        self._params.su = rospy.get_param('sat_upper', 255)
-        self._params.vl = rospy.get_param('val_lower', 111)
-        self._params.vu = rospy.get_param('val_upper', 255)
+        self.image_sub = rospy.Subscriber("rgb/image_raw_color", Image, self.callback)
+        self._params.hl = rospy.get_param('hue_lower', 0)
+        self._params.hu = rospy.get_param('hue_upper', 0)
+        self._params.sl = rospy.get_param('sat_lower', 0)
+        self._params.su = rospy.get_param('sat_upper', 0)
+        self._params.vl = rospy.get_param('val_lower', 0)
+        self._params.vu = rospy.get_param('val_upper', 0)
         self.isDetected = False
 
     class params_s:
@@ -78,7 +78,7 @@ class gate_detector:
         erode = cv2.erode(thrImg, None, iterations=2)
         dilate = cv2.dilate(erode, None, iterations=2)
 
-        contours, hierarchy = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        _,contours,_ = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
         self.isDetected = False
         for cnt in contours:
