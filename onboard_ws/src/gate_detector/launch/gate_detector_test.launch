@@ -1,5 +1,5 @@
 <launch>
-  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+  <!-- <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video0" />
     <param name="image_width" value="640" />
     <param name="image_height" value="480" />
@@ -7,6 +7,9 @@
     <param name="framerate" value="15" />
     <param name="camera_frame_id" value="usb_cam" />
     <param name="io_method" value="mmap"/>
+  </node> -->
+  <node name="zed_wrapper" pkg="zed_wrapper" type="zed_wrapper_node" output="screen" >
+    
   </node>
 
   <node name="gate_detector" pkg="gate_detector" type="detector.py">
@@ -17,7 +20,8 @@
     <param name="_sat_upper" value="255" />
     <param name="_val_upper" value="255" />
   </node>
-
+  <node name="hsv_configure" pkg="rqt_reconfigure" type="rqt_reconfigure" >
+  </node>
   <node name="image_view0" pkg="image_view" type="image_view" respawn="false" output="screen">
     <remap from="image" to="/gate_detector/image_detector"/>
     <param name="autosize" value="true" />
