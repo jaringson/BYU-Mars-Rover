@@ -122,9 +122,7 @@ class PSOC_class():
 
 		self.set_rover_cmd()
 
-    # Joint Callback
-    # Last year = values from 0 to 4092 for each joint, representing commanded angle
-    # Giving radian angle for each joint (we can give you velocities scalars from -100 to 100 if you want)
+    # Science Callback
 	def joint_callback(self, joint):
 		pos_temp = [0, 0, 0, 0, 0, 0]
 
