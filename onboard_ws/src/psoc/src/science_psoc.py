@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import serial, rospy, struct
-from rover_msgs.msg import Drive, RoverState, PSOC # Pololu, SciFeedback
-from sensor_msgs.msg import JointState
+from rover_msgs.msg import Drive, RoverState, PSOC, Science # Pololu, SciFeedback
+# from sensor_msgs.msg import JointState
 from std_msgs.msg import ByteMultiArray, Int8
 import re
 import numpy as np
@@ -62,12 +62,12 @@ class PSOC_class():
 		self.psoc.chutes = np.uint16(0)
 
 		# initialize JointState Stuff
-		self.psoc.q1 = np.uint16(2046)
-		self.psoc.q2 = np.uint16(2046)
-		self.psoc.q3 = np.uint16(2046)
-		self.psoc.q4 = np.uint16(2046)
-		self.psoc.q5 = np.uint16(2046)
-		self.psoc.q6 = np.uint16(2046)
+		self.psoc.q1 = np.uint16(0)
+		self.psoc.q2 = np.uint16(0)
+		self.psoc.q3 = np.uint16(1500)
+		self.psoc.q4 = np.uint16(0)
+		self.psoc.q5 = np.uint16(0)
+		self.psoc.q6 = np.uint16(0)
 
 		# initialize Grip Stuff
 		self.psoc.grip = np.uint16(0)
@@ -80,14 +80,14 @@ class PSOC_class():
 		#self.arm_feedback = Pololu()
 
 		# initialize serial port here
-		self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
+		# self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
 		# initialize subscribers
 		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.drive_callback)
 		self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
-		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback)
+		self.sub_joint = rospy.Subscriber('/science_cmd', Science, self.science_callback)
 		self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
         # initialize publishers
@@ -123,24 +123,27 @@ class PSOC_class():
 		self.set_rover_cmd()
 
     # Science Callback
-	def joint_callback(self, joint):
-		pos_temp = [0, 0, 0, 0, 0, 0]
+	def science_callback(self, msg):
 
-		# assume all joint go from -pi to pi
-		# 0 = -pi; 4092 = pi
-		pos_temp[0] = 2046 + 2046*(joint.position[0]/np.pi)
-		pos_temp[1] = 2046 + 2046*(joint.position[1]/np.pi)
-		pos_temp[2] = 2046 + 2046*(joint.position[2]/np.pi)
-		pos_temp[3] = 2046 + 2046*(joint.position[3]/np.pi)
-		pos_temp[4] = 2046 + 2046*(joint.position[4]/np.pi)
-		pos_temp[5] = 2046 + 2046*(joint.position[5]/np.pi)
+		# Science Uses the same pololus as the Arm:
+		# Here are which pololus correspond to which
+		# Plunge = Turret
+		# Plate = Shoulder
+		# Drill = Elbow
+		# Elevator = Forearm
 
-		self.psoc.q1 = np.uint16(pos_temp[0])
-		self.psoc.q2 = np.uint16(pos_temp[1])
-		self.psoc.q3 = np.uint16(pos_temp[2])
-		self.psoc.q4 = np.uint16(pos_temp[3])
-		self.psoc.q5 = np.uint16(pos_temp[4])
-		self.psoc.q6 = np.uint16(pos_temp[5])
+		self.psoc.q1 = np.uint16(msg.plunge)
+		self.psoc.q2 = np.uint16(msg.plate)
+
+		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
+		if msg.drill:
+			self.psoc.q3 = np.uint16(2000)
+		elif not msg.drill:
+			self.psoc.q3 = np.uint16(1500)
+
+		self.psoc.q4 = np.uint16(msg.elevator)
+		self.psoc.q5 = np.uint16(0)
+		self.psoc.q6 = np.uint16(0)
 
 		self.set_rover_cmd()
 
@@ -185,7 +188,7 @@ class PSOC_class():
 		string = ''
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
-		bwrite = self.ser.write(string)
+		# bwrite = self.ser.write(string)
 		# print bwrite
 
 		# publish values just written to psoc
