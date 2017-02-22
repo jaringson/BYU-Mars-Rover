@@ -44,3 +44,6 @@
 [submodule "onboard_ws/src/usb_cam"]
 	path = onboard_ws/src/usb_cam
 	url = https://github.com/bosch-ros-pkg/usb_cam.git
+[submodule "onboard_ws/src/zed-ros-wrapper"]
+	path = onboard_ws/src/zed-ros-wrapper
+	url = https://github.com/stereolabs/zed-ros-wrapper.git

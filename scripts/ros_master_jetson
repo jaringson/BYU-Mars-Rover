@@ -1,0 +1,5 @@
+source ~/BYU-Mars-Rover/scripts/set_ros_master 192.168.1.69
+export ROS_MASTER_URI=http://192.168.1.69:11311
+export ROS_IP=192.168.1.50
+#export ROS_HOSTNAME=192.168.1.50
+#export ROS_LAUNCH_SSH_UNKNOWN=1
