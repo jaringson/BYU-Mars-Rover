@@ -8,17 +8,12 @@
     <param name="camera_frame_id" value="usb_cam" />
     <param name="io_method" value="mmap"/>
   </node> -->
+
   <node name="zed_wrapper" pkg="zed_wrapper" type="zed_wrapper_node" output="screen" >
-    
+
   </node>
 
   <node name="gate_detector" pkg="gate_detector" type="detector.py">
-    <param name="_hue_lower" value="35" />
-    <param name="_sat_lower" value="147" />
-    <param name="_val_lower" value="98" />
-    <param name="_hue_upper" value="56" />
-    <param name="_sat_upper" value="255" />
-    <param name="_val_upper" value="255" />
   </node>
   <node name="hsv_configure" pkg="rqt_reconfigure" type="rqt_reconfigure" >
   </node>
