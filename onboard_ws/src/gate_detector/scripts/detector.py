@@ -18,7 +18,7 @@ class gate_detector:
         self.hsv_pub = rospy.Publisher("gate_detector/hsv", Image, queue_size=10)
         self.isDetected_pub = rospy.Publisher("gate_detector/isDetected", Bool, queue_size = 1)
 
-        self.gateInfo_pub = rospy.Publisher("gate_detector/gateInfo", GateInfo, queue_size=1)
+        self.gateInfo_pub = rospy.Publisher("gate_detector/gatei_info", GateInfo, queue_size=1)
 
         self._server = Server(DetectorConfig, self.reconfigure_callback)
 
@@ -96,6 +96,8 @@ class gate_detector:
             self.gi.box_width = w
             size = frame.shape
             self.gi.image_size = [size[0], size[1]]
+
+            self.gi.coords = [x, y]
 
             if (self.gi.box_width > 0):
 
