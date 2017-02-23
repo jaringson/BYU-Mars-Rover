@@ -38,3 +38,12 @@
 [submodule "onboard_ws/src/nmea_navsat_driver"]
 	path = onboard_ws/src/nmea_navsat_driver
 	url = https://github.com/ros-drivers/nmea_navsat_driver.git
+[submodule "onboard_ws/src/image_common"]
+	path = onboard_ws/src/image_common
+	url = https://github.com/ros-perception/image_common.git
+[submodule "onboard_ws/src/usb_cam"]
+	path = onboard_ws/src/usb_cam
+	url = https://github.com/bosch-ros-pkg/usb_cam.git
+[submodule "onboard_ws/src/zed-ros-wrapper"]
+	path = onboard_ws/src/zed-ros-wrapper
+	url = https://github.com/stereolabs/zed-ros-wrapper.git

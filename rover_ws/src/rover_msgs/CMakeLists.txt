@@ -48,6 +48,7 @@ find_package(catkin REQUIRED std_msgs message_generation)
    PSOC.msg
    NavigationData.msg
    Obstacles.msg
+   Science.msg
    #NavState.msg
    #NavGoal.msg
    #Arm.msg
