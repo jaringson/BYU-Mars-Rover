@@ -2,15 +2,15 @@
 
 
 
-    <node pkg="hal_control" type="drive_control.py" name="drive_control">
+  <!--  <node pkg="hal_control" type="drive_control.py" name="drive_control">
        <remap from="rover_state_cmd" to="rover_state_cmd" />
-    </node>
-  <node respawn="true" pkg="joy"
+    </node>-->
+ <!-- <node respawn="true" pkg="joy"
         type="joy_node" name="joy_drive" >
     <param name="dev" type="string" value="/dev/input/js0" />
     <param name="deadzone" value="0.12" />
     <remap from="joy" to="joy_drive"/>
-  </node>
+  </node>-->
 
   <node pkg="base" type="base" name="rover_hub">
     <param name="num_cam" value="4"/>

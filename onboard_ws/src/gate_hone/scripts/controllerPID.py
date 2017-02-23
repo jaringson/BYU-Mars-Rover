@@ -17,8 +17,7 @@ class controllerPID:
 	def __init__(self):
 		# Instantiates the PID_ctrl object
 		# Control of x1-x2
-		limit = 100 #change limit to something in P, just not sure what yet, may be worth considering what drive mode we're in
-		self.xCtrl = xPID_ctrl(P.x_kp,P.x_kd,P.x_ki,P.x0,limit)
+		self.xCtrl = xPID_ctrl(P.x_kp,P.x_kd,P.x_ki,P.x0,P.limit)
 
 		# self.my_pub = rospy.Publisher('/my_states', MyStates, queue_size=10 )
 		# self.my_state = MyStates()
@@ -27,7 +26,7 @@ class controllerPID:
 		# ki is the integral gain
 		# y0 is the initial position of the state
 
-	def getForces(self,y_r,y):
+	def getInputs(self,y_r,y):
 		# y_r is the referenced input
 		# y is the current state
 		# longitudinal
@@ -39,13 +38,13 @@ class controllerPID:
 
 		# longitudinal
 
-		F = self.xCtrl.xPID_loop(x_r,x) # Calculate the force output
+		twist = self.xCtrl.xPID_loop(x_r,x) # Calculate the force output
 
 		#I'm pretty sure (since the current plan is to stay in place) that
 		#once F is returned, we just set R = F, L = -F (we can apply a scaling)
 		#because if x1<x2, state is negative and we want to increase it
 
-		return F
+		return twist
 
 
 class xPID_ctrl:
@@ -78,16 +77,16 @@ class xPID_ctrl:
 		self.error_d1 = error
 		self.x_d1 = x
 
-		F_unsat = self.kp*error - self.kd*self.differentiator + self.ki*self.integrator
+		u_unsat = self.kp*error - self.kd*self.differentiator + self.ki*self.integrator
 
-		F_sat = self.saturate(F_unsat)
+		u_sat = self.saturate(F_unsat)
 
 		# anti windup
 		if self.ki != 0:
 			self.integrator += P.Ts/self.ki*(F_sat-F_unsat)
 
 		# return F_sat
-		return F_sat
+		return u_sat
 
 	def saturate(self,u):
 		if abs(u) > self.limit:
