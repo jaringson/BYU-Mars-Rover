@@ -11,47 +11,23 @@ from rover_msgs.msg import GateCoord
 
 import controllerPID as ctrl
 
-
-# If SLIDERS is false, then the input will be generated from
-# from the signal generators.
-SLIDERS = True
-
-
-# Converts force and torque into the left and
-# right forces produced by the propellers.
+#is this method necessary?
 def convertForces(u):
-    F = u[0]         # Force, N
-    # rospy.logwarn(str(F))
-    tau = u[1]       # Torque, Nm
-    # rospy.logwarn(str(tau))
+    ur = u
+    ul = -u
 
-    # Convert Force and Torque to fl and fr
-    # fl is the force created by the left propeller
-    # fr is the force created by the right propeller
-    ul = 1.0/(P.km*2.0)*(F+tau/P.d)
-    ur = 1.0/(P.km*2.0)*(F-tau/P.d)
-    u = saturatePWM([ul,ur])
     return u
-
-# saturate the PWM to ensure that they are within the
-# range 0-1
-def saturatePWM(u):
-    ul = u[0]
-    ur = u[1]
-
-    ul = .6 if ul > .6 else 0 if ul < 0 else ul
-    ur = .6 if ur > .6 else 0 if ur < 0 else ur
-    return [ul,ur]
 
 # When a new message is sent to the topic 'whirlybird',
 # this function will run.
 # The function unpacks the message and prints the data.
 def callback(data):
-    phi = data.roll
-    theta = data.pitch
-    psi = data.yaw
+    #message contains coordinates of ball centroid and image dimensions
+    x = data.coords[0]
+    image_width = data.image_size[1]
 
-    states = [phi,theta,psi]
+    #states are [x1-x2,(x1-x2)dot].T, we care about x1-x2
+    states = x-(image_width-x)
 
     # Calculate time elapsed since last function call, s
     global prev_time
@@ -61,9 +37,9 @@ def callback(data):
     global sim_time
     sim_time = round(sim_time+dt,6)
 
-    # Get referenced inputs from signal generators or sliders
-    ref_input = usr_input.getInputValues() if SLIDERS else usr_input.getRefInputs(sim_time)
-    # ref_input = [0.0, 0.0]
+    # the desired reference will always be 0 because we want to center the ball
+    ref_input = 0
+
     u = ctrl.getForces(ref_input,states) # Calculate the forces
 
     u = convertForces(u)                 # Convert forces to PWM
