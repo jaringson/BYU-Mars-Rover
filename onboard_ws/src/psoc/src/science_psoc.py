@@ -127,10 +127,10 @@ class Science_PSOC_class():
 
 		# Science Uses the same pololus as the Arm:
 		# Here are which pololus correspond to which
-		# Plunge = Turret
-		# Plate = Shoulder
-		# Drill = Elbow
-		# Elevator = Forearm
+		# q1 = Plunge = Turret
+		# q2 = Plate = Shoulder
+		# q3 = Drill = Elbow
+		# q4 = Elevator = Forearm
 
 		self.psoc.q1 = np.uint16(msg.plunge)
 		self.psoc.q2 = np.uint16(msg.plate)
