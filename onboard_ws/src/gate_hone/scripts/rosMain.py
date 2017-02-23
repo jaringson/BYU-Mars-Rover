@@ -3,8 +3,9 @@ import rospy
 import numpy as np
 import matplotlib.pyplot as plt
 import param as P
-from whirlybird_msgs.msg import Command
-from whirlybird_msgs.msg import Whirlybird
+from rover_msgs.msg import GateCoord
+# from whirlybird_msgs.msg import Command
+# from whirlybird_msgs.msg import Whirlybird
 # from signal_generator import Signals
 # from slider_input import Sliders
 
@@ -83,12 +84,11 @@ if __name__ == '__main__':
     ctrl = ctrl()                         # Instantiate controllerPD class
 
     # Create the node
-    #-----GIVE THIS A NEW NAME
-    rospy.init_node('whirlybird_controller', anonymous=False)
+    rospy.init_node('gate_honing_controller', anonymous=False)
 
-    # Subscriber to topic 'whirlybird'
-    #-----SUBSCRIBE TO TOPIC FROM GATE DETECTOR
-    rospy.Subscriber('whirlybird', Whirlybird, callback)
+    # Subscriber to topic '/gate_info' which contains the pixel location of the
+    # gate, (along with size of the box?)
+    rospy.Subscriber('/gate_info', GateInfo, callback)
 
     # Publisher to topic 'command'
     #-----PUBLISH TO ROVER COMMAND
