@@ -21,7 +21,7 @@ class WheelControl:
         self.sub_cmd = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
 
         # Set up Publisher
-        self.pub_drive = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size=10)
 
         # Spin the Node
         rospy.spin()
@@ -40,6 +40,7 @@ class WheelControl:
         cmd = Drive()
         cmd.rw = rw
         cmd.lw = lw
+        self.pub_drive.publish(cmd)
 
     @staticmethod
     def sat(x, lim):
