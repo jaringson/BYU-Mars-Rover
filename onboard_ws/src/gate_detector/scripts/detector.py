@@ -9,6 +9,7 @@ from sensor_msgs.msg import Image
 from dynamic_reconfigure.server import Server
 from gate_detector.cfg import DetectorConfig
 from cv_bridge import CvBridge, CvBridgeError
+from rover_msgs.msgs import GateInfo
 
 class gate_detector:
     def __init__(self):
@@ -16,6 +17,8 @@ class gate_detector:
         self.detector_pub = rospy.Publisher("gate_detector/image_detector", Image, queue_size=10)
         self.hsv_pub = rospy.Publisher("gate_detector/hsv", Image, queue_size=10)
         self.isDetected_pub = rospy.Publisher("gate_detector/isDetected", Bool, queue_size = 1)
+
+        self.gateInfo_pub = rospy.Publisher("gate_detector/gatei_info", GateInfo, queue_size=1)
 
         self._server = Server(DetectorConfig, self.reconfigure_callback)
 
@@ -27,7 +30,13 @@ class gate_detector:
         self._params.su = rospy.get_param('sat_upper', 255)
         self._params.vl = rospy.get_param('val_lower', 111)
         self._params.vu = rospy.get_param('val_upper', 255)
-        self.isDetected = False
+
+        self.gi = GateInfo()
+        self.gi.gate_detected = False
+        self.gi.image_size = np.array([0 , 0])
+        self.gi.box_width = 0
+        self.gi.coords = [0 , 0]
+
 
     class params_s:
         hl = 0
@@ -84,16 +93,17 @@ class gate_detector:
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
             cx, cy = x + w / 2, y + h / 2
+            self.gi.box_width = w
+            size = frame.shape
+            self.gi.image_size = [size[0], size[1]]
 
-  #         if (abs(h * w)**2) > cv2.getTrackbarPos('Box filter', 'Trackbars'):
+            self.gi.coords = [x, y]
 
-            cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
-            self.isDetected = True
+            if (self.gi.box_width > 0):
 
-        # if cv2.getTrackbarPos('Calibrate', 'Trackbars') == 0:
-        #     cv2.imshow('Output', thrImg)
-        # else:
-        #     cv2.imshow('Output', frame)
+
+                cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
+                self.isDetected = True
 
         calibrate = 1
 
@@ -106,6 +116,7 @@ class gate_detector:
             self.isDetected_pub.publish(self.isDetected)
             self.detector_pub.publish(self.bridge.cv2_to_imgmsg(frame, "rgb8"))
             self.hsv_pub.publish(self.bridge.cv2_to_imgmsg(thrImg, "mono8"))
+            self.gateInfo_pub.publish(self.gi)
 
         except CvBridgeError as e:
             print(e)
