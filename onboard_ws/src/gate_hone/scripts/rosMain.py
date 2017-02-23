@@ -4,23 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import param as P
 from rover_msgs.msg import GateCoord
-# from whirlybird_msgs.msg import Command
-# from whirlybird_msgs.msg import Whirlybird
-# from signal_generator import Signals
-# from slider_input import Sliders
+from rover_msgs.msg import Drive
 
 import controllerPID as ctrl
 
-#is this method necessary?
-def convertForces(u):
-    ur = u
-    ul = -u
-
-    return u
-
-# When a new message is sent to the topic 'whirlybird',
+# When a new message is sent to the topic '/gate_info',
 # this function will run.
-# The function unpacks the message and prints the data.
 def callback(data):
     #message contains coordinates of ball centroid and image dimensions
     x = data.coords[0]
@@ -42,12 +31,10 @@ def callback(data):
 
     u = ctrl.getForces(ref_input,states) # Calculate the forces
 
-    u = convertForces(u)                 # Convert forces to PWM
 
 
-
-    command.left_motor = u[0]
-    command.right_motor = u[1]
+    command.lw = -u
+    command.rw = u
     command_pub.publish(command)
 
 
@@ -68,10 +55,10 @@ if __name__ == '__main__':
 
     # Publisher to topic 'command'
     #-----PUBLISH TO ROVER COMMAND
-    command_pub = rospy.Publisher('command',Command,queue_size=5)
+    command_pub = rospy.Publisher('SOMETHING',Dive,queue_size=5)
 
     # Command Message object
-    command=Command()
+    command=Drive()
 
     # Used to calculate the time between the callback function calls.
     global prev_time
@@ -83,7 +70,7 @@ if __name__ == '__main__':
 
         # Keep node alive until ROS is shutdown.
         while not rospy.is_shutdown():
-            plt.show(block=True) if SLIDERS else rospy.spin()
+            rospy.spin()
 
         # The ROSInterruptException is raised if the program is killed
         # while sleeping with rospy.sleep() or rospy.rate.sleep()
