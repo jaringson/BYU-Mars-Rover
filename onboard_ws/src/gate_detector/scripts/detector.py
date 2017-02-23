@@ -11,6 +11,18 @@ from gate_detector.cfg import DetectorConfig
 from cv_bridge import CvBridge, CvBridgeError
 from rover_msgs.msgs import GateInfo
 
+
+# When the rover comes to an estimated GPS location of the gate, a flag will be raised and the gate detector will initialize.
+# The gate detector should have a searching behavior that turns the wheels of the rover (or the servos of the zed gimbal) in order to 
+# find yellow tennis ball. The hsv thresholds can be calibrated using dynamic_reconfigure. 
+# When the ball is detected, the node will publish a topic to the PID controller which will then hone in on the gate
+# to get to the correct distance. 
+
+# What this program is currently missing is the search behavior. We will probably use torque commands to search
+# for the tennis ball. When the tennis ball is detected, the PID controller will kick in to center the 
+# tennis ball in the middle of the frame and approach it. 
+
+
 class gate_detector:
     def __init__(self):
 
@@ -103,7 +115,10 @@ class gate_detector:
 
 
                 cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
+                self.gi.gate_detected = True
                 self.isDetected = True
+            else:
+                self.gi.gate_detected = False
 
         calibrate = 1
 
