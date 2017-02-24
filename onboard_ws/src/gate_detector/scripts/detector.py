@@ -9,7 +9,7 @@ from sensor_msgs.msg import Image
 from dynamic_reconfigure.server import Server
 from gate_detector.cfg import DetectorConfig
 from cv_bridge import CvBridge, CvBridgeError
-from rover_msgs.msgs import GateInfo
+from rover_msgs.msg import GateInfo, Drive
 
 
 # When the rover comes to an estimated GPS location of the gate, a flag will be raised and the gate detector will initialize.
@@ -26,16 +26,26 @@ from rover_msgs.msgs import GateInfo
 class gate_detector:
     def __init__(self):
 
+ 
+
+        # General use publishers
         self.detector_pub = rospy.Publisher("gate_detector/image_detector", Image, queue_size=10)
         self.hsv_pub = rospy.Publisher("gate_detector/hsv", Image, queue_size=10)
         self.isDetected_pub = rospy.Publisher("gate_detector/isDetected", Bool, queue_size = 1)
 
+        # Publisher of custom message type GateInfo. This will publish to the PID controller
         self.gateInfo_pub = rospy.Publisher("gate_detector/gatei_info", GateInfo, queue_size=1)
 
+        # Subscribe to raw images
+        self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.callback)
+
+        # Server to dynamically reconfigure HSV thresholds
         self._server = Server(DetectorConfig, self.reconfigure_callback)
 
+        # CvBridge for message conversion
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.callback)
+
+        # Parameters for HSV thresholds
         self._params.hl = rospy.get_param('hue_lower', 28 )
         self._params.hu = rospy.get_param('hue_upper', 54 )
         self._params.sl = rospy.get_param('sat_lower', 136)
@@ -43,6 +53,7 @@ class gate_detector:
         self._params.vl = rospy.get_param('val_lower', 111)
         self._params.vu = rospy.get_param('val_upper', 255)
 
+        # Instantiation of GateInfo object
         self.gi = GateInfo()
         self.gi.gate_detected = False
         self.gi.image_size = np.array([0 , 0])
@@ -50,6 +61,8 @@ class gate_detector:
         self.gi.coords = [0 , 0]
 
 
+
+    # Clever way to organize parameters for the dynamic reconfigure
     class params_s:
         hl = 0
         hu = 0
@@ -58,8 +71,12 @@ class gate_detector:
         vl = 0
         vu = 0
 
+    # I don't think we need this. Already have class variable _params
     _params = params_s()
 
+    # def search_mode(self):
+
+    # callback for the 
     def reconfigure_callback(self, config, level):
         print "Reconfigure Callback"
 
