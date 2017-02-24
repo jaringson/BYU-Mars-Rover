@@ -109,7 +109,7 @@ find_package(catkin REQUIRED std_msgs message_generation)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES rover_msgs
+# LIBRARIES rover_msgs
 #  CATKIN_DEPENDS std_msgs
 #  DEPENDS system_lib
 )
