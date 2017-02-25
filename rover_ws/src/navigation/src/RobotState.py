@@ -3,14 +3,14 @@ import tf.transformations as tr
 import math
 
 class RobotState:
-    def __init__(self):
+    def __init__(self, goal_distance=0.2):
         self.pose = Pose()
         self.twist = Twist()
         self.pose.orientation.w = 1
 
         self.goal = [0.0, 0.0]
 
-        self.goal_distance = 0.2
+        self.goal_distance = goal_distance
 
     def set_goal(self, goal):
         self.goal = goal
