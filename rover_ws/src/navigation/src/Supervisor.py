@@ -7,6 +7,7 @@ import math
 import tf
 import sys
 import tf.transformations as tr
+from std_srvs.srv import Empty as srv_Empty
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from rover_msgs.msg import ArmState
@@ -19,6 +20,9 @@ class Supervisor:
     def __init__(self, baseframe=False):
         # init ROS node
         rospy.init_node('navigation')
+
+        # TF Listener
+        self.listener = tf.TransformListener()
 
         # set rate
         hz = 10.0 # 60.0
@@ -51,13 +55,16 @@ class Supervisor:
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_drive = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 
-        # TF Listener
-        self.listener = tf.TransformListener()
 
         # Get initial pose
         pose = -1
+        fails = 0
         while pose == -1:
             pose = self.base_transform()
+            fails += -pose
+            if fails > 10000:
+                rospy.logwarn('Transfrom from /odom to /base_link not found')
+                pose = 0
         self.initial_pose = pose
 
         # Set Goal
@@ -72,11 +79,17 @@ class Supervisor:
         # Set default controller
         self.control = self.gtg
 
+        # Set up Services
+        self.enable = False
+        self.s = rospy.Service('StartAuto', srv_Empty, self.start_auto)
+
+        print "Finshed init"
 
 
     def execute(self):
+        print "Executing"
         while not rospy.is_shutdown():
-            if self.ready():
+            if self.ready() and self.enable:
                 self.robot.set_goal(self.get_goal())
                 self.check_states()
                 v, w = self.control.get_outputs(self.robot)
@@ -87,6 +100,10 @@ class Supervisor:
                 # print self.control.get_angle()
                 # print self.base_transform()
                 self.rate.sleep()
+            else:
+                print "Spinning"
+                rospy.spin()
+            
 
     def check_states(self):
         if self.control.name == "go to goal":
@@ -104,6 +121,11 @@ class Supervisor:
         cmd.linear.x = v
         cmd.angular.z = w
         self.pub_drive.publish(cmd)
+
+
+    def start_auto(self, srv):
+        self.enable = True
+        rospy.loginfo('Starting Autonomous Mode')
 
     def base_transform(self):
         try:
@@ -165,6 +187,7 @@ if __name__ == '__main__':
     else:
         baseframe = False
     Sup = Supervisor(baseframe)
+    print ("Going to Execute")
     Sup.execute()
 
 
