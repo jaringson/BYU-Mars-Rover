@@ -248,6 +248,16 @@ class XBOX():
         self.pub1.publish(self.cmd)
 
     # ==========================================================================
+    # Kill State ===============================================
+    # ==========================================================================    
+
+    def killstate(self):
+    	# Publish zero wheel velocity for kill state
+    	self.drive_cmd.lw = 0
+    	self.drive_cmd.rw = 0
+    	self.pub_drive.publish(self.drive_cmd)
+
+    # ==========================================================================
     # Main ===============================================
     # ==========================================================================
 if __name__ == '__main__':
@@ -284,6 +294,8 @@ if __name__ == '__main__':
 					xbox.driveVelCommand()
 	            else:
 	                xbox.driveCommand()
+            else:
+            	xbox.killstate()
 
         rate.sleep()
 
