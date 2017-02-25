@@ -2,7 +2,7 @@
 
 import rospy, math
 #from ctypes import c_ushort
-from rover_msgs.msg import RoverState, Drive
+from rover_msgs.msg import RoverState, Drive, GateInfo
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
 import time

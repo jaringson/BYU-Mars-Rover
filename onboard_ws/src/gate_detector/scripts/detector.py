@@ -9,9 +9,7 @@ from sensor_msgs.msg import Image
 from dynamic_reconfigure.server import Server
 from gate_detector.cfg import DetectorConfig
 from cv_bridge import CvBridge, CvBridgeError
-from rover_msgs.msg import GateInfo, Drive
-
-
+from rover_msgs.msg import Drive, GateInfo
 # When the rover comes to an estimated GPS location of the gate, a flag will be raised and the gate detector will initialize.
 # The gate detector should have a searching behavior that turns the wheels of the rover (or the servos of the zed gimbal) in order to 
 # find yellow tennis ball. The hsv thresholds can be calibrated using dynamic_reconfigure. 
@@ -25,8 +23,6 @@ from rover_msgs.msg import GateInfo, Drive
 
 class gate_detector:
     def __init__(self):
-
- 
 
         # General use publishers
         self.detector_pub = rospy.Publisher("gate_detector/image_detector", Image, queue_size=10)
@@ -122,10 +118,9 @@ class gate_detector:
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
             cx, cy = x + w / 2, y + h / 2
-            self.gi.box_width = w
-            size = frame.shape
-            self.gi.image_size = [size[0], size[1]]
 
+            self.gi.box_width = w
+            self.gi.image_size = [frame.shape[0], frame.shape[1]]
             self.gi.coords = [x, y]
 
             if (self.gi.box_width > 0):
