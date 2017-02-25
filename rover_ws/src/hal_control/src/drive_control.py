@@ -5,6 +5,7 @@ import rospy, math
 from rover_msgs.msg import RoverState, Drive
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
+from wheel_controller import WheelControl
 import time
 import numpy as np
 
@@ -22,12 +23,16 @@ class XBOX():
         self.state.kill = False
         self.state.pan = 1500
         self.state.tilt = 1500
-        self.state.camnum = 0
+        self.state.camtoggle1 = False
         self.state.chutes = 0
         
         # Initialize Drive
         self.drive_cmd.lw = 0
         self.drive_cmd.rw = 0
+
+	# Instantiate Wheel_control class and disable it
+	self.wheel_control = WheelControl()
+	self.wheel_control.enable = False
 
     # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
@@ -42,23 +47,30 @@ class XBOX():
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
-        # if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
-        #     if self.state.mode == 'Drive':
-        #         self.state.mode = 'Auto'
-        #     else:
-        #         self.state.mode = 'Drive'
-            # time.sleep(.25)
+        if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
+            if self.state.mode == 'Drive':
+                self.state.mode = 'Auto'
+				self.loginfo('Switched to %s Drive State') % self.state.mode
+            elif self.state.mode == 'Drive-Vel':
+                self.state.mode = 'Auto'
+				self.loginfo('Switched to %s Drive State') % self.state.mode
+			else:
+				self.state.mode = 'Drive'
+				self.loginfo('Switched to %s Drive State') % self.state.mode
+            time.sleep(.25)
 
         # Implement Kill Switch
         if home == 1:
             if self.state.kill == False:
                 self.state.kill  = True
+				rospy.loginfo('Kill Switch Activated')
             else:
                 self.state.kill  = False
+				rospy.loginfo('Kill Switch Deactivated')
             time.sleep(.25)
 
         # check for camera toggle
-        #self.camera_select() # NEED TO IMPLEMENT
+        self.camera_toggle()
         
          # Publish state commands
         self.pub_state.publish(self.state)
@@ -86,26 +98,14 @@ class XBOX():
             time.sleep(.25)
 
 ######################
-#    def camera_select(self):
-#        # a selects between cameras 0-2, b selects between cameras 3-5
-#        # cam1_sel is lower nybble, cam2_sel is upper nybble
-#        a = self.joy.buttons[0]
-#        b = self.joy.buttons[1]
+    def camera_toggle(self):
 
-#        if a == 1:
-#            if self.cam1_sel == 2:
-#                self.cam1_sel = 0
-#            else:
-#                self.cam1_sel = self.cam1_sel + 1
-#            time.sleep(.25)
-#        if b == 1:
-#            if self.cam2_sel == 2:
-#                self.cam2_sel = 0
-#            else:
-#                self.cam2_sel = self.cam2_sel + 1
-#            time.sleep(.25)
-#        # Update command
-#        self.state.camnum = (self.analog_cam << 7) | ((self.cam1_sel & 0x0f) | ((self.cam2_sel & 0x0f) << 4))
+        self.state.camtoggle1 = self.joy.buttons[0]
+        if self.state.camtoggle1:
+           self.pub_state.publish(self.state)
+        else:
+          self.pub_state.publish(self.state)
+
 
 ########################
 #    def cam_pan_tilt(self):
@@ -177,12 +177,7 @@ class XBOX():
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
         
-    # ==========================================================================
-    # Auto Drive Control ===============================================
-    # ==========================================================================
-    def autoCommand(self):
-    # RIGHT NOW THIS IS A COPY OF Xbox Drive
-    
+	def driveVelCommand(self):
         # Check for slow/medium/fast mode
         self.speed_check()
 
@@ -214,6 +209,20 @@ class XBOX():
 
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
+
+    # ==========================================================================
+    # Auto Drive Control ===============================================
+    # ==========================================================================
+    def autoCommand(self):
+    # RIGHT NOW THIS IS A COPY OF Xbox Drive
+
+		rt = (1 - self.joy.axes[5])/2.0
+		threshold = 0.1
+		if rt > threshold:
+			self.wheel_control.enable = False
+			self.driveCommand()
+		else:
+			self.wheel_control.enable = True
 
 
     # ==========================================================================
@@ -271,6 +280,8 @@ if __name__ == '__main__':
 	                xbox.driveCommand()
 	            elif xbox.state.mode == 'Auto':
 	                xbox.autoCommand() # NEED this def
+				elif xbox.state.mode == 'Drive-Vel':
+					xbox.driveVelCommand()
 	            else:
 	                xbox.driveCommand()
 
