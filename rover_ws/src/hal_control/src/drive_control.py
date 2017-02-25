@@ -2,6 +2,7 @@
 
 import rospy, math
 #from ctypes import c_ushort
+from geometry_msgs.msg import Twist
 from rover_msgs.msg import RoverState, Drive
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
@@ -182,33 +183,25 @@ class XBOX():
         self.speed_check()
 
         # set joystick commands
-        left_joy_up = self.joy.axes[1]
+        right_joy_left = self.joy.axes[3]
         right_joy_up = self.joy.axes[4]
 
         # Calculate drive speeds
         # rw commands were multiplied by (-1)
+        msg = Twist()
         if self.state.speed == 'Fast': # max = 2000
-            self.drive_cmd.lw = left_joy_up*100
-            self.drive_cmd.rw = right_joy_up*100 
+            msg.angular.z = right_joy_left*self.wheel_controller.max_V
+            msg.linear.x = right_joy_up*self.wheel_controller.max_V 
         elif self.state.speed == 'Med': # max = 1750
-            self.drive_cmd.lw = left_joy_up*50
-            self.drive_cmd.rw = right_joy_up*50
+            msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.5
+            sg.linear.x = right_joy_up*self.wheel_controller.max_V*0.5
         elif self.state.speed == 'Slow': # max = 1675
-            self.drive_cmd.lw = left_joy_up*35
-            self.drive_cmd.rw = right_joy_up*35
+            msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.35
+            msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.35
 
-        # Pan and Tilt
-        #self.cam_pan_tilt() # NEED TO IMPLEMENT
-
-        # Turn analog video on or off with left bumper
-        # On/off is most significant bit in camnum in command
-#        lb = self.joy.buttons[4]
-#        if lb == 1:
-#            self.analog_cam ^= 1
-#            time.sleep(.25)
-
-        # Publish drive commands
-        self.pub_drive.publish(self.drive_cmd)
+        # Publish Drive Command
+        self.drive_cmd = self.wheel_controller.Twist2Drive(msg)
+    	self.pub_drive.publish(self.drive_cmd)
 
     # ==========================================================================
     # Auto Drive Control ===============================================
