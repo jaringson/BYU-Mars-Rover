@@ -1,0 +1,21 @@
+# TO RUN ROS LOCALLY
+#source set_ros_master localhost
+
+# TO SET ROVER AS MASTER
+source set_ros_master 192.168.1.69
+export ROS_IP=192.168.1.50
+export ROS_HOSTNAME=192.168.1.50
+
+export ROSLAUNCH_SSH_UNKNOWN=1
+
+# ROS_WORKSPACE
+source /opt/ros/kinetic/setup.bash
+#source ~/rel_nav_ws/devel/setup.bash
+
+source ~/BYU-Mars-Rover/rover_ws/devel/setup.bash
+source ~/BYU-Mars-Rover/shared_ws/devel/setup.bash
+#source /home/halrover/git/rostesting/rover_ws/devel/setup.bash
+#source ~/BYU-Mars-Rover/onboard_ws/devel/setup.bash
+
+alias sourcerov="source ~/BYU-Mars-Rover/rover_ws/devel/setup.bash"
+alias sourceon="source ~/BYU-Mars-Rover/onboard_ws/devel/setup.bash"
