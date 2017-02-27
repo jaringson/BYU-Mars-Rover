@@ -1,0 +1,10 @@
+#!/bin/sh
+
+#qtcreator
+echo_green "**************************Installing #QtCreator*********************************"
+
+wget https://download.qt.io/official_releases/qtcreator/4.1/4.1.0/qt-creator-opensource-linux-x86_64-4.1.0.run
+chmod +x qt-creator-opensource-linux-x86_64-4.1.0.run 
+./qt-unified-linx 
+
+
