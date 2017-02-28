@@ -16,11 +16,11 @@ class WheelControl:
 
 
         # init ROS node
-        rospy.init_node('navigation')
+        #rospy.init_node('navigation')
 
         # set rate
-        hz = 10.0  # 60.0
-        self.rate = rospy.Rate(hz)
+        #hz = 10.0  # 60.0
+        #self.rate = rospy.Rate(hz)
 
         # Set up Subscriber
         self.sub_cmd = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
@@ -29,7 +29,7 @@ class WheelControl:
         self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size=10)
 
         # Spin the Node
-        rospy.spin()
+        # rospy.spin()
 
     def cmd_vel_callback(self, msg):
         cmd = self.Twist2Drive(msg)
