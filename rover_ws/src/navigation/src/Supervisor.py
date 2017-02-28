@@ -83,6 +83,7 @@ class Supervisor:
         self.enable = False
         self.srv_start = rospy.Service('StartAuto', srv_Empty, self.start_auto)
         self.srv_stop = rospy.Service('StopAuto', srv_Empty, self.stop_auto)
+        self.srv_reset = rospy.Service('ResetAuto', srv_Empty, self.reset_auto)
 
 
     def execute(self):
@@ -191,7 +192,6 @@ if __name__ == '__main__':
     else:
         baseframe = False
     Sup = Supervisor(baseframe)
-    print ("Going to Execute")
     Sup.execute()
 
 
