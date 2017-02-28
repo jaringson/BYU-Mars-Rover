@@ -40,8 +40,6 @@ class XBOX():
 		self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 10)
 		self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 10)
 
-		print 'Initialized'
-
 	# Functions
 	
 	#################
