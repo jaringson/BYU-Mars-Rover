@@ -6,6 +6,3 @@ uint16 tilt
 bool camtoggle1
 bool camtoggle2
 uint8 chutes
-
-
-
