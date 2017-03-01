@@ -3,8 +3,9 @@ import rospy
 import numpy as np
 import matplotlib.pyplot as plt
 import param as P
-from rover_msgs.msg import GateCoord
+from rover_msgs.msg import GateInfo
 from rover_msgs.msg import Drive
+from std_msgs.msg import Int16
 
 import controllerPID as ctrl
 
@@ -12,6 +13,7 @@ import controllerPID as ctrl
 # this function will run.
 def callback(data):
     #only do stuff if gate is detected
+
     if (data.gate_detected):
 
         '''
@@ -28,28 +30,31 @@ def callback(data):
 
         #states are [x1-x2,(x1-x2)dot].T, we care about x1-x2
         states = x-(image_width-x)
-
-        # Calculate time elapsed since last function call, s
-        global prev_time
-        now = rospy.Time.now()
-        dt = (now-prev_time).to_sec()
-        prev_time = now               # Update prev_time , time
-        global sim_time
-        sim_time = round(sim_time+dt,6)
+        print ('states: ' , states)
 
         # the desired reference will always be 0 because we want to center the ball
         ref_input = 0
 
-        u = ctrl.getInputs(ref_input,states) # Calculate the forces
+        u = control.getInputs(ref_input,states) # Calculate the forces
 
-        command.lw = -u
-        command.rw = u
-        command_pub.publish(command)
+        if (states < 100 and states > -100):
+             command.lw = abs(u)
+             command.rw = abs(u)
+             command_pub.publish(command)
+             right.publish(command.rw)
+             left.publish(command.lw)
+        else:
+            command.lw = -u
+            command.rw = u
+            command_pub.publish(command)
+            right.publish(command.rw)
+            left.publish(command.lw)
+
 
 if __name__ == '__main__':
 
-    ctrl = ctrl()                         # Instantiate controllerPD class
-
+    control = ctrl.controllerPID()                         # Instantiate controllerPD class
+    i=0
     # Create the node
     rospy.init_node('gate_honing_controller', anonymous=False)
 
@@ -60,15 +65,11 @@ if __name__ == '__main__':
     # Publisher to topic 'command'
     #-----PUBLISH TO ROVER COMMAND
     command_pub = rospy.Publisher('SOMETHING',Drive,queue_size=5)
-
+    right = rospy.Publisher('/right',Int16,queue_size=5)
+    left = rospy.Publisher('/left',Int16,queue_size=5)
     # Command Message object
     command=Drive()
 
-    # Used to calculate the time between the callback function calls.
-    global prev_time
-    prev_time= rospy.Time.now()            # Gets the current time, time
-    global sim_time
-    sim_time = 0
 
     try:
 
