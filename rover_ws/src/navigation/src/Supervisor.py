@@ -30,7 +30,7 @@ class Supervisor:
 
         # Set Params
         dt = 0.01
-        ki, kd, kp = 1, 0.1, 4
+        ki, kd, kp = 1, 10, 3
         sigma = 0.05
         params = Params(ki, kd, kp, dt, sigma)
         goal_distance = 0.1
@@ -63,7 +63,8 @@ class Supervisor:
         fails = 0
         while pose == -1:
             pose = self.base_transform()
-            fails += -pose
+            if pose == -1:
+                fails += -pose
             if fails > 10000:
                 rospy.logwarn('Transfrom from /odom to /base_link not found')
                 pose = 0
@@ -102,7 +103,7 @@ class Supervisor:
                 # print self.base_transform()
                 self.rate.sleep()
             else:
-                rospy.spin()
+                self.rate.sleep()
             
 
     def check_states(self):
@@ -115,6 +116,7 @@ class Supervisor:
                 else:
                     self.control = self.stop
                     rospy.loginfo("AT GOAL!!!!")
+                    self.cur_waypoint = 0
 
     def send_command(self, v, w):
         cmd = Twist()
@@ -175,6 +177,7 @@ class Supervisor:
         rospy.loginfo('Stopping Autonomous Mode')
     def reset_auto(self, srv):
         self.enable = False
+        self.control = self.gtg
         self.cur_waypoint = 0
         rospy.loginfo('Resetting Autonomous Mode')
 

@@ -35,8 +35,15 @@ class GoToGoal(Controller):
                   robotstate.get_heading(),          # current heading
                   0]                                 # time
 
+        w_max = 2
         w = self.pid.execute(inputs)
-        v = 0.5
+        if abs(w) > w_max:
+            w = w_max*numpy.sign(w)
+            alpha = 1
+        else:
+            alpha = w/w_max
+            
+        v = robotstate.default_v * (1-alpha)
 
         return v, w
 
