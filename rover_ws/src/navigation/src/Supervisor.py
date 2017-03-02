@@ -33,10 +33,11 @@ class Supervisor:
         ki, kd, kp = 1, 0.1, 4
         sigma = 0.05
         params = Params(ki, kd, kp, dt, sigma)
-        goal_distance = 0.2
+        goal_distance = 0.1
+        default_vel = 1
 
         # Instantiate Classes
-        self.robot = RobotState(goal_distance)
+        self.robot = RobotState(goal_distance, default_vel)
         self.gtg = GoToGoal(params)
         self.stop = Stop(params)
 

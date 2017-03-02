@@ -3,10 +3,11 @@ import tf.transformations as tr
 import math
 
 class RobotState:
-    def __init__(self, goal_distance=0.2):
+    def __init__(self, goal_distance=0.2, def_v=0.5):
         self.pose = Pose()
         self.twist = Twist()
         self.pose.orientation.w = 1
+        self.default_v = def_v
 
         self.goal = [0.0, 0.0]
 
