@@ -7,7 +7,7 @@ from std_msgs.msg import ByteMultiArray, Int8
 import re
 import numpy as np
 
-class PSOC_class():
+class Science_PSOC_class():
 
 	def __init__(self):
 		# message:
@@ -80,7 +80,7 @@ class PSOC_class():
 		#self.arm_feedback = Pololu()
 
 		# initialize serial port here
-		# self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
+		self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
@@ -127,10 +127,10 @@ class PSOC_class():
 
 		# Science Uses the same pololus as the Arm:
 		# Here are which pololus correspond to which
-		# Plunge = Turret
-		# Plate = Shoulder
-		# Drill = Elbow
-		# Elevator = Forearm
+		# q1 = Plunge = Turret
+		# q2 = Plate = Shoulder
+		# q3 = Drill = Elbow
+		# q4 = Elevator = Forearm
 
 		self.psoc.q1 = np.uint16(msg.plunge)
 		self.psoc.q2 = np.uint16(msg.plate)
@@ -188,7 +188,7 @@ class PSOC_class():
 		string = ''
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
-		# bwrite = self.ser.write(string)
+		bwrite = self.ser.write(string)
 		# print bwrite
 
 		# publish values just written to psoc
@@ -214,11 +214,11 @@ class PSOC_class():
 
 
 if __name__ == '__main__':
-	rospy.init_node('psoc_node', anonymous=True)
+	rospy.init_node('science_psoc_node', anonymous=True)
 	hz = 60.0
 	rate = rospy.Rate(hz)
 	# call the constructor
-	psoc = PSOC_class()
+	psoc = Science_PSOC_class()
 
 	while not rospy.is_shutdown():
 		# psoc.set_rover_cmd()

@@ -172,11 +172,11 @@ class Arm_XBOX():
 		elif (hat_up==1):
 			self.science.plate = 1000
 		elif (hat_up == -1):
-			self.science.plate = 2000
-		elif (hat_right == 1):
 			self.science.plate = 3000
-		elif (hat_right == -1):
+		elif (hat_right == 1):
 			self.science.plate = 4000
+		elif (hat_right == -1):
+			self.science.plate = 2000
 
 		# Publish arm commands
 		self.pub_science.publish(self.science)

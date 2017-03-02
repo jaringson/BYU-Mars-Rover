@@ -19,13 +19,6 @@ class controllerPID:
 		# Control of x1-x2
 		self.xCtrl = xPID_ctrl(P.x_kp,P.x_kd,P.x_ki,P.x0,P.limit)
 
-		# self.my_pub = rospy.Publisher('/my_states', MyStates, queue_size=10 )
-		# self.my_state = MyStates()
-		# kp is the proportional gain
-		# kd is the derivative gain
-		# ki is the integral gain
-		# y0 is the initial position of the state
-
 	def getInputs(self,y_r,y):
 		# y_r is the referenced input
 		# y is the current state
@@ -39,10 +32,6 @@ class controllerPID:
 		# longitudinal
 
 		twist = self.xCtrl.xPID_loop(x_r,x) # Calculate the force output
-
-		#I'm pretty sure (since the current plan is to stay in place) that
-		#once F is returned, we just set R = F, L = -F (we can apply a scaling)
-		#because if x1<x2, state is negative and we want to increase it
 
 		return twist
 
@@ -62,7 +51,6 @@ class xPID_ctrl:
 	def xPID_loop(self,x_r,x):
 		# Compute the current error
 		error = x_r - x
-		# rospy.logwarn(str(error))
 
 		# UPIDate Differentiator
 		a1 = (2*P.sigma - P.Ts)/(2*P.sigma+P.Ts)
