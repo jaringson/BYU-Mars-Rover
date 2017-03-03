@@ -113,38 +113,51 @@ class XBOX():
 
 
 ########################
-#    def cam_pan_tilt(self):
-#        x = self.joy.buttons[2]
-#        back = self.joy.buttons[6]
-#        start = self.joy.buttons[7]
-#        push_right = self.joy.buttons[10]
-#        push_left = self.joy.buttons[9]
+	def cam_pan_tilt(self):
+		hat_x = self.joy.axes[6]
+		hat_y = self.joy.axes[7]
+		x = self.joy.buttons[2]
+		back = self.joy.buttons[6]
+		start = self.joy.buttons[7]
+		push_right = self.joy.buttons[10]
+		push_left = self.joy.buttons[9]
 
-#        if x == 1:
-#            self.cmd.pan = 1500
-#            self.cmd.tilt = 1500
-#            time.sleep(.05)
-#        if start == 1:
-#            self.cmd.tilt = self.cmd.tilt + 10.0
-#            time.sleep(.05)
-#        if back == 1:
-#            self.cmd.tilt = self.cmd.tilt - 10.0
-#            time.sleep(.05)
-#        if push_right == 1:
-#            self.cmd.pan = self.cmd.pan + 10.0
-#            time.sleep(.05)
-#        if push_left == 1:
-#            self.cmd.pan = self.cmd.pan - 10.0
-#            time.sleep(.05)
-#        # bounds check
-#        if self.cmd.tilt > 2000:
-#            self.cmd.tilt = 2000
-#        if self.cmd.tilt < 1000:
-#            self.cmd.tilt = 1000
-#        if self.cmd.pan > 2000:
-#            self.cmd.pan = 2000
-#        if self.cmd.pan < 1000:
-#            self.cmd.pan = 1000
+		cur_pan = self.gimbal_feedback[0]
+		cur_tilt = self.gimbal_feedback[1]
+
+		gimbal_inc = 1
+		tilt_limits = [-90, 90]
+		cur_pan  += gimbal_inc*hax_x
+		cur_tilt += gimbal_inc*hat_y
+
+		cur_pan = cur_pan % 360
+
+
+		if x == 1:
+		   self.cmd.pan = 1500
+		   self.cmd.tilt = 1500
+		   time.sleep(.05)
+		if start == 1:
+		   self.cmd.tilt = self.cmd.tilt + 10.0
+		   time.sleep(.05)
+		if back == 1:
+		   self.cmd.tilt = self.cmd.tilt - 10.0
+		   time.sleep(.05)
+		if push_right == 1:
+		   self.cmd.pan = self.cmd.pan + 10.0
+		   time.sleep(.05)
+		if push_left == 1:
+		   self.cmd.pan = self.cmd.pan - 10.0
+		   time.sleep(.05)
+		# bounds check
+		if self.cmd.tilt > 2000:
+		   self.cmd.tilt = 2000
+		if self.cmd.tilt < 1000:
+		   self.cmd.tilt = 1000
+		if self.cmd.pan > 2000:
+		   self.cmd.pan = 2000
+		if self.cmd.pan < 1000:
+		   self.cmd.pan = 1000
 
 	# ==========================================================================
 	# Drive Control ===============================================
