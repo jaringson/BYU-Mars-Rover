@@ -37,6 +37,7 @@ class XBOX():
 
 		# Publishers and Subscribers
 		self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
+		self.sub_gimbal = rospy.Subscriber('/gimbal_feedback', Float32MultiArray, self.gimbal_callback)
 		self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 10)
 		self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 10)
 
@@ -84,6 +85,9 @@ class XBOX():
 				self.check=True
 			else:
 				self.check=False
+
+	def dynamixel_callback(self, msg):
+		self.dynamixel_feedback = msg
 				
 #######################
 	def speed_check(self):
