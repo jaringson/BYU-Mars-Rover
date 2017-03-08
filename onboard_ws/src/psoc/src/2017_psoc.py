@@ -172,7 +172,7 @@ class PSOC_class():
 		# Shoulder/Plate (2 Bytes) (9, 10)
 		# Elbow/Drill (2 Bytes) (11,12)
 		# Forearm/Elevator (2 Bytes) (13,14)
-		# Hand (1 Byte) (15)
+		# Hand (1 Byte) (15) # 0 - nothing, 1 2
 		# Chutes (1 Byte) (16)
 		# Total = 17 Bytes
 
