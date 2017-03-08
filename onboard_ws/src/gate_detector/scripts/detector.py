@@ -33,7 +33,7 @@ class gate_detector:
         self.gateInfo_pub = rospy.Publisher("gate_detector/gate_info", GateInfo, queue_size=1)
 
         # Subscribe to raw images
-        self.image_sub = rospy.Subscriber("zed/rgb/image_rect_color", Image, self.callback)
+        self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.callback)
 
         # Server to dynamically reconfigure HSV thresholds
         self._server = Server(DetectorConfig, self.reconfigure_callback)
@@ -55,8 +55,6 @@ class gate_detector:
         self.gi.image_size = np.array([0 , 0])
         self.gi.box_width = 0
         self.gi.coords = [0 , 0]
-
-
 
     # Clever way to organize parameters for the dynamic reconfigure
     class params_s:
