@@ -1,5 +1,5 @@
 <launch>
-   <node pkg="hal_control" type="drive_control.py" name="drive_control">
+  <!-- <node pkg="hal_control" type="drive_control.py" name="drive_control">
        <remap from="rover_state_cmd" to="rover_state_cmd" />
     </node>
   <node respawn="true" pkg="joy"
@@ -7,17 +7,17 @@
     <param name="dev" type="string" value="/dev/input/js0" />
     <param name="deadzone" value="0.12" />
     <remap from="joy" to="joy_drive"/>
-  </node>
+  </node> -->
 
     <node pkg="base" type="base" name="rover_hub">
       <param name="num_cam" value="4"/>
     </node>
 
 
-    <node pkg="zed_wrapper" type="zed_wrapper_node" name="zed_wrappper">
-       <param name="resolution" value="3"/>
-       <param name="frame_rate" value="20"/>
-    </node>
+  <node pkg="zed_wrapper" type="zed_wrapper_node" name="zed_wrappper">
+    <param name="resolution" value="3"/>
+    <param name="frame_rate" value="20"/>
+  </node>
 
   <node name="usb_cam0" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video0" />
