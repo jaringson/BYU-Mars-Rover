@@ -23,10 +23,10 @@ class controllerPID:
 		# y_r is the referenced input
 		# y is the current state
 		# longitudinal
-		x_r = y_r[0]
+		x_r = y_r
 
 		# states
-		x = y[0]
+		x = y
 
 
 		# longitudinal
@@ -48,6 +48,7 @@ class xPID_ctrl:
 		self.limit = limit           # Maxiumum force
 
 
+
 	def xPID_loop(self,x_r,x):
 		# Compute the current error
 		error = x_r - x
@@ -67,11 +68,11 @@ class xPID_ctrl:
 
 		u_unsat = self.kp*error - self.kd*self.differentiator + self.ki*self.integrator
 
-		u_sat = self.saturate(F_unsat)
+		u_sat = self.saturate(u_unsat)
 
 		# anti windup
 		if self.ki != 0:
-			self.integrator += P.Ts/self.ki*(F_sat-F_unsat)
+			self.integrator += P.Ts/self.ki*(u_sat-u_unsat)
 
 		# return F_sat
 		return u_sat
