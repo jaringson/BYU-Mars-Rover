@@ -1,0 +1,270 @@
+<?xml version="1.0"?>
+<!-- Revolute-Revolute Manipulator -->
+<robot name="rrbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Constants for robot dimensions -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+  <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
+  <xacro:property name="width" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
+  <xacro:property name="boxwidth" value="1" /> <!-- Square dimensions (widthxwidth) of beams -->
+  <xacro:property name="boxheight" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
+  <xacro:property name="width3" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
+  <xacro:property name="length1" value="0" /> <!-- Link 1 -->
+  <xacro:property name="length2" value="1" /> <!-- Link 2 -->
+  <xacro:property name="length3" value="1" /> <!-- Link 3 -->
+  <xacro:property name="length4" value="0.2" /> <!-- Link 4 -->
+  <xacro:property name="length5" value="0.2" /> <!-- Link 5 -->
+  <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
+  <xacro:property name="axel_offset" value="0.05" /> <!-- Space btw top of beam and the each joint -->
+
+  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+  <xacro:include filename="$(find hal_description)/urdf/hal.gazebo" />
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find hal_description)/urdf/materials.xacro" />
+
+  <!-- Used for fixing robot to Gazebo 'base_link' -->
+  <link name="world"/>
+
+  <joint name="fixed" type="fixed">
+    <parent link="world"/>
+    <child link="link1"/>
+  </joint>
+
+  <!-- Base Link -->
+  <link name="link1">
+    <!--collision>
+      <origin xyz="0 0 ${length1/2}" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length1}"/>
+      </geometry>
+    </collision-->
+
+    <visual>
+      <origin xyz="0 0 ${-boxheight/2}" rpy="0 0 0"/>
+      <geometry>
+	<box size="${boxwidth} ${boxwidth} ${boxheight}"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 ${-boxheight/2}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  ixx="${mass / 12.0 * (boxwidth*boxwidth + boxheight*boxheight)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (boxheight*boxheight + boxwidth*boxwidth)}" iyz="0.0"
+	  izz="${mass / 12.0 * (boxwidth*boxwidth + boxheight*boxheight)}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint1" type="continuous">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+  <!-- Zero Length Link -->
+  <link name="link2">
+    <collision>
+      <origin xyz="0 0 ${length1/2}" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length1}"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 ${length1/2}" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length1}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 ${length1/2}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  ixx="${mass / 12.0 * (width*width + length1*length1)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (length1*length1 + width*width)}" iyz="0.0"
+	  izz="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint2" type="continuous">
+    <parent link="link2"/>
+    <child link="link3"/>
+    <origin xyz="0 0 ${length1}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+  <!-- First Arm -->
+  <link name="link3">
+    <collision>
+      <origin xyz="0 0 ${length2/2}" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length2}"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 ${length2/2}" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length2}"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 ${length2/2}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  ixx="${mass / 12.0 * (width*width + length2*length2)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (length2*length2 + width*width)}" iyz="0.0"
+	  izz="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>
+  
+  <joint name="joint3" type="continuous">
+    <parent link="link3"/>
+    <child link="link4"/>
+    <origin xyz="0 0 ${length2}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+<!-- Zero Length 2 -->
+  <link name="link4">
+    <collision>
+      <origin xyz="${length1/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length1}"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="${length1/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${width} ${width} ${length1}"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="${length1/2} 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  ixx="${mass / 12.0 * (width*width + length1*length1)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (length1*length1 + width*width)}" iyz="0.0"
+	  izz="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>
+  
+  <joint name="joint4" type="continuous">
+    <parent link="link4"/>
+    <child link="link5"/>
+    <origin xyz="${length1} 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+  <!-- Second Arm -->
+  <link name="link5">
+    <collision>
+      <origin xyz="${length3/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${length3} ${width} ${width}"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="${length3/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${length3} ${width} ${width}"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="${length3/2} 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  izz="${mass / 12.0 * (width*width + length3*length3)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (length3*length3 + width*width)}" iyz="0.0"
+	  ixx="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>  
+  
+  <joint name="joint5" type="continuous">
+    <parent link="link5"/>
+    <child link="link6"/>
+    <origin xyz="${length3} 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.7"/>
+  </joint>
+  
+   <!-- Third Link -->
+  <link name="link6">
+    <collision>
+      <origin xyz="${length4/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${length4} ${width} ${width}"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="${length4/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${length4} ${width} ${width}"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="${length4/2} 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  izz="${mass / 12.0 * (width*width + length4*length4)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (length4*length4 + width*width)}" iyz="0.0"
+	  ixx="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>  
+  
+  <joint name="joint6" type="continuous">
+    <parent link="link6"/>
+    <child link="link7"/>
+    <origin xyz="${length5} 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+
+   <!-- Fourth Link -->
+  <link name="link7">
+    <collision>
+      <origin xyz="${length5/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${length5} ${width} ${width}"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="${length5/2} 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size="${length5} ${width} ${width}"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+
+    <inertial>
+      <origin xyz="${length5/2} 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+	  izz="${mass / 12.0 * (width*width + length5*length5)}" ixy="0.0" ixz="0.0"
+	  iyy="${mass / 12.0 * (length5*length5 + width*width)}" iyz="0.0"
+	  ixx="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link> 
+</robot>
