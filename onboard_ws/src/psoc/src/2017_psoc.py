@@ -97,21 +97,21 @@ class PSOC_class():
 	def drive_callback(self, drive):
     # Lastyear .lw & .rw were from 1000 to 2000, 1500 is no movement
     # This year .l1 & .rw are from -100 to 100
-    # Map 0-100 speed to 1500-2000
-    # Map +/- to .lwdirection as 0 for backward, 1 for forward
+    # Map 0-100 speed to 0-20,000
+    # Map +/- to .lwdirection as 0 for forward, 1 for backward
 
-		self.psoc.lw = np.uint16(5*np.abs(drive.lw)+1500)
-		self.psoc.rw = np.uint16(5*np.abs(drive.rw)+1500)
+		self.psoc.lw = np.abs(drive.lw)*200
+		self.psoc.rw = np.abs(drive.rw)*200
 
 		if np.sign(drive.lw) == -1:
-			self.psoc.lwdirection = 0
+			self.psoc.lwdirection = 1
 		else:
-			self.psoc.lwdirection = np.sign(drive.lw)
+			self.psoc.lwdirection = 0
 
 		if np.sign(drive.rw) == -1:
-			self.psoc.rwdirection = 0
+			self.psoc.rwdirection = 1
 		else:
-			self.psoc.rwdirection = np.sign(drive.rw)
+			self.psoc.rwdirection = 0
 
 		self.set_rover_cmd()
 
