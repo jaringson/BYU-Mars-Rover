@@ -641,7 +641,7 @@ class Dynamixel_Chain(USB2Dynamixel_Device):
         ''' returns position in encoder ticks of servo at id.
         '''
         data = self.read_address(id, 0x24, 2)
-        enc_val = data[0] + data[1] * 256
+        enc_val = np.int16(data[0] + data[1] * 256)
         return enc_val
 
     def read_angle(self, id):
@@ -748,7 +748,13 @@ class Dynamixel_Chain(USB2Dynamixel_Device):
         '''
         # In some border cases, we can end up above/below the encoder limits.
         # eg. int(round(math.radians(180) / (math.radians(360)/0xFFF ))) + 0x7FF => -1
-        n = min(max(n, 0), self.servos[id].settings['max_encoder'])
+        if np.sign(n) == -1:
+            n = np.uint16(n)
+            max_enc = 0xFFFF
+        else:
+            max_enc = self.servos[id].settings['max_encoder'] 
+        
+        n = min(max(n, 0), max_enc)
         hi, lo = n / 256, n % 256
         return hi, lo
 
@@ -906,8 +912,13 @@ class Robotis_Servo():
         print "Created new %s-series Robotis Servo at ID %d" % (series, servo_id)
 
         # Clip min and max angles to limits of device
-        self.settings['max_ang'] = min(self.settings['max_ang'], self.settings['rad_per_enc'] * (self.settings['max_encoder'] - self.settings['home_encoder']))
-        self.settings['min_ang'] = max(self.settings['min_ang'], -self.settings['rad_per_enc'] * self.settings['home_encoder'])
+        flip = 1        
+        if self.settings['flipped']:
+            flip = -1.0
+        self.settings['max_ang'] = min(self.settings['max_ang'], self.encoder_to_angle(28672)*flip)
+        self.settings['min_ang'] = max(self.settings['min_ang'], -self.encoder_to_angle(28672)*flip)
+        
+
         # If max speed is negative or above possible limit,
         # set to 0 (always use max speed)
         if (self.settings['max_speed'] < 0) or (self.settings['max_speed'] > 12.2595):
