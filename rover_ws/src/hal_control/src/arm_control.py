@@ -83,16 +83,17 @@ class Arm_XBOX():
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
+        A = self.joy.buttons[0]
         
-        # if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES
-        #     if self.state.mode == 'JointControl':
-        #         self.state.mode = 'IK Arm - Base,Tool'
-        #     elif self.state.mode == 'IK Arm - Base,Tool':
-        #         self.state.mode = 'IK Arm - Tool,Tool'
-        #     else:
-        #         self.state.mode = 'JointControl'
-            # time.sleep(.25)
-            # rospy.loginfo(self.state.mode)
+        if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES
+            if self.state.mode == 'JointControl':
+                self.state.mode = 'IK Arm - Base,Tool'
+            elif self.state.mode == 'IK Arm - Base,Tool':
+                self.state.mode = 'IK Arm - Tool,Tool'
+            else:
+                self.state.mode = 'JointControl'
+            time.sleep(.25)
+            rospy.loginfo(self.state.mode)
             
         # Implement Kill Switch
         if home == 1:
@@ -101,6 +102,12 @@ class Arm_XBOX():
             else:
                 self.state.kill  = False
             time.sleep(.25)
+
+        if A == 1:
+            self.joints.position[4] = 0
+            self.joints.position[5] = 0
+            time.sleep(.25)
+            rospy.loginfo('Reset wrist')
         
         # Publish state commands
         self.pub_state.publish(self.state)
@@ -116,6 +123,7 @@ class Arm_XBOX():
             elif self.state.speed == 'Fast':
                 self.state.speed = 'Slow'
             time.sleep(.25)
+            rospy.loginfo(self.state.speed)
 
     def gripper(self):
         rt = (1 - self.joy.axes[5])/2.0
@@ -336,11 +344,11 @@ class Arm_XBOX():
 
         # Set corresponding rate
         if self.state.speed == 'Fast':
-        	MAX_RATE = 2*np.pi/180.0
+        	MAX_RATE = math.radians(.5)
         elif self.state.speed == 'Med':
-        	MAX_RATE = 1*np.pi/180.0
+        	MAX_RATE = math.radians(0.25)
         elif self.state.speed == 'Slow':
-        	MAX_RATE = 0.5*np.pi/180.0
+        	MAX_RATE = math.radians(0.1)
 
         # Calculate how to command arm (position control)
         DEADZONE = 0.1
@@ -372,6 +380,12 @@ class Arm_XBOX():
                 self.joints.position[i] = np.pi
             elif self.joints.position[i] < -np.pi:
                 self.joints.position[i] = -np.pi
+                
+        if self.joints.position[4] > np.pi/2:
+            self.joints.position[4] = np.pi/2
+        elif self.joints.position[4] < -np.pi/2:
+            self.joints.position[4] = -np.pi/2
+            
 
         self.joints.header.stamp = rospy.Time.now()
         self.joints.header.frame_id = 'JointControl'                
@@ -458,7 +472,7 @@ if __name__ == '__main__':
     rospy.init_node('xbox_arm_control')
     
     # set rate
-    hz = 10.0#60.0
+    hz = 500.0#60.0
     rate = rospy.Rate(hz)
 
     # init Arm_xbox object
