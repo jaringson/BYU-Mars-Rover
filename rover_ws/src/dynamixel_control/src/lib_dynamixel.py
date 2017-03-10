@@ -62,8 +62,8 @@ class USB2Dynamixel_Device():
             # Closing the device first seems to prevent "Access Denied" errors on WinXP
             # (Conversations with Brian Wu @ MIT on 6/23/2010)
             servo_dev.close()
-            servo_dev.setParity('N')
-            servo_dev.setStopbits(1)
+            servo_dev.parity='N'
+            servo_dev.stopbits=1
             servo_dev.open()
 
             servo_dev.flushOutput()
@@ -233,7 +233,7 @@ class Dynamixel_Chain(USB2Dynamixel_Device):
         else:
             print 'Scanning for servos with ID(\'s): %s' % ids
             suggested_ids = True
-        self.servo_dev.setTimeout(0.05)  # To make the scan faster
+        self.servo_dev.timeout=0.05  # To make the scan faster
         servos = []
         for i in ids:
             if self._id_on_device(i):
@@ -243,7 +243,7 @@ class Dynamixel_Chain(USB2Dynamixel_Device):
                 if suggested_ids:
                     print "Cannot find ID %s on %s" % (i, self.dev_name)
 
-        self.servo_dev.setTimeout(1.0)  # Restore to original
+        self.servo_dev.timeout=1.0  # Restore to original
         return servos
 
     def _id_on_device(self, id):
@@ -1021,7 +1021,7 @@ def recover_servo(dyn):
     raw_input('Make sure only one servo connected to USB2Dynamixel Device [ENTER]')
     raw_input('Disconnect power from the servo, but leave USB2Dynamixel connected to USB. [ENTER]')
 
-    dyn.servo_dev.setBaudrate(57600)
+    dyn.servo_dev.baudrate=57600
 
     print 'Get Ready.  Be ready to reconnect servo power when I say \'GO!\''
     print 'After a second, the red LED should become permanently lit.'
