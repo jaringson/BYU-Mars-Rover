@@ -46,8 +46,10 @@ find_package(catkin REQUIRED std_msgs message_generation)
    ArmState.msg
    RoverState.msg
    PSOC.msg
+   PSOC17.msg
    Science.msg
    NavState.msg
+   GateInfo.msg
    #NavGoal.msg
    #Arm.msg
    #SciFeedback.msg

@@ -31,8 +31,8 @@ class XBOX():
 
     # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
-        self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 10)
-        self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 10)
+        self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 1)
+        self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 1)
 
     # Functions
     

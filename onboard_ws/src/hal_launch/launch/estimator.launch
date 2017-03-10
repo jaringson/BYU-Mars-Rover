@@ -17,7 +17,7 @@
     <!--<rosparam file="$(arg razor_config_file)" command="load"/>-->
   </node>
 
-  <include file="$(find hal_launch)/launch/robot_localization.launch"/>
+ <!-- <include file="$(find hal_launch)/launch/robot_localization.launch"/>-->
 
   <!--Navigation Estimator-->
   <node name="nav_estimator" pkg="nav_estimation" type="estimate.py" output="screen"/>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import serial, rospy, struct
-from rover_msgs.msg import Drive, RoverState, PSOC # Pololu, SciFeedback
+from rover_msgs.msg import Drive, RoverState, PSOC17 # Pololu, SciFeedback
 from sensor_msgs.msg import JointState
 from std_msgs.msg import ByteMultiArray, Int8
 import re
@@ -25,7 +25,7 @@ class PSOC_class():
 		# Chutes (1 Byte) (16)
 		# Total = 17 Bytes
 		#
-		# total number of bytes = 27
+		# total number of bytes = 17
 		self.msg = ByteMultiArray()
 		self.msg.data.append(0)
 		self.msg.data.append(0)
@@ -46,18 +46,15 @@ class PSOC_class():
 		self.msg.data.append(0)
 
 		# Init PSOC Message
-		self.psoc = PSOC()
+		self.psoc = PSOC17()
 
 		# initialize Drive msg stuff
 		self.psoc.lw = np.uint16(1500)
 		self.psoc.rw = np.uint16(1500)
-		self.lwdirection = 1 # 1 if forward, 0 is backward
-		self.rwdirection = 1 # 1 if forward, 0 if backward
+		self.psoc.lwdirection = 1 # 1 if forward, 0 is backward
+		self.psoc.rwdirection = 1 # 1 if forward, 0 if backward
 
-		# initialize RoverState stuff
-		self.psoc.pan = np.uint16(1500)
-		self.psoc.tilt = np.uint16(1500)
-		#self.psoc.camnum = np.uint16(0)
+		# initialize chutes stuff
 		self.psoc.chutes = np.uint16(0)
 
 		# initialize JointState Stuff
@@ -90,7 +87,7 @@ class PSOC_class():
 		self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
         # initialize publishers
-		self.pub_psoc = rospy.Publisher('/psoc_out2', PSOC, queue_size=1)
+		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC17, queue_size=1)
         #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
 
     # Callback
@@ -100,22 +97,21 @@ class PSOC_class():
 	def drive_callback(self, drive):
     # Lastyear .lw & .rw were from 1000 to 2000, 1500 is no movement
     # This year .l1 & .rw are from -100 to 100
+    # Map 0-100 speed to 1500-2000
+    # Map +/- to .lwdirection as 0 for backward, 1 for forward
 
-		lw_temp = 1500 + (5*drive.lw)
-		rw_temp = 1500 + (5*-drive.rw)
-
-		self.psoc.lw = np.uint16(lw_temp)
-		self.psoc.rw = np.uint16(rw_temp)
+		self.psoc.lw = np.uint16(5*np.abs(drive.lw)+1500)
+		self.psoc.rw = np.uint16(5*np.abs(drive.rw)+1500)
 
 		if np.sign(drive.lw) == -1:
-			self.lwdirection = 0
+			self.psoc.lwdirection = 0
 		else:
-			self.lwdirection = np.sign(drive.lw)
+			self.psoc.lwdirection = np.sign(drive.lw)
 
 		if np.sign(drive.rw) == -1:
-			self.rwdirection = 0
+			self.psoc.rwdirection = 0
 		else:
-			self.rwdirection = np.sign(drive.rw)
+			self.psoc.rwdirection = np.sign(drive.rw)
 
 		self.set_rover_cmd()
 
@@ -179,11 +175,11 @@ class PSOC_class():
 		self.msg.data[0] = 0xEA
 		self.msg.data[1] = self.psoc.lw & 0xff
 		self.msg.data[2] = (self.psoc.lw & 0xff00) >> 8
-		self.msg.data[3] = self.lwdirection & 0xff
+		self.msg.data[3] = self.psoc.lwdirection # because only 0 or 1
 
 		self.msg.data[4] = self.psoc.rw & 0xff
 		self.msg.data[5] = (self.psoc.rw & 0xff00) >> 8
-		self.msg.data[6] = self.rwdirection & 0xff
+		self.msg.data[6] = self.psoc.rwdirection # because only 0 or 1
 
 		self.msg.data[7] = self.psoc.q1 & 0xff
 		self.msg.data[8] = (self.psoc.q1 & 0xff00) >> 8
@@ -194,36 +190,8 @@ class PSOC_class():
 		self.msg.data[13] = self.psoc.q4 & 0xff
 		self.msg.data[14] = (self.psoc.q4 & 0xff00) >> 8
 
-		self.msg.data[15] = self.hand
-		self.msg.data[16] = self.chutes
-
-		# self.msg.data[0] = 0xEA
-		# self.msg.data[1] = self.psoc.lw & 0xff
-		# self.msg.data[2] = (self.psoc.lw & 0xff00) >> 8
-		# self.msg.data[3] = self.psoc.rw & 0xff
-		# self.msg.data[4] = (self.psoc.rw & 0xff00) >> 8
-		# self.msg.data[5] = self.psoc.pan & 0xff
-		# self.msg.data[6] = (self.psoc.pan & 0xff00) >> 8
-		# self.msg.data[7] = self.psoc.tilt & 0xff
-		# self.msg.data[8] = (self.psoc.tilt & 0xff00) >> 8
-		# self.msg.data[9] = 0 #self.psoc.camnum
-		# self.msg.data[10] = self.psoc.q1 & 0xff
-		# self.msg.data[11] = (self.psoc.q1 & 0xff00) >> 8
-		# self.msg.data[12] = self.psoc.q2 & 0xff
-		# self.msg.data[13] = (self.psoc.q2 & 0xff00) >> 8
-		# self.msg.data[14] = self.psoc.q3 & 0xff
-		# self.msg.data[15] = (self.psoc.q3 & 0xff00) >> 8
-		# self.msg.data[16] = self.psoc.q4 & 0xff
-		# self.msg.data[17] = (self.psoc.q4 & 0xff00) >> 8
-		# self.msg.data[18] = self.psoc.q5 & 0xff
-		# self.msg.data[19] = 0
-		# self.msg.data[20] = 0
-		# self.msg.data[21] = 0
-		# self.msg.data[22] = self.psoc.grip & 0xff
-		# self.msg.data[23] = (self.psoc.grip & 0xff00) >> 8
-		# self.msg.data[24] = self.psoc.chutes
-		# self.msg.data[25] = np.uint16(1500) & 0xff #cmd.psoc.shovel & 0xff
-		# self.msg.data[26] = (np.uint16(1500) & 0xff00) >> 8#(cmd.psoc.shovel & 0xff00) >> 8
+		self.msg.data[15] = self.psoc.grip
+		self.msg.data[16] = self.psoc.chutes
 
 		# print 'Ser open?'
 		# print self.ser.isOpen()
