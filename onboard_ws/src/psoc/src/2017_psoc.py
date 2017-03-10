@@ -99,7 +99,7 @@ class PSOC_class():
     # This year .l1 & .rw are from -100 to 100
     # Map 0-100 speed to 0-20,000
     # Map +/- to .lwdirection as 0 for forward, 1 for backward
-
+		
 		self.psoc.lw = np.abs(drive.lw)*200
 		self.psoc.rw = np.abs(drive.rw)*200
 
@@ -118,10 +118,7 @@ class PSOC_class():
     # Rover State Callback
     #     
 	def state_callback(self, state):
-		# self.state.pan = state.pan
-		# self.state.tilt = state.tilt 
-		self.psoc.pan = np.uint16(1500)
-		self.psoc.tilt = np.uint16(1500) 
+		
 		# self.psoc.camnum = np.uint16(state.camnum)
 		self.psoc.chutes = np.uint16(state.chutes)
 
