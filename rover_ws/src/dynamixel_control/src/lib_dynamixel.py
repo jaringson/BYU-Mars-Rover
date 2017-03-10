@@ -336,7 +336,7 @@ class Dynamixel_Chain(USB2Dynamixel_Device):
         ret_dly = self.read_address(id, 0x05)
         return 2 * ret_dly[0]
 
-    def set_angle_limits(self, id, cw_limit=0., ccw_limit=2 * math.pi):
+    def set_angle_limits(self, id, cw_limit=math.pi, ccw_limit=math.pi):
         ''' Set the angular limits (in radians) on the motor. Should specify both cw and ccw limits
         '''
         cw_enc = self.servos[id].angle_to_encoder(cw_limit)
@@ -370,7 +370,11 @@ class Dynamixel_Chain(USB2Dynamixel_Device):
     def disable_cont_turn(self, id):
         ''' Resets CCW angle limits to defaults to allow commands through 'move_angle' again.
         '''
-        return self.set_angle_limits(id)
+        return self.write_address(id,6,[255,15]*2)
+
+    def reset_encoder(self, id):
+        self.enable_cont_turn(id)
+        self.disable_cont_turn(id)
 
     def read_temperature_limit(self, id):
         ''' Read the temperature alarm threshold in degrees C.  Default: 80C.
