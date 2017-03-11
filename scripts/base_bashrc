@@ -141,10 +141,12 @@ alias rset="export ROS_MASTER_URI=http://192.168.10.44:11311"
 alias rpi="ssh ubuntu@192.168.10.44"
 alias ws="cd ~/BYU-Mars-Rover/rover_ws"
 
+alias vbprof="vim ~/.bash_profile"
 alias vbash="vim ~/.bashrc"
 alias sbash="source ~/.bashrc"
 
 # jetson stuff
+alias rjet="source ~/BYU-Mars-Rover/scripts/ros_master_jetson"
 alias sjet="ssh ubuntu@192.168.1.69"
 alias jet="ping 192.168.1.69"
 
