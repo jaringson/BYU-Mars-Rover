@@ -20,8 +20,8 @@ class XBOX():
         self.state.mode = 'Drive' # Drive, Auto 
         self.state.speed = 'Med' # Slow, Med, Fast
         self.state.kill = False
-        self.state.pan = 1500
-        self.state.tilt = 1500
+        self.state.pan = 0.0
+        self.state.tilt = 0.0
         self.state.camtoggle1 = False
         self.state.chutes = 0
         
@@ -31,8 +31,12 @@ class XBOX():
 
     # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
+        self.sub_gimbal = rospy.Subscriber('/gimbal_feedback', Float32MultiArray, self.gimbalCallback)
         self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 1)
         self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 1)
+
+        self.ready = False
+
 
     # Functions
     
@@ -60,8 +64,9 @@ class XBOX():
         # check for camera toggle
         self.camera_toggle()
         
-         # Publish state commands
-        self.pub_state.publish(self.state)
+        # Publish state commands
+        if self.ready:
+            self.pub_state.publish(self.state)
 
 #####################
     def joyCallback(self,msg):
@@ -71,10 +76,20 @@ class XBOX():
                 self.check=True
             else:
                 self.check=False
+
+    def gimbalCallback(self, msg):
+        self.gimbal_feedback = msg
+        if not self.ready:
+            print "Load current angles"
+            self.state.pan = msg.data[0]
+            self.state.tilt = msg.data[1]
+            self.ready = True
+            time.sleep(0.1)
+
                 
 #######################
     def speed_check(self):
-    	# toggle between drive speeds
+        # toggle between drive speeds
         rb = self.joy.buttons[5]
         if rb == 1:
             if self.state.speed == 'Slow':
@@ -89,45 +104,37 @@ class XBOX():
     def camera_toggle(self):
 
         self.state.camtoggle1 = self.joy.buttons[0]
-        if self.state.camtoggle1:
-           self.pub_state.publish(self.state)
-        else:
-          self.pub_state.publish(self.state)
-
 
 ########################
-#    def cam_pan_tilt(self):
-#        x = self.joy.buttons[2]
-#        back = self.joy.buttons[6]
-#        start = self.joy.buttons[7]
-#        push_right = self.joy.buttons[10]
-#        push_left = self.joy.buttons[9]
+    def cam_pan_tilt(self):
+        hat_x = self.joy.axes[6]
+        hat_y = self.joy.axes[7]
+        A = self.joy.buttons[0]
 
-#        if x == 1:
-#            self.cmd.pan = 1500
-#            self.cmd.tilt = 1500
-#            time.sleep(.05)
-#        if start == 1:
-#            self.cmd.tilt = self.cmd.tilt + 10.0
-#            time.sleep(.05)
-#        if back == 1:
-#            self.cmd.tilt = self.cmd.tilt - 10.0
-#            time.sleep(.05)
-#        if push_right == 1:
-#            self.cmd.pan = self.cmd.pan + 10.0
-#            time.sleep(.05)
-#        if push_left == 1:
-#            self.cmd.pan = self.cmd.pan - 10.0
-#            time.sleep(.05)
-#        # bounds check
-#        if self.cmd.tilt > 2000:
-#            self.cmd.tilt = 2000
-#        if self.cmd.tilt < 1000:
-#            self.cmd.tilt = 1000
-#        if self.cmd.pan > 2000:
-#            self.cmd.pan = 2000
-#        if self.cmd.pan < 1000:
-#            self.cmd.pan = 1000
+        ang_inc = math.radians(0.5)
+
+        # Pan
+        if abs(hat_x) > 0.5:
+            self.state.pan += ang_inc*np.sign(hat_x)
+
+        if self.state.pan > math.radians(149):
+            self.state.pan = math.radians(149)
+        elif self.state.pan < math.radians(-149):
+            self.state.pan = math.radians(-149)
+    
+        # Tilt
+        if abs(hat_y) > 0.5:
+            self.state.tilt += ang_inc*np.sign(hat_y)
+
+        if self.state.tilt > math.radians(90):
+            self.state.tilt = math.radians(90)
+        elif self.state.tilt < math.radians(-90):
+            self.state.tilt = math.radians(-90)
+
+        if A==1:
+            self.state.pan = 0.0
+            self.state.tilt = 0.0
+
 
     # ==========================================================================
     # Drive Control ===============================================
@@ -151,16 +158,6 @@ class XBOX():
         elif self.state.speed == 'Slow': # max = 1675
             self.drive_cmd.lw = left_joy_up*35
             self.drive_cmd.rw = right_joy_up*35
-
-        # Pan and Tilt
-        #self.cam_pan_tilt() # NEED TO IMPLEMENT
-
-        # Turn analog video on or off with left bumper
-        # On/off is most significant bit in camnum in command
-#        lb = self.joy.buttons[4]
-#        if lb == 1:
-#            self.analog_cam ^= 1
-#            time.sleep(.25)
 
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
@@ -230,13 +227,13 @@ class XBOX():
     # Main ===============================================
     # ==========================================================================
 if __name__ == '__main__':
-	# init ROS node
+    # init ROS node
     rospy.init_node('xbox_drive_control')
     
 
     # set rate
-    hz = 60.0
-    rate = rospy.Rate(hz)
+    hz = 200.0
+    rate = rospy.Rate(hz)    
     
     # init XBOX object
     xbox = XBOX()
@@ -244,7 +241,7 @@ if __name__ == '__main__':
     # Loop
     while not rospy.is_shutdown():
 
-    	# only run when Xbox controller recognized
+        # only run when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
 
             # every time check toggle of state and cameras
@@ -253,14 +250,17 @@ if __name__ == '__main__':
             # check for kill switch (True = Killed)
             if xbox.state.kill == False:
 
-            	# call appropriate function for state
-            	# defaults to 'Drive'
-	            if xbox.state.mode == 'Drive':
-	                xbox.driveCommand()
-	            elif xbox.state.mode == 'Auto':
-	                xbox.autoCommand() # NEED this def
-	            else:
-	                xbox.driveCommand()
+                # call appropriate function for state
+                # defaults to 'Drive'
+                if xbox.state.mode == 'Drive':
+                    xbox.driveCommand()
+                elif xbox.state.mode == 'Auto':
+                    xbox.autoCommand() # NEED this def
+                else:
+                    xbox.driveCommand()
+                
+                # Gimbal
+                xbox.cam_pan_tilt()
 
         rate.sleep()
 
