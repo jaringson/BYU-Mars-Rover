@@ -84,6 +84,7 @@ class PSOC_class():
 		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.drive_callback)
 		self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
 		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback)
+		self.sub_science = rospy.Subscriber('/science_cmd', Science, self.science_callback)
 		self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
         # initialize publishers
@@ -148,6 +149,31 @@ class PSOC_class():
 		self.psoc.q4 = np.uint16(pos_temp[3])
 		self.psoc.q5 = np.uint16(pos_temp[4])
 		self.psoc.q6 = np.uint16(pos_temp[5])
+
+		self.set_rover_cmd()
+
+    # Science Callback
+	def science_callback(self, msg):
+
+		# Science Uses the same pololus as the Arm:
+		# Here are which pololus correspond to which
+		# q1 = Plunge = Turret
+		# q2 = Plate = Shoulder
+		# q3 = Drill = Elbow
+		# q4 = Elevator = Forearm
+
+		self.psoc.q1 = np.uint16(msg.plunge)
+		self.psoc.q2 = np.uint16(msg.plate)
+
+		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
+		if msg.drill:
+			self.psoc.q3 = np.uint16(2500)
+		elif not msg.drill:
+			self.psoc.q3 = np.uint16(2045)
+
+		self.psoc.q4 = np.uint16(msg.elevator)
+		self.psoc.q5 = np.uint16(0)
+		self.psoc.q6 = np.uint16(0)
 
 		self.set_rover_cmd()
 
