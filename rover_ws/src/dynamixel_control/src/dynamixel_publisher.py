@@ -3,55 +3,103 @@
 import rospy
 from std_msgs.msg import Float32MultiArray
 import lib_robotis as lr
+import lib_dynamixel as ld
 import math
+from rover_msgs.msg import RoverState
 from sensor_msgs.msg import JointState
+import time
 
 class DynPub():
-    def __init__(self):
-        self.r_angles = Float32MultiArray()
-        self.c_angles = Float32MultiArray()
-        self.c_angles.data.append(0.0)
-        self.c_angles.data.append(0.0)
-        self.pub = rospy.Publisher('/dynamixel_feedback',Float32MultiArray,queue_size = 1)
+    def __init__(self, wrist=True, gimbal=True):
+        # Init node
+        rospy.init_node('dynamixel_feedback_node',anonymous = True)
+        hz = 100.0
+        self.rate = rospy.Rate(hz)
 
-        self.sub = rospy.Subscriber('/joint_cmd',JointState,self.dynCallback)
+        # Init dynamixel objects
+        ids = []
+        if wrist:
+            ids.append(1)
+            ids.append(2)
+        if gimbal:
+            ids.append(3)
+            ids.append(4)
 
-    def dynCallback(self,msg):
-        theta5 = msg.position[4] #hinge
-        theta6 = msg.position[5] #twist
+        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
+
+        # Set wrist to multi-turn
+        if wrist:
+            self.dyn.write_address(1,6,[255,15]*2)
+            self.dyn.write_address(2,6,[255,15]*2)
+
+            self.wrist_command = [0,0]
+            self.wrist_feedback = Float32MultiArray()
+            self.wrist_feedback.data.append(0.0)
+            self.wrist_feedback.data.append(0.0)
+
+            self.pub_wrist  = rospy.Publisher('/wirst_feedback', Float32MultiArray, queue_size = 1)
+            self.sub_wrist  = rospy.Subscriber('/joint_cmd', JointState, self.wristCallback)
+
+        if gimbal:
+            self.gimbal_command = [0,0]
+            self.gimbal_feedback = Float32MultiArray()
+            self.gimbal_feedback.data.append(0.0)
+            self.gimbal_feedback.data.append(0.0)
+
+            self.pub_gimbal = rospy.Publisher('/gimbal_feedback', Float32MultiArray, queue_size = 1)
+            self.sub_gimbal = rospy.Subscriber('/rover_state_cmd', RoverState, self.gimbalCallback)
+
+        self.wrist_enabled = wrist 
+        self.gimbal_enabled = gimbal
+        self.ready = {'wrist': False, 'gimbal': False}
         
-        self.c_angles.data[0] = theta6+theta5 #dyn1
-        self.c_angles.data[1] = theta5-theta6 #dyn2
         
-        #print self.c_angles
+    def wristCallback(self,msg):
+        theta5 = msg.position[4] #% (2*math.pi) #hinge
+        theta6 = msg.position[5] #% (2*math.pi) #twist
+        
+        self.angle_command[0] = (theta6+theta5) #dyn1
+        self.angle_command[1] = (theta5-theta6) #dyn2
+        self.ready['wrist'] = True
+        
+    def gimbalCallback(self, msg):
+        self.gimbal_command[0] = msg.pan
+        self.gimbal_command[1] = msg.tilt
+        self.ready['gimbal'] = True
+
+            
+    def diffangle(self,angleTo,angleCur):
+        # Returns the closest angle between two angles
+        # negative is clockwise, positive is counter-clockwise
+        # not used but left in since it's a useful function
+        diff = angleTo - angleCur
+        dist = atan2(sin(diff),cos(diff))
+        return dist*180/pi
+
+    def execute(self):
+        while not rospy.is_shutdown():
+            # Wrist
+            if self.wrist_enabled:
+                self.wrist_feedback.data[0] = self.dyn.read_angle(1)
+                self.wrist_feedback.data[1] = self.dyn.read_angle(2)
+                self.pub_wrist.publish(self.wrist_feedback)
+                if self.ready['wrist']:
+                    self.dyn.move_angle(1,self.wrist_command[0], blocking = False)
+                    self.dyn.move_angle(2,self.wrist_command[1], blocking = False)
+
+            # Gimbal
+            if self.gimbal_enabled:
+                self.gimbal_feedback.data[0] = self.dyn.read_angle(4)
+                self.gimbal_feedback.data[1] = self.dyn.read_angle(3)
+                self.pub_gimbal.publish(self.gimbal_feedback)
+                if self.ready['gimbal']:
+                    self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
+                    self.dyn.move_angle(3,self.gimbal_command[1], blocking = False)
+
+            self.rate.sleep()
+    
 
 if __name__ == "__main__":
-    rospy.init_node('dynamixel_feedback_node',anonymous = True)
-    hz = 60.0
-    rate = rospy.Rate(hz)
-    dynpub = DynPub()
-
-    dynpub.r_angles.data.append(0.0)
-    dynpub.r_angles.data.append(0.0)
+    dynpub = DynPub(False,True)
+    dynpub.execute()
     
-    dyn = lr.USB2Dynamixel_Device('/dev/ttyUSB0',57600)
-    #dyn1 = old code's twist
-    #dyn2 = old code's flop
-    
-    dyn2 = lr.Robotis_Servo(dyn, 1, series = 'MX')
-    #dyn2 = dyn2.write_address(0x0E, [255,3])
-    dyn1 = lr.Robotis_Servo(dyn, 2, series = 'MX')
-    #dyn1 = dyn1.write_address(0x0E, [255,3])
-    dyn1.multi_turn()
-    dyn2.multi_turn()
-    
-    print "Successful"
-    while not rospy.is_shutdown():
-        dynpub.r_angles.data[0] = dyn2.read_angle()
-        dynpub.r_angles.data[1] = dyn1.read_angle()
-        dynpub.pub.publish(dynpub.r_angles)
-        dyn1.move_angle(dynpub.c_angles.data[1], blocking = False)
-        dyn2.move_angle(dynpub.c_angles.data[0], blocking = False)
-        
-
-        rate.sleep()

@@ -17,7 +17,7 @@
  <!--  <node pkg="hal_control" type="arm_control.py" name="xbox_arm_control">
   </node>  -->
 
-  <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control">
+  <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control" output="screen">
   </node>
 
   <!-- <node pkg="psoc" type="onboard_psoc.py" name="testPSOC">
