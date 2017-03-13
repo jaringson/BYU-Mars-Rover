@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import serial, rospy, struct
-from rover_msgs.msg import Drive, RoverState, PSOC17 # Pololu, SciFeedback
+from rover_msgs.msg import Drive, RoverState, PSOC17, Science # Pololu, SciFeedback
 from sensor_msgs.msg import JointState
 from std_msgs.msg import ByteMultiArray, Int8
 import re
@@ -49,8 +49,8 @@ class PSOC_class():
 		self.psoc = PSOC17()
 
 		# initialize Drive msg stuff
-		self.psoc.lw = np.uint16(1500)
-		self.psoc.rw = np.uint16(1500)
+		self.psoc.lw = np.uint16(0)
+		self.psoc.rw = np.uint16(0)
 		self.psoc.lwdirection = 1 # 1 if forward, 0 is backward
 		self.psoc.rwdirection = 1 # 1 if forward, 0 if backward
 
@@ -154,20 +154,20 @@ class PSOC_class():
 
 		# Science Uses the same pololus as the Arm:
 		# Here are which pololus correspond to which
-		# q1 = Plunge = Turret
-		# q2 = Plate = Shoulder
-		# q3 = Drill = Elbow
-		# q4 = Elevator = Forearm
+		# q1 = Turret
+		# q2 = elevator = Shoulder
+		# q3 = Plunge = Elbow
+		# q4 = Drill = Forearm
 
 		self.psoc.q1 = np.uint16(msg.plunge)
 		self.psoc.q2 = np.uint16(msg.plate)
 
 		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
 		if msg.drill:
-			self.psoc.q3 = np.uint16(2500)
+			self.psoc.q3 = np.uint16(0)
 		elif not msg.drill:
-			self.psoc.q3 = np.uint16(2045)
-
+			self.psoc.q3 = np.uint16(2000)
+		self.psoc.q3 = msg.drill
 		self.psoc.q4 = np.uint16(msg.elevator)
 		self.psoc.q5 = np.uint16(0)
 		self.psoc.q6 = np.uint16(0)
