@@ -6,6 +6,7 @@ import lib_robotis as lr
 import lib_dynamixel as ld
 import math
 from rover_msgs.msg import RoverState
+from rover_msgs.srv import PositionReturn, PositionReturnResponse
 from sensor_msgs.msg import JointState
 import time
 
@@ -37,8 +38,9 @@ class DynPub():
             self.wrist_feedback.data.append(0.0)
             self.wrist_feedback.data.append(0.0)
 
-            self.pub_wrist  = rospy.Publisher('/wirst_feedback', Float32MultiArray, queue_size = 1)
+            self.pub_wrist  = rospy.Publisher('/wrist_feedback', Float32MultiArray, queue_size = 1)
             self.sub_wrist  = rospy.Subscriber('/joint_cmd', JointState, self.wristCallback)
+            self.srv_wrist  = rospy.Service('wrist_position', PositionReturn, self.wrist_position_srv)
 
         if gimbal:
             self.gimbal_command = [0,0]
@@ -58,9 +60,20 @@ class DynPub():
         theta5 = msg.position[4] #% (2*math.pi) #hinge
         theta6 = msg.position[5] #% (2*math.pi) #twist
         
-        self.angle_command[0] = (theta6+theta5) #dyn1
-        self.angle_command[1] = (theta5-theta6) #dyn2
+        self.wrist_command[0] = (theta6+theta5) #dyn1
+        self.wrist_command[1] = (theta5-theta6) #dyn2
         self.ready['wrist'] = True
+
+    def wrist_position_srv(self, srv):
+        D1 = self.wrist_feedback.data[0]
+        D2 = self.wrist_feedback.data[1]
+        wrist = [(D1+D2)/2, (D1-D2)/2]
+        response = PositionReturnResponse(wrist, True, 'Wrist Feedback')
+        # response.position = 1.1
+        # response.success = True
+        # response.tag = 'Wrist Feedback'
+        return response
+
         
     def gimbalCallback(self, msg):
         self.gimbal_command[0] = msg.pan
@@ -100,6 +113,6 @@ class DynPub():
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(False,True)
+    dynpub = DynPub(True,False)
     dynpub.execute()
     
