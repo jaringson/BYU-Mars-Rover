@@ -1,0 +1,27 @@
+<launch>
+  <node name="gate_detector" pkg="gate_detector" type="detector.py">
+  </node>
+  <node name="gate_honer" pkg="gate_hone" type="rosMain.py">
+  </node>
+  
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/video0" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="framerate" value="15" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+  </node>
+
+  <!-- <arg name="svo_file" default=""/>
+  <arg name="zed_id" default="0"/> -->
+
+  <!-- <group ns="zed">
+    <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+      <arg name="svo_file" value="$(arg svo_file)" />
+      <arg name="zed_id" value="$(arg zed_id)" />
+    </include>
+  </group> -->
+
+</launch>

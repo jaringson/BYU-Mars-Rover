@@ -42,11 +42,18 @@ class gate_detector:
         self.bridge = CvBridge()
 
         # Parameters for HSV thresholds
-        self._params.hl = rospy.get_param('hue_lower', 27 )
-        self._params.hu = rospy.get_param('hue_upper', 83 )
-        self._params.sl = rospy.get_param('sat_lower', 84)
-        self._params.su = rospy.get_param('sat_upper', 255)
-        self._params.vl = rospy.get_param('val_lower', 72)
+        # self._params.hl = rospy.get_param('hue_lower', 27 )
+        # self._params.hu = rospy.get_param('hue_upper', 83 )
+        # self._params.sl = rospy.get_param('sat_lower', 84)
+        # self._params.su = rospy.get_param('sat_upper', 255)
+        # self._params.vl = rospy.get_param('val_lower', 72)
+        # self._params.vu = rospy.get_param('val_upper', 255)
+
+        self._params.hl = rospy.get_param('hue_lower', 30 )
+        self._params.hu = rospy.get_param('hue_upper', 36 )
+        self._params.sl = rospy.get_param('sat_lower', 82)
+        self._params.su = rospy.get_param('sat_upper', 155)
+        self._params.vl = rospy.get_param('val_lower', 127)
         self._params.vu = rospy.get_param('val_upper', 255)
 
         # Instantiation of GateInfo object
