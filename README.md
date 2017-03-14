@@ -2,7 +2,8 @@
 
 ## requirements
 
-ros-kineticc
+ros-kinetic
+
 Ubuntu 16.04
 
 ## Installation
