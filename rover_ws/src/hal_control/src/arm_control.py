@@ -113,7 +113,7 @@ class Arm_XBOX():
         self.pub_state.publish(self.state)
 
     def speed_check(self):
-    	# toggle between arm speeds
+        # toggle between arm speeds
         rb = self.joy.buttons[5]
         if rb == 1:
             if self.state.speed == 'Slow':
@@ -144,7 +144,7 @@ class Arm_XBOX():
     def arm_IK_base_tool(self):
 
         # read in & initialize position of arm
-    	# if first time
+        # if first time
         if self.init_ik:
             # Publish current joint position
             self.pub_joint_ik.publish(self.joints)
@@ -153,7 +153,7 @@ class Arm_XBOX():
             self.init_ik = False
         # FK on last commanded angles
         
-    	###### change pose with Xbox
+        ###### change pose with Xbox
         # Speed Check
         self.speed_check()
         
@@ -213,7 +213,7 @@ class Arm_XBOX():
         
        # print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
         
-    	# send pose to IK
+        # send pose to IK
         self.pub_pose_ik.publish(self.pose_cmd)
         
         #print self.pose_cmd
@@ -284,7 +284,7 @@ class Arm_XBOX():
         mvnt = np.matrix([x_mvnt, y_mvnt, z_mvnt])
         dTool = tr.translation_matrix(mvnt)
         dBase = tr.concatenate_matrices(T, dTool)
-	
+    
         self.pose_cmd.position.x = dBase.item(0, 3)
         self.pose_cmd.position.y = dBase.item(1, 3)
         self.pose_cmd.position.z = dBase.item(2, 3)
@@ -326,10 +326,10 @@ class Arm_XBOX():
         return H
         
     def posemsg_to_transmatrix(self,posemsg):
-	    trans = np.matrix([posemsg.position.x,posemsg.position.y,posemsg.position.z])
-	    H = tr.translation_matrix(trans)
-	    return H
-	    
+        trans = np.matrix([posemsg.position.x,posemsg.position.y,posemsg.position.z])
+        H = tr.translation_matrix(trans)
+        return H
+        
     
         
         
@@ -344,11 +344,11 @@ class Arm_XBOX():
 
         # Set corresponding rate
         if self.state.speed == 'Fast':
-        	MAX_RATE = math.radians(.5)
+            MAX_RATE = math.radians(.5)
         elif self.state.speed == 'Med':
-        	MAX_RATE = math.radians(0.25)
+            MAX_RATE = math.radians(0.25)
         elif self.state.speed == 'Slow':
-        	MAX_RATE = math.radians(0.1)
+            MAX_RATE = math.radians(0.1)
 
         # Calculate how to command arm (position control)
         DEADZONE = 0.1
@@ -421,11 +421,11 @@ class Arm_XBOX():
 
 #         # Set corresponding rate
 #         if self.state.speed == 'Fast':
-#         	MAX_RATE = 100
+#           MAX_RATE = 100
 #         elif self.state.speed == 'Med':
-#         	MAX_RATE = 75
+#           MAX_RATE = 75
 #         elif self.state.speed == 'Slow':
-#         	MAX_RATE = 50
+#           MAX_RATE = 50
 
 #         # Calculate how to command arm (position control)
 #         DEADZONE = 0.1
@@ -481,7 +481,7 @@ if __name__ == '__main__':
     # Loop
     while not rospy.is_shutdown():
 
-    	# Start when Xbox controller recognized
+        # Start when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
             
             # every time check toggle of state
