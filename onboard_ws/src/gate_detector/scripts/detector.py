@@ -42,19 +42,13 @@ class gate_detector:
         self.bridge = CvBridge()
 
         # Parameters for HSV thresholds
-        # self._params.hl = rospy.get_param('hue_lower', 27 )
-        # self._params.hu = rospy.get_param('hue_upper', 83 )
-        # self._params.sl = rospy.get_param('sat_lower', 84)
-        # self._params.su = rospy.get_param('sat_upper', 255)
-        # self._params.vl = rospy.get_param('val_lower', 72)
-        # self._params.vu = rospy.get_param('val_upper', 255)
-
         self._params.hl = rospy.get_param('hue_lower', 30 )
         self._params.hu = rospy.get_param('hue_upper', 36 )
         self._params.sl = rospy.get_param('sat_lower', 82)
         self._params.su = rospy.get_param('sat_upper', 155)
         self._params.vl = rospy.get_param('val_lower', 127)
         self._params.vu = rospy.get_param('val_upper', 255)
+        # self._params.implementation = rospy.get_param('implementation', 'square')
 
         # Instantiation of GateInfo object
         self.gi = GateInfo()
@@ -62,6 +56,11 @@ class gate_detector:
         self.gi.image_size = np.array([0 , 0])
         self.gi.box_width = 0
         self.gi.coords = [0 , 0]
+        self.gi.gate_distance = 0
+        self.pts = 0
+
+
+
 
     # Clever way to organize parameters for the dynamic reconfigure
     class params_s:
@@ -71,6 +70,7 @@ class gate_detector:
         su = 0
         vl = 0
         vu = 0
+        # implemenation = ''
 
     # I don't think we need this. Already have class variable _params
     _params = params_s()
@@ -88,6 +88,18 @@ class gate_detector:
         self._params.vl = config.val_lower
         self._params.vu = config.val_upper
         return config
+
+
+        # Focal_length = (pixel_width  * distance) / actual_width
+        # distance = (actual width * focal_length) / pixel_width
+        # pixel_width = right_side - left_side = (x_center + box_width/2) - (x_center - box_width/2)
+    def calculate_distance(self, box_center, box_width, actual_width, focal_length):
+
+        pixel_width = (box_center + box_width/2) - (box_center - box_width/2)
+        distance = (actual_width * focal_length) / pixel_width
+
+        return distance
+
 
     def callback(self, data):
 
@@ -125,8 +137,9 @@ class gate_detector:
             w,h,x,y = [0,0,0,0]
             self.gi.gate_detected = False
 
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
+        if len(contours) > 0:
+            c = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(c)
             # rospy.logwarn(w)
             cx, cy = x + w / 2, y + h / 2
 
@@ -155,8 +168,71 @@ class gate_detector:
         except CvBridgeError as e:
             print(e)
 
-
+        #################################################
+        # using circles
+        #################################################
+        # if self._params.implementation == 'circle':
+        #     img_msg = data
+        #     try:
+        #          cv_image = self.bridge.imgmsg_to_cv2(img_msg,desired_encoding="rgb8")
+        #     except CvBridgeError as e:
+        #         print(e)
+        #
+        #     frame = cv_image
+        #     lower =  np.array([self._params.hl, self._params.sl, self._params.vl])
+        #     upper =  np.array([self._params.hu, self._params.su, self._params.vu])
+        #
+        #
+        #     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+        #     hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
+        #
+        #
+        #     thrImg = cv2.inRange(hsv, lower, upper)
+        #     mask = cv2.erode(thrImg, None, iterations=2)
+        #     mask =cv2.dilate(mask, None, iterations=2)
+        #
+        #
+        #     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        #     center = None
+        #
+        #     if len(cnts) > 0:
+        #         self.gi.gate_detected = True
+        #         c = max(cnts, key=cv2.contourArea)
+        #         (x, y), radius =  cv2.minEnclosingCircle(c)
+        #         M = cv2.moments(c)
+        #         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        #
+        #         if radius > 1:
+        #             cv2.circle(frame, (int(x), int(y)), int(radius),
+        #                         (0, 255, 255), 2)
+        #             cv2.circle(frame, center, 5, (0,0,255), -1)
+        #
+        #
+        #             self.gi.box_width = radius * 2.0
+        #             self.gi.coords = [x, y]
+        #             self.gi.image_size = [frame.shape[0], frame.shape[1]]
+        #     else :
+        #
+        #         radius = 0
+        #         x = 0
+        #         y = 0
+        #         self.gi.gate_detected = False
+        #
+        #     try:
+        #         # self.isDetected_pub.publish(self.isDetected)
+        #         cv2.imshow('Output', hsv)
+        #         self.detector_pub.publish(self.bridge.cv2_to_imgmsg(frame, "rgb8"))
+        #         self.hsv_pub.publish(self.bridge.cv2_to_imgmsg(thrImg, "mono8"))
+        #         self.gateInfo_pub.publish(self.gi)
+        #
+        #     except CvBridgeError as e:
+        #         print(e)
+        #
+        #
+        #
+        #
 def main(args):
+
     print("got to mains###########################################")
 
     rospy.init_node('gate_detector', anonymous=True)
@@ -167,7 +243,8 @@ def main(args):
         r.sleep()
     except KeyBoardInterrupt:
         print("Shutting down")
-#cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
 
