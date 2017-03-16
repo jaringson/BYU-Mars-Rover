@@ -1,0 +1,23 @@
+<launch>
+
+  <!--PARAMS-->
+  <param name="use_sim_time" value="false"/>
+  
+  <!--GPS-->
+
+  <node name="gps_node"  pkg="gpsd_client"   type="gpsd_client" output="screen">	
+  </node>
+
+  <!--IMU-->
+  <arg name="razor_config_file" default="$(find hal_launch)/config/my_razor.yaml"/>
+  <node pkg="razor_imu_9dof" type="imu_node.py" name="imu_node" output="screen">
+    <!--<rosparam file="$(arg razor_config_file)" command="load"/>-->
+  </node>
+
+  <!--Navigation Estimator-->
+  <node name="nav_estimator" pkg="nav_estimation" type="estimate.py" output="screen"/>
+
+  <!-- PSOC -->
+  <node name="PSOC" pkg="psoc" type="2017_psoc.py" output="screen"/>
+
+</launch>
