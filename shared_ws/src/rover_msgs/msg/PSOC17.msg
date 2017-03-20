@@ -10,6 +10,7 @@ uint16 q3 #Elbow position
 uint16 q4 #Forearm position
 uint16 q5 #Wrist Tilt position
 uint16 q6 #Wrist Spin position
+uint16 plate #Plate Shift
 uint16 grip
 uint8 chutes
 
