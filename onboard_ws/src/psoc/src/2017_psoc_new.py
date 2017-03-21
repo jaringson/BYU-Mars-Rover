@@ -218,11 +218,11 @@ class PSOC_class():
 		self.msg.data[12] = (self.psoc.q3 & 0xff00) >> 8
 		self.msg.data[13] = self.psoc.q4 & 0xff
 		self.msg.data[14] = (self.psoc.q4 & 0xff00) >> 8
-		self.msg.data[13] = self.psoc.plate & 0xff
-		self.msg.data[14] = (self.psoc.plate & 0xff00) >> 8
+		self.msg.data[15] = self.psoc.plate & 0xff
+		self.msg.data[16] = (self.psoc.plate & 0xff00) >> 8
 
-		self.msg.data[15] = self.psoc.grip
-		self.msg.data[16] = self.psoc.chutes
+		self.msg.data[17] = self.psoc.grip
+		self.msg.data[18] = self.psoc.chutes
 
 		# print 'Ser open?'
 		# print self.ser.isOpen()
