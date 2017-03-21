@@ -3,11 +3,11 @@
   <param name="joy_node_arm/dev" value="/dev/input/js0" />
 
   <node pkg="joy" type="joy_node" name="joy_node_arm" output="screen">
-  <remap from="/joy" to="/joy_arm"/>
+    <remap from="/joy" to="/joy_arm"/>
   </node>
 
+  <node pkg="hal_control" type="arm_control.py" name="xbox_arm_control" output="screen" />
 
-  <node pkg="hal_control" type="arm_control.py" name="xbox_arm_control" output="screen">
-  </node> 
+  <include file="$(find rover_description)/launch/urdf.launch" />
   
 </launch>
