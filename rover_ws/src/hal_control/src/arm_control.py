@@ -385,10 +385,11 @@ class Arm_XBOX():
             elif self.joints.position[i] < -np.pi:
                 self.joints.position[i] = -np.pi
                 
-        if self.joints.position[4] > np.pi/2:
-            self.joints.position[4] = np.pi/2
-        elif self.joints.position[5] < -np.pi/2:
-            self.joints.position[5] = -np.pi/2
+        wristlimit1 = math.radians(80)
+        if self.joints.position[4] > wristlimit1:
+            self.joints.position[4] = wristlimit1
+        elif self.joints.position[4] < -wristlimit1:
+            self.joints.position[4] = -wristlimit1
             
 
         self.joints.header.stamp = rospy.Time.now()
