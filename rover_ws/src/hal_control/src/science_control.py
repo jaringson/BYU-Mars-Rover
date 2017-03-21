@@ -147,12 +147,12 @@ class Arm_XBOX():
 		# 	if abs(axes[i])<DEADZONE:
 		# 		axes[i] = 0
 		
-		self.science.elevator = self.science.elevator + MAX_RATE*right_joy_up
+		self.science.elevator = self.science.elevator + MAX_RATE*left_joy_up
 		if self.science.elevator < 0:
 			self.science.elevator = 0
 		elif self.science.elevator > 4095:
 			self.science.elevator = 4095
-		self.science.plunge = self.science.plunge + MAX_RATE*left_joy_up
+		self.science.plunge = self.science.plunge + MAX_RATE*right_joy_up
 		if self.science.plunge < 0:
 			self.science.plunge = 0
 		elif self.science.plunge > 4095:
