@@ -9,9 +9,10 @@ from rover_msgs.msg import RoverState
 from rover_msgs.srv import PositionReturn, PositionReturnResponse
 from sensor_msgs.msg import JointState
 import time
+import tf
 
 class DynPub():
-    def __init__(self, wrist=True, gimbal=True):
+    def __init__(self, wrist=True, gimbal=True, lidar=True):
         # Init node
         rospy.init_node('dynamixel_feedback_node',anonymous = True)
         hz = 100.0
@@ -25,6 +26,8 @@ class DynPub():
         if gimbal:
             ids.append(3)
             ids.append(4)
+        if lidar:
+            ids.append(5)
 
         self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
         self.resetOverload(ids)
@@ -54,6 +57,7 @@ class DynPub():
 
         self.wrist_enabled = wrist 
         self.gimbal_enabled = gimbal
+        self.lidar_enabled = lidar
         self.ready = {'wrist': False, 'gimbal': False}
         
         
@@ -141,10 +145,24 @@ class DynPub():
                     self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
                     self.dyn.move_angle(3,self.gimbal_command[1], blocking = False)
 
+            # Lidar
+            if self.lidar_enabled:
+                now = rospy.get_time()
+                amplitude = math.radians(45)
+                period = 1 #second
+                omega = 2*math.pi/period
+                angle = math.sin(now*omega)*amplitude
+                self.dyn.move_angle(5, angle, blocking = False)
+
+                br = tf.TransformBroadcaster()
+                br.sendTransform((0,0,0),
+                    tf.transformations.quaternion_from_euler(0,angle,0),
+                    "lidar","lidar_base")
+
             self.rate.sleep()
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(True,False)
+    dynpub = DynPub(True,False,False)
     dynpub.execute()
     
