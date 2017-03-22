@@ -47,3 +47,6 @@
 [submodule "onboard_ws/src/zed-ros-wrapper"]
 	path = onboard_ws/src/zed-ros-wrapper
 	url = https://github.com/stereolabs/zed-ros-wrapper.git
+[submodule "rover_ws/src/grid_map"]
+	path = rover_ws/src/grid_map
+	url = https://github.com/ethz-asl/grid_map.git
