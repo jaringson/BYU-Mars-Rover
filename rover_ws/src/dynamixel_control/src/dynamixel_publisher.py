@@ -55,6 +55,11 @@ class DynPub():
             self.pub_gimbal = rospy.Publisher('/gimbal_feedback', Float32MultiArray, queue_size = 1)
             self.sub_gimbal = rospy.Subscriber('/rover_state_cmd', RoverState, self.gimbalCallback)
 
+        # Lidar
+        self.lidar_init = True
+        self.lidar_shift = 0
+        self.lidar_time = rospy.Time()
+
         self.wrist_enabled = wrist 
         self.gimbal_enabled = gimbal
         self.lidar_enabled = lidar
@@ -147,22 +152,31 @@ class DynPub():
 
             # Lidar
             if self.lidar_enabled:
-                now = rospy.get_time()
+                if self.lidar_init:
+                    self.lidar_shift = self.dyn.read_angle(5)
+                    self.lidar_init = False
+                    self.dyn.move_angle(5,self.lidar_shift)
+                    self.lidar_time = rospy.Time.now()
+
+                t = rospy.Time.now() - self.lidar_time
                 amplitude = math.radians(45)
-                period = 1 #second
+                period = 2 #second
                 omega = 2*math.pi/period
-                angle = math.sin(now*omega)*amplitude
+                angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude
                 self.dyn.move_angle(5, angle, blocking = False)
 
                 br = tf.TransformBroadcaster()
                 br.sendTransform((0,0,0),
                     tf.transformations.quaternion_from_euler(0,angle,0),
+                    rospy.Time.now(),
                     "lidar","lidar_base")
+
+                print math.degrees(angle)
 
             self.rate.sleep()
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(True,False,False)
+    dynpub = DynPub(False,False,True)
     dynpub.execute()
     
