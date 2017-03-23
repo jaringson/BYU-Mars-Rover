@@ -152,17 +152,18 @@ class DynPub():
 
             # Lidar
             if self.lidar_enabled:
+                offset = math.radians(0)
                 if self.lidar_init:
-                    self.lidar_shift = self.dyn.read_angle(5)
+                    self.lidar_shift = self.dyn.read_angle(5)-offset
                     self.lidar_init = False
                     self.dyn.move_angle(5,self.lidar_shift)
                     self.lidar_time = rospy.Time.now()
 
                 t = rospy.Time.now() - self.lidar_time
-                amplitude = math.radians(45)
+                amplitude = math.radians(45/2)
                 period = 2 #second
                 omega = 2*math.pi/period
-                angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude
+                angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
                 self.dyn.move_angle(5, angle, blocking = False)
 
                 br = tf.TransformBroadcaster()
