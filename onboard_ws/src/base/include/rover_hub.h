@@ -63,7 +63,7 @@ private:
     #define num_cam 4
 
     ros::Time begin;
-    sensp
+   
 
 
 };
