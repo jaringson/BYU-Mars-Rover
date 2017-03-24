@@ -27,6 +27,7 @@ class DynPub():
             ids.append(4)
 
         self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
+        self.resetOverload(ids)
 
         # Set wrist to multi-turn
         if wrist:
@@ -89,12 +90,43 @@ class DynPub():
         dist = atan2(sin(diff),cos(diff))
         return dist*180/pi
 
+    def resetOverload(self,ids):
+        # Resets any overloaded dynamixels
+        for id in ids:
+            # Check if any of the ids didn't get read in
+            if not id in self.dyn.servos.keys():
+                try:
+                    # Test to see if you can read from the dynamixel. Throws an error if not.
+                    self.dyn.set_torque_limit(id,100)
+                    limit = dyn.read_torque_limit(id)
+                except RuntimeError:
+                    # If Overloaded, reset the torque limit
+                    try:
+                        limit = self.dyn.read_torque_limit(id)
+                    except:
+                        limit = 0
+
+                # If the torque limit has successfully been reset to 100%
+                if limit == 100:
+                    rospy.loginfo('Dynamixel ID %i recovered from Overload' %id)
+                    # Pull in the dynamixel after it's been recovered
+                    self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
+
+
+
+
+
+
+
     def execute(self):
         while not rospy.is_shutdown():
             # Wrist
             if self.wrist_enabled:
                 self.wrist_feedback.data[0] = self.dyn.read_angle(1)
                 self.wrist_feedback.data[1] = self.dyn.read_angle(2)
+                torque = [self.dyn.read_torque(1), self.dyn.read_torque(2)]
+                if torque[0] > 90 or torque[1] > 90:
+                    rospy.logwarn('Dangerous Torque')
                 self.pub_wrist.publish(self.wrist_feedback)
                 if self.ready['wrist']:
                     self.dyn.move_angle(1,self.wrist_command[0], blocking = False)
