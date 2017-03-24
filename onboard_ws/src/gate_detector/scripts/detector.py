@@ -57,7 +57,10 @@ class gate_detector:
         self.gi.box_width = 0
         self.gi.coords = [0 , 0]
         self.gi.gate_distance = 0
-        self.pts = 0
+
+        self.gateDetectorEnable = True
+        self.implemenation = 'circle'  # can be 'circle' rectangle
+
 
 
 
@@ -103,70 +106,81 @@ class gate_detector:
 
     def callback(self, data):
 
+        if self.gateDetectorEnable:
+            img_msg = data
 
-        img_msg = data
+            try:
 
-        try:
+                cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="rgb8")
+            except CvBridgeError as e:
+                print(e)
 
-            cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="rgb8")
-        except CvBridgeError as e:
-            print(e)
+            # cv_image = cv2.cvtColor(cv_image, cv2.)
+            # this command flips the frame around the y axis
 
-        # cv_image = cv2.cvtColor(cv_image, cv2.)
-        # this command flips the frame around the y axis
+            frame = cv_image
+            lower =  np.array([self._params.hl, self._params.sl, self._params.vl])
+            upper =  np.array([self._params.hu, self._params.su, self._params.vu])
+            #
+            # hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
+            # thrImg =cv2.inRange(hsv, lower, upper)
+            #
+            # res = cv2.bitwise_and(frame, frame, mask=thrImg)
+            # blur = cv2.medianBlur(res, 2)
+            # cv_image = cv2.bitwise_and(cv_image,cv_image, mask=mask)
+            blur = cv2.medianBlur(cv_image, 5)
+            hsv = cv2.cvtColor(cv_image, cv2.COLOR_RGB2HSV)
+            thrImg = cv2.inRange(hsv,lower,upper)
+            # try hihat function that erodes dilate
+            # look up ransac
+            # use GPS data to weight images
+            # object recognition, machine learning
+            # kernel = np.ones((5,5),np.uint8)
+            # erode = cv2.erode(thrImg, kernel, iterations=3)
+            # dilate = cv2.dilate(erode, kernel, iterations=3)
+            erode = cv2.erode(thrImg, None, iterations=3)
+            dilate = cv2.dilate(erode, None, iterations=3)
 
-        frame = cv_image
-        lower =  np.array([self._params.hl, self._params.sl, self._params.vl])
-        upper =  np.array([self._params.hu, self._params.su, self._params.vu])
-        blur = cv2.medianBlur(cv_image, 3)
-        hsv = cv2.cvtColor(cv_image, cv2.COLOR_RGB2HSV)
-        thrImg = cv2.inRange(hsv,lower,upper)
-        # try hihat function that erodes dilate
-        # look up ransac
-        # use GPS data to weight images
-        # object recognition, machine learning
+            _,contours,_ = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        erode = cv2.erode(thrImg, None, iterations=2)
-        dilate = cv2.dilate(erode, None, iterations=2)
+            self.isDetected = False
 
-        _,contours,_ = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            if not contours:
+                w,h,x,y = [0,0,0,0]
+                self.gi.gate_detected = False
 
-        self.isDetected = False
+            if len(contours) > 0:
+                c = max(contours, key=cv2.contourArea)
+                x, y, w, h = cv2.boundingRect(c)
+                # rospy.logwarn(w)
+                cx, cy = x + w / 2, y + h / 2
 
-        if not contours:
-            w,h,x,y = [0,0,0,0]
-            self.gi.gate_detected = False
+                self.gi.box_width = w
+                self.gi.image_size = [frame.shape[0], frame.shape[1]]
+                self.gi.coords = [x, y]
 
-        if len(contours) > 0:
-            c = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(c)
-            # rospy.logwarn(w)
-            cx, cy = x + w / 2, y + h / 2
-
-            self.gi.box_width = w
-            self.gi.image_size = [frame.shape[0], frame.shape[1]]
-            self.gi.coords = [x, y]
+                self.gi.gate_distance = self.calculate_distance(x, w, 2.7, 679.05882);
 
 
-            cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
-            self.gi.gate_detected = True
-            self.isDetected = True
+                cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
+                self.gi.gate_detected = True
+                self.isDetected = True
 
-        calibrate = 1
+            calibrate = 1
 
-        # if calibrate == 1:
-        #     cv2.imshow('Output', thrImg)
-        # else:
-        #     cv2.imshow('Output', frame)
+            # if calibrate == 1:
+            #     cv2.imshow('Output', thrImg)
+            # else:
+            #     cv2.imshow('Output', frame)
 
-        try:
-            self.isDetected_pub.publish(self.isDetected)
-            self.detector_pub.publish(self.bridge.cv2_to_imgmsg(frame, "rgb8"))
-            self.hsv_pub.publish(self.bridge.cv2_to_imgmsg(thrImg, "mono8"))
-            self.gateInfo_pub.publish(self.gi)
+            try:
+                self.isDetected_pub.publish(self.isDetected)
+                self.detector_pub.publish(self.bridge.cv2_to_imgmsg(frame, "rgb8"))
+                self.hsv_pub.publish(self.bridge.cv2_to_imgmsg(thrImg, "mono8"))
+                self.gateInfo_pub.publish(self.gi)
 
-        except CvBridgeError as e:
-            print(e)
+            except CvBridgeError as e:
+                print(e)
 
         #################################################
         # using circles
