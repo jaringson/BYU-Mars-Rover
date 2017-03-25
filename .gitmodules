@@ -50,3 +50,6 @@
 [submodule "rover_ws/src/grid_map"]
 	path = rover_ws/src/grid_map
 	url = https://github.com/ethz-asl/grid_map.git
+[submodule "onboard_ws/src/grid_map"]
+	path = onboard_ws/src/grid_map
+	url = https://github.com/ethz-asl/grid_map.git
