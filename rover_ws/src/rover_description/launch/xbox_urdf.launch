@@ -1,0 +1,6 @@
+<launch>
+    <include file="$(find hal_control)/launch/arm_control.launch" />
+
+    <!-- Display in RVIZ -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rover_description)/launch/rrbot.rviz"/>
+</launch>
