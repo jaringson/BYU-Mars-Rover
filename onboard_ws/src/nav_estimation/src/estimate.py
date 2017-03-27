@@ -134,7 +134,7 @@ class Estimator():
 			self.qhat = alpha*self.qhat + (1-alpha)*msg.angular_velocity.y
 			self.rhat = alpha*self.rhat + (1-alpha)*msg.angular_velocity.z
 
-			q = (msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w)
+			q = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
 			euler = tf.transformations.euler_from_quaternion(q)
 			self.estimate.phi = euler[0];
 			self.estimate.theta = -euler[1];
