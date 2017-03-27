@@ -91,7 +91,9 @@ class PSOC_class():
 
         # initialize publishers
 		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC17, queue_size=1)
-        #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
+		print "Successfull"
+     
+   #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
 
     # Callback
     
