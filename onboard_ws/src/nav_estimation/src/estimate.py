@@ -139,6 +139,7 @@ class Estimator():
 			self.estimate.phi = euler[0];
 			self.estimate.theta = -euler[1];
 			self.estimate.psi = -euler[2];
+			self.estimate.chi = self.estimate.psi * 180.0/np.pi
 
 			self.prediction(Ts)
 
