@@ -38,6 +38,7 @@ private:
 	tf::TransformListener listener_;								//does tf stuff
 	laser_geometry::LaserProjection projector_;			//transforms the LaserScan to PointCloud2
 	GridMap map_;																		//is the map
+
 };
 
 /*
@@ -62,13 +63,13 @@ Map_Maker::Map_Maker(ros::NodeHandle nh){
 		map_.getSize()(0), map_.getSize()(1));
 
 	runtime();
+
 }
 
 /*
 Callback for laser scan. Accepts scan and updates map
 */
 void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
-
 	//check to make sure that the transform exists
 	if(!listener_.waitForTransform(
 		scan_in->header.frame_id,
@@ -76,6 +77,7 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 		//timestamp on scan is first point so need to check there is a transform for last point
 		scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment),
 		ros::Duration(1.0))){
+
      return;
 	}
 
@@ -128,9 +130,17 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 Method that just runs and waits for laser scans
 */
 void Map_Maker::runtime(){
+	ros::Rate r(10);
+	ros::Time time = ros::Time::now();
 
 	while(ros::ok()){
-		ros::spin();
+		map_.setTimestamp(time.toNSec());
+		grid_map_msgs::GridMap msg;
+		GridMapRosConverter::toMessage(map_, msg);
+		map_pub_.publish(msg);
+		ROS_INFO_THROTTLE(1.0, "Grid map (timestamp %f) published.", msg.info.header.stamp.toSec());
+		ros::spinOnce();
+		r.sleep();
 	}
 
 }

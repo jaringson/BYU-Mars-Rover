@@ -16,7 +16,18 @@ find_package(catkin REQUIRED COMPONENTS
   laser_geometry
   pcl_conversions
   pcl_ros
+  message_generation
 )
+
+add_message_files(
+  FILES
+  FloatList.msg
+  )
+
+  generate_messages(
+    DEPENDENCIES
+    std_msgs
+  )
 
 ###################################
 ## catkin specific configuration ##
@@ -30,7 +41,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS
+  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
@@ -57,6 +68,11 @@ add_executable(
   src/map_class.cpp
 )
 
+add_executable(
+  planning_node
+  src/planning_node.cpp
+)
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
   simple_demo_guy
@@ -66,6 +82,11 @@ target_link_libraries(
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
   map_class
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+  planning_node
   ${catkin_LIBRARIES}
 )
 
