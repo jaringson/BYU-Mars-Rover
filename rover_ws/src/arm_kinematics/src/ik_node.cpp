@@ -66,7 +66,7 @@ Arm_IK::Arm_IK(int argc, char** argv)
     pub_pose = nh.advertise<geometry_msgs::Pose>("/pose_cmd_ik",1000);
     
     sub_pose = nh.subscribe("/pose_ik", 1000, &Arm_IK::poseMessageReceived, this);
-    pub_joints = nh.advertise<sensor_msgs::JointState>("/joint_cmd",1000);
+    pub_joints = nh.advertise<sensor_msgs::JointState>("/joint_cmd_ik",1000);
     
     cout << "Subscribers set up" << endl;
     
