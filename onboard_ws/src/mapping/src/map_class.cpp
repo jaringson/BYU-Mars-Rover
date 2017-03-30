@@ -85,9 +85,6 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	pcl::PointCloud<pcl::PointXYZ>* cloud_xyz = new pcl::PointCloud<pcl::PointXYZ>;
 	pcl::fromROSMsg(cloud_msg,*cloud_xyz);
 
-	//make an Eigen matrix here that will be added to the map
-  // MatrixXd m(map_.getSize()(0), map_.getSize()(1));
-
 	//loop through cloud and update the map
 	for(size_t i = 0; i < cloud_xyz->points.size(); i++){
 		//get current [x,y,z]
@@ -95,12 +92,17 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 		float y_temp = cloud_xyz->points[i].y;
 		float z_temp = cloud_xyz->points[i].z;
 
-		//update matrix
-		// m()
+		//make a position (from GridMap namespace)
+		Position pos_pt(x_temp,y_temp);
+
+		//if the position falls within the map, update its elevation
+		if(map_.isInside(pos_pt)){
+			map_.atPosition("elevation", pos_pt) = z_temp;
+		}
 	}
-	//add matrix to map
 
 	//move map (avoids asynchronicity) (real talk: makes sure you move the map after adding laser scan)
+	
 }
 
 /*
