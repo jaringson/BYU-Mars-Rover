@@ -102,26 +102,28 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	}
 
 	//move map (avoids asynchronicity) (real talk: makes sure you move the map after adding laser scan)
-	
+	tf::StampedTransform map_transform;
+
+	try{
+    listener.waitForTransform("/base_station", "/rover",
+                              now, ros::Duration(0.5));
+    listener.lookupTransform("/base_station", "/rover",
+                             now, map_transform);
+	}
+	catch (tf::TransformException &ex) {
+      ROS_ERROR("%s",ex.what());
+      continue;
+    }
+
 }
 
 /*
-Method that runs the script at some rate
+Method that just runs and waits for laser scans
 */
 void Map_Maker::runtime(){
 
-	//set a rate to update the map at (20 Hz)
-	ros::Rate rate(20);
-
 	while(ros::ok()){
-
-		//get tf right now
-
-		//move map
-
-		ros::spinOnce();
-		rate.sleep();
-
+		ros::spin();
 	}
 
 }
