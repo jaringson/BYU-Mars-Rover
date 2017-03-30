@@ -28,9 +28,11 @@ class Map_Maker{
 public:
 	//class methods
 	Map_Maker(ros::NodeHandle nh);
-	void laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan);
+	void laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
 	void runtime();
 
+private:
+	//class members
 	ros::Subscriber laser_sub_;											//subscribes to LaserScan
 	ros::Publisher map_pub_;												//publishes our map
 	tf::TransformListener listener_;								//does tf stuff
@@ -52,7 +54,7 @@ Map_Maker::Map_Maker(ros::NodeHandle nh){
 	GridMap map_temp({"elevation"});
 	map_ = map_temp;
 	map_.setFrameId("map");
-	map_.setGeometry(Length(5.0,5.0),0.5);
+	map_.setGeometry(Length(5.0,5.0),0.1);
 
 	//check that it worked
 	ROS_INFO("Created map with size %f x %f m (%i x %i cells).",
@@ -115,6 +117,10 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	catch (tf::TransformException &ex) {
       ROS_ERROR("%s",ex.what());
   }
+
+	//TODO does this all work with the NED vs. XYZ thing?
+	Position map_center(map_transform.getOrigin().x(), map_transform.getOrigin().y());
+	map_.move(map_center);
 
 }
 
