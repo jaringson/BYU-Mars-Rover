@@ -1,13 +1,26 @@
+//basic ROS include
 #include <ros/ros.h>
+
+//message types
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
-//#include "tf/message_filter.h"
-//#include "message_filters/subscriber.h"
+
+//grid map stuff
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
+
+//conversion stuff
+#include <laser_geometry/laser_geometry.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+
 #include <cmath>
 
+using namespace std;
 using namespace grid_map;
 
 class Map_Maker{
@@ -16,20 +29,13 @@ public:
 	//class methods
 	Map_Maker(ros::NodeHandle nh);
 	void laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan);
-	// void msg_cb(const boost::shared_ptr<const sensor_msgs::LaserScan>& scan_ptr);
-	// void state_cb(const );
 	void runtime();
 
-	//class members
-	//message_filters::Subscriber<sensor_msgs::LaserScan> laser_sub_;
-	//tf::TransformListener tf_;
-
-	ros::Subscriber laser_sub;						//subscribes to LaserScan
-	//ros::Subscriber state_sub;						//subscribes to state
-	ros::Publisher map_pub;								//publishes our map
-	tf::TransformListener listener_;					//does tf stuff
-	laser_geometry::LaserProjection projector_;			///transforms the LaserScan to PointCloud2
-	GridMap map;
+	ros::Subscriber laser_sub_;											//subscribes to LaserScan
+	ros::Publisher map_pub_;												//publishes our map
+	tf::TransformListener listener_;								//does tf stuff
+	laser_geometry::LaserProjection projector_;			//transforms the LaserScan to PointCloud2
+	GridMap map_;																		//is the map
 };
 
 /*
@@ -37,33 +43,29 @@ Constructor for Map_Maker. Accepts nodehandle and initializes subscriber, publis
 */
 Map_Maker::Map_Maker(ros::NodeHandle nh){
 	//initialize subscriber and publisher
-	laser_sub = nh.subscribe("laser_scan", 20, boost::bind(&Map_Maker::laser_cb, this, _1));
+	laser_sub_ = nh.subscribe("laser_scan", 20, &Map_Maker::laser_cb, this);
 
 	//initialize map publisher
-	map_pub = nh.advertise<grid_map_msgs::GridMap>("local_map",1);
+	map_pub_ = nh.advertise<grid_map_msgs::GridMap>("local_map",1);
 
 	//initialize GridMap
-	map = new GridMap({"elevation"});
-	map.setFrameId("map");
-	map.setGeometry(Length(5.0,5.0),0.5);
+	GridMap map_temp({"elevation"});
+	map_ = map_temp;
+	map_.setFrameId("map");
+	map_.setGeometry(Length(5.0,5.0),0.5);
 
 	//check that it worked
 	ROS_INFO("Created map with size %f x %f m (%i x %i cells).",
-		map.getLength().x(), map.getLength().y(),
-		map.getSize()(0), map.getSize()(1));
+		map_.getLength().x(), map_.getLength().y(),
+		map_.getSize()(0), map_.getSize()(1));
 
 	runtime();
 }
 
-//  Callback to register with tf::MessageFilter to be called when transforms are available
-// void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr){
-//
-// }
-
 /*
 Callback for laser scan. Accepts scan and updates map
 */
-void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan){
+void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 
 	//check to make sure that the transform exists
 	if(!listener_.waitForTransform(
@@ -75,23 +77,36 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan){
      return;
 	}
 
-	sensor_msgs::PointCloud2 cloud;
-	projector_.transformLaserScantoPointCloud("/base_link",*scan,cloud,listener_);
+	sensor_msgs::PointCloud2 cloud_msg;
+	projector_.transformLaserScanToPointCloud("/base_link",*scan_in,cloud_msg,listener_);
 
 	//now do stuff with point cloud (probably iterate through points and add to map)
-}
+	//make a PCL pointcloud
+	pcl::PointCloud<pcl::PointXYZ>* cloud_xyz = new pcl::PointCloud<pcl::PointXYZ>;
+	pcl::fromROSMsg(cloud_msg,*cloud_xyz);
 
-/*
-Callback for state. Moves the map when the state changes.
-*/
-// void Map_Maker::state_cb(const ){
-//
-// }
+	//make an Eigen matrix here that will be added to the map
+  // MatrixXd m(map_.getSize()(0), map_.getSize()(1));
+
+	//loop through cloud and update the map
+	for(size_t i = 0; i < cloud_xyz->points.size(); i++){
+		//get current [x,y,z]
+		float x_temp = cloud_xyz->points[i].x;
+		float y_temp = cloud_xyz->points[i].y;
+		float z_temp = cloud_xyz->points[i].z;
+
+		//update matrix
+		// m()
+	}
+	//add matrix to map
+
+	//move map (avoids asynchronicity) (real talk: makes sure you move the map after adding laser scan)
+}
 
 /*
 Method that runs the script at some rate
 */
-void runtime(){
+void Map_Maker::runtime(){
 
 	//set a rate to update the map at (20 Hz)
 	ros::Rate rate(20);
@@ -112,8 +127,8 @@ void runtime(){
 int main(int argc, char** argv){
 	//initialize node and publisher
 	ros::init(argc, argv, "map");
-	ros::NodeHandle nh("~");
+	ros::NodeHandle nh("map_node");
 
 	//create map_maker object for updating and publishing map
-	mm = Map_Maker(nh);
+	Map_Maker mm(nh);
 }
