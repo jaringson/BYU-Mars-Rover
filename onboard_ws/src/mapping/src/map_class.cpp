@@ -95,6 +95,8 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 		//make a position (from GridMap namespace)
 		Position pos_pt(x_temp,y_temp);
 
+		//TODO rotation to ground plane
+
 		//if the position falls within the map, update its elevation
 		if(map_.isInside(pos_pt)){
 			map_.atPosition("elevation", pos_pt) = z_temp;
@@ -105,15 +107,14 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	tf::StampedTransform map_transform;
 
 	try{
-    listener.waitForTransform("/base_station", "/rover",
-                              now, ros::Duration(0.5));
-    listener.lookupTransform("/base_station", "/rover",
-                             now, map_transform);
+    listener_.waitForTransform("/base_station", "/rover",
+                              scan_in->header.stamp, ros::Duration(0.5));
+    listener_.lookupTransform("/base_station", "/rover",
+                             scan_in->header.stamp, map_transform);
 	}
 	catch (tf::TransformException &ex) {
       ROS_ERROR("%s",ex.what());
-      continue;
-    }
+  }
 
 }
 
