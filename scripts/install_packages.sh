@@ -19,3 +19,5 @@ sudo apt-get install libgps-dev
 sudo apt-get install ros-kinetic-tf2-geometry-msgs
 sudo apt-get install ros-kinetic-gps-umd
 sudo apt-get install ros-kinetic-geographic-msgs
+sudo apt-get install ros-kinetic-orocos-kdl
+sudo apt-get install ros-kinetic-orocos-kinematics-dynamics

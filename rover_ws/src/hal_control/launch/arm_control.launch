@@ -12,7 +12,7 @@
 
   <!-- Launch IK Node -->
   
-  <!--<include file="$(find arm_kinematics)/launch/IK.launch" />-->
+  <include file="$(find arm_kinematics)/launch/IK.launch" />
 
   <!-- Launch Arm Control Node -->
   <node pkg="hal_control" type="arm_control.py" name="arm_control" output="screen" />

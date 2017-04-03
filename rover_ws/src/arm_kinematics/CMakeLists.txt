@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(arm_kinematics)
 
-find_package(catkin REQUIRED COMPONENTS
+find_package(catkin REQUIRED 
+  COMPONENTS
   eigen_conversions
   roscpp
   rospy
   std_msgs
   trac_ik_lib
+  
 )
+find_package(orocos_kdl)
 
 
 catkin_package(
