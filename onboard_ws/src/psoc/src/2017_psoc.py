@@ -258,14 +258,49 @@ class PSOC_class():
 			print "READ FEEDBACK!"
 			while self.ser.inWaiting() > 0:
 				if self.ser.read(1).encode('hex') in 'e3':
-					self.q1_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-					print self.q1_fback
-					self.q2_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-					self.q3_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-					self.q4_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-					self.plate_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)					
-					self.temp = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-					self.humidity = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+					try:
+						self.q1_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.q1_fback
+					except ValueError:
+						print "q1 Bad Feedback"
+
+					try:
+						self.q2_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.q2_fback
+					except ValueError:
+						print "q2 Bad Feedback"
+
+					try:
+						self.q3_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.q3_fback
+					except ValueError:
+						print "q3 Bad Feedback"
+
+					try:
+						self.q4_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.q4_fback
+					except ValueError:
+						print "q4 Bad Feedback"
+
+					try:
+						self.plate_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.plate_fback
+					except ValueError:
+						print "Plate Bad Feedback"
+
+					try:
+						self.temp = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.temp
+					except ValueError:
+						print "Temp Bad Feedback"
+
+					try:
+						self.humidity = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.humidity
+					except ValueError:
+						print "Humidity Bad Feedback"
+
+
 					#		    self.pub_arm.publish(self.arm_feedback)
 					#		    self.pub_sci.publish(self.science_data)
 
