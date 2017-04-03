@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import serial, rospy, struct
-from rover_msgs.msg import Drive, RoverState, PSOC17, Science # Pololu, SciFeedback
+from rover_msgs.msg import Drive, RoverState, PSOC17, Science, Feedback # Pololu, SciFeedback
 from sensor_msgs.msg import JointState
 from std_msgs.msg import ByteMultiArray, Int8
 import re
@@ -75,7 +75,7 @@ class PSOC_class():
 		# feedback: 0xE3, turret-low, turret-high, shoulder-low, shoulder-high,
 		# elbow-low, elbow-high, forearm-low, forearm-high, temperature-low,
 		# temperature-high, humidity-low, humidity-high
-		self.feedback = ByteMultiArray()
+		self.feedback = Feedback()
 		#self.science_data = SciFeedback()
 		#self.arm_feedback = Pololu()
 
@@ -93,6 +93,7 @@ class PSOC_class():
 
         # initialize publishers
 		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC17, queue_size=1)
+		self.pub_fback = rospy.Publisher('feedback', Feedback, queue_size=1)
 		print "Successfull"
      
    #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
@@ -259,50 +260,49 @@ class PSOC_class():
 			while self.ser.inWaiting() > 0:
 				if self.ser.read(1).encode('hex') in 'e3':
 					try:
-						self.q1_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.q1_fback
+						self.feedback.q1 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.q1
 					except ValueError:
 						print "q1 Bad Feedback"
 
 					try:
-						self.q2_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.q2_fback
+						self.feedback.q2 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.q2
 					except ValueError:
 						print "q2 Bad Feedback"
 
 					try:
-						self.q3_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.q3_fback
+						self.feedback.q3 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.q3
 					except ValueError:
 						print "q3 Bad Feedback"
 
 					try:
-						self.q4_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.q4_fback
+						self.feedback.q4 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.q4
 					except ValueError:
 						print "q4 Bad Feedback"
 
 					try:
-						self.plate_fback = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.plate_fback
+						self.feedback.plate = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.plate
 					except ValueError:
 						print "Plate Bad Feedback"
 
 					try:
-						self.temp = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.temp
+						self.feedback.temp = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.temp
 					except ValueError:
 						print "Temp Bad Feedback"
 
 					try:
-						self.humidity = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.humidity
+						self.feedback.humidity = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
+						print self.feedback.humidity
 					except ValueError:
 						print "Humidity Bad Feedback"
 
-
-					#		    self.pub_arm.publish(self.arm_feedback)
-					#		    self.pub_sci.publish(self.science_data)
+					self.pub_fback.publish(self.feedback)
+					
 
 
 if __name__ == '__main__':
