@@ -60,7 +60,7 @@ class PSOC_class():
 		self.psoc.chutes = np.uint8(79) # Init byte message to '01001111'
 
 		# initialize JointState Stuff
-		self.arm_initialized = 0
+		self.arm_initialized = False
 		self.psoc.q1 = np.uint16(2046)
 		self.psoc.q2 = np.uint16(2046)
 		self.psoc.q3 = np.uint16(2046)
@@ -155,6 +155,8 @@ class PSOC_class():
 		self.psoc.q5 = np.uint16(pos_temp[4])
 		self.psoc.q6 = np.uint16(pos_temp[5])
 
+		self.arm_initialized = True
+
 		# self.set_rover_cmd()
 
     # Science Callback
@@ -211,6 +213,13 @@ class PSOC_class():
 		if self.new_drive == 0:
 			self.psoc.lw = 0
 			self.psoc.rw = 0
+
+		if self.arm_initialized == False:
+			self.psoc.q1 = self.feedback.q1
+			self.psoc.q2 = self.feedback.q2
+			self.psoc.q3 = self.feedback.q3
+			self.psoc.q4 = self.feedback.q4
+			self.psoc.plate = self.feedback.plate
 
 		self.msg.data[0] = 0xEA
 		self.msg.data[1] = self.psoc.lw & 0xff
