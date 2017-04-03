@@ -1,9 +1,15 @@
 //basic ROS include
 #include <ros/ros.h>
 
+//custom message type for a bunch of floats
+#include <mapping/FloatList.h>
+
 //grid map stuff
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
+
+//sqrt
+#include <Eigen/Core>
 
 using namespace std;
 using namespace grid_map;
@@ -13,16 +19,20 @@ class Planner{
 public:
   //class methods
   Planner(ros::NodeHandle nh);
+  virtual ~Planner();
   void runtime();
   void map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in);
 
 private:
   //class members
   ros::Subscriber map_sub_;                   //subscribes to local map
+  ros::Subscriber global_wp_sub_;             //subscribes to global waypoint path
   ros::Publisher wp_pub_;                     //publishes waypoints
   GridMap map_;                               //actually stores the map
-  const float THRESHOLD_ = 0.15;              //threshold for what the rover can't drive over
-  const float ROVER_WIDTH_ = 1.25;            //width of rover in meters (measured)
+  MatrixXf waypoints_;                        //nx2 matrix where n is number of waypoints
+  bool received_path_;                        //if true, path is already received, do not let incoming topics update it
+  const float THRESHOLD_ = 0.075;//0.15              //threshold for what the rover can't drive over
+  const float ROVER_WIDTH_ = 0.25;//1.25;            //width of rover in meters (measured)
 
 };
 
@@ -30,16 +40,22 @@ private:
 Constructor for Planner. Accepts nodehandle and initializes subscriber, publisher
 */
 Planner::Planner(ros::NodeHandle nh){
-  map_sub_ = nh.subscribe("/map_node/local_map", 5, &Planner::map_cb, this);
+  map_sub_ = nh.subscribe("/grid_map_tutorial_demo/grid_map", 5, &Planner::map_cb, this);
+  global_wp_sub_ = nh.subscribe("/global_path", 1, &Planner::wp_cb, this);
   wp_pub_ = nh.advertise<grid_map_msgs::GridMap>("/waypoints",1);     //THIS IS WRONG BUT I'M NOT SURE WHAT IT WILL BE
 
+  received_path_ = false;
+
+  runtime();
 }
+
+Planner::~Planner() {}
 
 /*
 Method that just runs and waits for laser scans
 */
 void Planner::runtime(){
-
+  ros::spin();
 }
 
 /*
@@ -51,30 +67,40 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   GridMapRosConverter::fromMessage(*map_in, map_);
 
   //make a temporary map and set its elevation layer to be equal to the elevation layer of the actual map
-  GridMap temp_map({"elevation"});
-  temp_map.get({"elevation"}) = map_.get({"elevation"});
+  GridMap temp_map;
+  temp_map.setFrameId("map");
+  temp_map.setGeometry(Length(map_.getLength().x(),map_.getLength().y()),map_.getResolution(),Position(map_.getPosition()));
+  temp_map.add("elevation", map_.get("elevation"));
 
   //------------------Obstacle Inflation----------------
 
   //inflate obstacles
-  for (GridMapIterator it(temp_map); !it.isPastEnd(); ++it){
+  for (GridMapIterator it(map_); !it.isPastEnd(); ++it){
     //for use in inflating area around impassable spots
     Position center;
     double radius = ROVER_WIDTH_/2.0;
 
     //if the elevation somewhere is a real value and above the threshold
-    if(!isnan(temp_map.at("elevation", *it)) && temp_map.at("elevation", *it) >= THRESHOLD_){
+    if(!isnan(map_.at("elevation", *it)) && map_.at("elevation", *it) >= THRESHOLD_){
       //get the position (will serve as the center of the circle)
-      temp_map.getPosition(*it, center);
+      map_.getPosition(*it, center);
 
       for (grid_map::CircleIterator iterator(map_, center, radius); !iterator.isPastEnd(); ++iterator){
         //set each spot in the circle to a non-clearable height
-        temp_map.at("elevator", *iterator) = 2*THRESHOLD_;
+        ROS_INFO("temp_map spot was to: %f",temp_map.at("elevation", *iterator));
+        temp_map.at("elevation", *iterator) = 2*THRESHOLD_;
+        ROS_INFO("temp_map spot set to: %f",temp_map.at("elevation", *iterator));
       }
     }
   }
 
   //For testing, could publish right here and display in rviz
+  ros::Time time = ros::Time::now();
+  temp_map.setTimestamp(time.toNSec());
+  grid_map_msgs::GridMap message;
+  GridMapRosConverter::toMessage(temp_map, message);
+  wp_pub_.publish(message);
+  ROS_INFO("Grid map (timestamp %f) published.", message.info.header.stamp.toSec());
 
   /*
   at this point, temp_map should have a number that could be 0 of (possibly intersecting)
@@ -87,11 +113,24 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 
   //find unit vector to next waypoint
 
+  //test the waypoint publisher
+
+  // uhat = w_next-w_current
 
   //check if the line is safe
   //find closest node to next waypoint
   //A*
   //simplify path
+}
+
+/*
+Callback for global waypoint path (can we just have this publish continuously always?)
+*/
+Planner::wp_cb(path_in){
+  if(!received_path_){
+    waypoints_ = path_in;
+    received_path_ = true;
+  }
 }
 
 int main(int argc, char** argv){
