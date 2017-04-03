@@ -183,9 +183,14 @@ class PSOC_class():
 
 	def grip_callback(self, grip):
 
-		self.psoc.grip = np.uint16(grip.data)
+		self.psoc.grip = np.uint8(grip.data)
 
 		self.set_rover_cmd()
+
+		#print "grip"
+		#print grip.data
+		#print type(grip.data)
+		#print np.uint16(grip.data)
     
 	def set_rover_cmd(self):
 
