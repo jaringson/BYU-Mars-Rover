@@ -50,6 +50,7 @@ find_package(catkin REQUIRED std_msgs message_generation)
    Science.msg
    NavState.msg
    GateInfo.msg
+   Feedback.msg
    #NavGoal.msg
    #Arm.msg
    #SciFeedback.msg
