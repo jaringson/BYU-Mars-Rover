@@ -1,0 +1,18 @@
+<launch>
+
+    <!-- Load robot description into parameter server -->
+    <param name="robot_description" 
+        command="$(find xacro)/xacro.py '$(find rover_description)/urdf/rover.xacro'" />
+
+    <!-- Launch Robot State Publisher -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+    <!-- Launch Joint State Publisher -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="TRUE"/>
+    </node>
+
+    <!-- Display in RVIZ -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rover_description)/launch/rrbot.rviz"/>
+
+</launch>

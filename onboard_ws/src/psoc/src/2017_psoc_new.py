@@ -91,7 +91,9 @@ class PSOC_class():
 
         # initialize publishers
 		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC17, queue_size=1)
-        #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
+		print "Successfull"
+     
+   #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
 
     # Callback
     
@@ -167,7 +169,7 @@ class PSOC_class():
 
 		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
 		if msg.drill:
-			self.psoc.q4 = np.uint16(0)
+			self.psoc.q4 = np.uint16(4095)
 		elif not msg.drill:
 			self.psoc.q4 = np.uint16(2048)
 
@@ -180,9 +182,15 @@ class PSOC_class():
 		self.set_rover_cmd()
 
 	def grip_callback(self, grip):
-		self.psoc.grip = np.uint16(grip)
+
+		self.psoc.grip = np.uint8(grip.data)
 
 		self.set_rover_cmd()
+
+		#print "grip"
+		#print grip.data
+		#print type(grip.data)
+		#print np.uint16(grip.data)
     
 	def set_rover_cmd(self):
 

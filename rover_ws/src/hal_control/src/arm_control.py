@@ -2,7 +2,7 @@
 
 import rospy, math
 #from ctypes import c_ushort
-from rover_msgs.msg import ArmState
+from rover_msgs.msg import ArmState, Feedback
 from rover_msgs.srv import PositionReturn
 from sensor_msgs.msg import Joy, JointState
 from geometry_msgs.msg import Pose
@@ -46,12 +46,17 @@ class Arm_XBOX():
         self.pose_current.position.y = 0.0
         self.pose_current.position.z = 0.0
 
+        # Init feedback
+        self.fback = Feedback()
+        self.fback_init = False
+
     # Publishers and Subscribers
 
         # Subscribe to /joy_arm /pose_cmd
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
-        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd', Pose, self.ikPoseCallback)
+        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd_ik', Pose, self.ikPoseCallback)
         self.sub_joint_cmd_ik = rospy.Subscriber('/joint_cmd_ik',JointState, self.ikjointCallback)
+        self.sub_feedback = rospy.Subscriber('/feedback', Feedback, self.fbackCallback)
     
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
@@ -79,7 +84,11 @@ class Arm_XBOX():
 
     def ikjointCallback(self, msg):
         self.joints.position = msg.position
-        self.pub_joints.publish(self.joints)
+        #self.pub_joints.publish(self.joints)
+
+    def fbackCallback(self,msg):
+    	self.fback_init = True
+    	self.fback = msg
 
     # Functions
     def check_method(self):
@@ -397,16 +406,6 @@ class Arm_XBOX():
 
         # Gripper
         self.gripper()
-
-        # # Shovel
-        # if self.joy.axes[2] < 0:
-        #     self.cmd.shovel = self.cmd.shovel-10.0
-        #     if self.cmd.shovel < 1000:
-        #         self.cmd.shovel = 1000
-        # elif self.joy.axes[5] < 0:
-        #     self.cmd.shovel = self.cmd.shovel+10.0
-        #     if self.cmd.shovel > 2000:
-        #         self.cmd.shovel = 2000
         
         # set flag so IK knows must init when entered again
         self.init_ik = True
@@ -503,13 +502,12 @@ if __name__ == '__main__':
 
         # Start when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
-            
             # every time check toggle of state
             xbox.check_method()
 
             # check for kill switch (True = Killed)
             if xbox.state.kill  == False:
-                xbox.getWristPosition()
+                #xbox.getWristPosition()
 
                 # call appropriate function for state
                 # defaults to JointControl

@@ -63,7 +63,7 @@ Arm_IK::Arm_IK(int argc, char** argv)
     
     // Set up Publisher and Subscriber
     sub_joints = nh.subscribe("/joint_ik",1000, &Arm_IK::jointMessageReceived, this);
-    pub_pose = nh.advertise<geometry_msgs::Pose>("/pose_cmd",1000);
+    pub_pose = nh.advertise<geometry_msgs::Pose>("/pose_cmd_ik",1000);
     
     sub_pose = nh.subscribe("/pose_ik", 1000, &Arm_IK::poseMessageReceived, this);
     pub_joints = nh.advertise<sensor_msgs::JointState>("/joint_cmd",1000);
@@ -155,8 +155,11 @@ void Arm_IK::poseMessageReceived(const geometry_msgs::Pose& posemsg) {
 	// Update Nominal
 	nominal = JointAngles;
 	
-	fk_solver->JntToCart(JointAngles,pose);      
+	     
     pub_joints.publish(jointmsg);
+
+    // Resend Pose Message (for angle limits)
+    jointMessageReceived(jointmsg);
     
     // Publish Pose Again
     jointMessageReceived(jointmsg);
@@ -192,7 +195,7 @@ void Arm_IK::jointMessageReceived(const sensor_msgs::JointState& jointmsgs) {
 
 int main(int argc, char** argv) {
     
-    ros::init(argc, argv, "arm_ik_tests");
+    ros::init(argc, argv, "arm_ik");
     
     Arm_IK a(argc,argv);
     

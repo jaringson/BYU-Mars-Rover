@@ -5,8 +5,8 @@
   <arg name="chain_end" default="end" />
   <arg name="timeout" default="0.005" />
 
-<!--   <param name="robot_description"
-    command="$(find xacro)/xacro.py '$(find hal_description)/urdf/rover_arm.xacro'" /> -->
+ <!--  <param name="robot_description"
+    command="$(find xacro)/xacro.py '$(find rover_description)/urdf/rover.xacro'" /> -->
 
 
   <node name="arm_ik_test" pkg="arm_kinematics" type="ik_node" output="screen">

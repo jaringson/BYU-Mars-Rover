@@ -78,8 +78,8 @@ class Estimator():
 		self.imu_new = False
 
 		# GAINS
-		self.drive_gain = 1.7/100 # measured 1.7 meters/s when commanded full speed
-		self.turn_gain = 0.004
+		self.drive_gain = 4.0/100 # measured 4.0 meters/s when commanded full speed
+		self.turn_gain = 1.5 # rad/sec
 
 		self.lpf_a = 0.0
 
@@ -134,11 +134,12 @@ class Estimator():
 			self.qhat = alpha*self.qhat + (1-alpha)*msg.angular_velocity.y
 			self.rhat = alpha*self.rhat + (1-alpha)*msg.angular_velocity.z
 
-			q = (msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w)
+			q = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
 			euler = tf.transformations.euler_from_quaternion(q)
 			self.estimate.phi = euler[0];
-			self.estimate.theta = euler[1];
+			self.estimate.theta = -euler[1];
 			self.estimate.psi = -euler[2];
+			self.estimate.chi = self.estimate.psi * 180.0/np.pi
 
 			self.prediction(Ts)
 
@@ -147,7 +148,7 @@ class Estimator():
 
 	def driveCallback(self, msg):
 		self.Vwhat = (msg.lw + msg.rw)*self.drive_gain/2.0
-		self.omegahat = (msg.lw - msg.rw)*self.turn_gain
+		self.omegahat = (msg.lw - msg.rw)*self.turn_gain/2.0
 
 	def prediction(self, Ts):
 		# print 'Prediction'

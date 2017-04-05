@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Load robot description into parameter server -->
+    <param name="robot_description" 
+        command="$(find xacro)/xacro.py '$(find rover_description)/urdf/rover.xacro'" />
+
+    <!-- Launch Robot State Publisher -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+        <remap from="/joint_states" to="/joint_cmd" />
+    </node>
+
+
+</launch>
