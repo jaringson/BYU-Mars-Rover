@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../../astar-algorithm-cpp/cpp/stlastar.h" // See header for copyright and usage information
 #include <iostream>
 #include <stdio.h>
@@ -36,9 +38,6 @@ public:
 
 };
 
-void MapSearchNode::testfun2() {
-    AStarSearch<MapSearchNode> a;
-    cout << "testfun2" << endl;
-}
+
 
 

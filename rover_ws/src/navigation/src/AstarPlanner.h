@@ -1,24 +1,20 @@
+#pragma once
 
-#include "astar.h"
+#include "../../astar-algorithm-cpp/cpp/stlastar.h" // See header for copyright and usage information
+#include "MapNode.h"
 
 class AstarPlanner {
 public:
     MatrixXf* map;
 
     AstarPlanner(MatrixXf *map_);
-    //AstarSearch<MapSearchNode> astarsearch:
+
+    bool FunStuff( AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node );
+    //AstarSearch *astar_srch:
 
     void testfun();
     
 };
 
 
-AstarPlanner::AstarPlanner(MatrixXf *map_) {
-    this->map = map_;
-    //AstarSearch<MapSearchNode> astarsearch;
-    MapSearchNode node;
-}
 
-void AstarPlanner::testfun() {
-    cout << "Test function" << endl;
-}

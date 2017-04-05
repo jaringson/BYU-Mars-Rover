@@ -1,4 +1,4 @@
-#include "astar.h"
+#include "MapNode.h"
 
 
 using namespace std;
@@ -172,6 +172,10 @@ float MapSearchNode::GetCost( MapSearchNode &successor )
 }
 
 
+void MapSearchNode::testfun2() {
+    //AStarSearch<MapSearchNode> astr;
+    cout << "testfun2" << endl;
+}
 
 
 
