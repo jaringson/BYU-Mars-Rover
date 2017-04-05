@@ -1,13 +1,9 @@
 <launch>
-
-<!--   <node name="zed_wrapper" pkg="zed_wrapper" type="zed_wrapper_node" output="screen" >
-
-  </node>
- -->
   <node name="gate_detector" pkg="gate_detector" type="detector.py">
   </node>
-  <node name="hsv_configure" pkg="rqt_reconfigure" type="rqt_reconfigure" >
+  <node name="gate_honer" pkg="gate_hone" type="rosMain.py">
   </node>
+  
   <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video0" />
     <param name="image_width" value="640" />
@@ -28,12 +24,4 @@
     </include>
   </group> -->
 
-  <node name="image_view0" pkg="image_view" type="image_view" respawn="false" output="screen">
-    <remap from="image" to="/gate_detector/image_detector"/>
-    <param name="autosize" value="true" />
-  </node>
-    <node name="image_view1" pkg="image_view" type="image_view" respawn="false" output="screen">
-    <remap from="image" to="/gate_detector/hsv"/>
-    <param name="autosize" value="true" />
-  </node>
 </launch>

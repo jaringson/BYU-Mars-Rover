@@ -137,9 +137,9 @@ class Science_PSOC_class():
 
 		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
 		if msg.drill:
-			self.psoc.q3 = np.uint16(2000)
+			self.psoc.q3 = np.uint16(2500)
 		elif not msg.drill:
-			self.psoc.q3 = np.uint16(1500)
+			self.psoc.q3 = np.uint16(2045)
 
 		self.psoc.q4 = np.uint16(msg.elevator)
 		self.psoc.q5 = np.uint16(0)

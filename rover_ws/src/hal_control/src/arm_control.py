@@ -3,6 +3,7 @@
 import rospy, math
 #from ctypes import c_ushort
 from rover_msgs.msg import ArmState
+from rover_msgs.srv import PositionReturn
 from sensor_msgs.msg import Joy, JointState
 from geometry_msgs.msg import Pose
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
@@ -47,17 +48,20 @@ class Arm_XBOX():
 
     # Publishers and Subscribers
 
-    	# Subscribe to /joy_arm /pose_cmd
+        # Subscribe to /joy_arm /pose_cmd
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
-        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd', Pose, self.ikPoseCallback)
+        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd_ik', Pose, self.ikPoseCallback)
         self.sub_joint_cmd_ik = rospy.Subscriber('/joint_cmd_ik',JointState, self.ikjointCallback)
-	
+    
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_state = rospy.Publisher('/arm_state_cmd', ArmState, queue_size = 10)
         self.pub_joints = rospy.Publisher('/joint_cmd', JointState, queue_size = 10)
         self.pub_joint_ik = rospy.Publisher('/joint_ik', JointState, queue_size = 10)
         self.pub_pose_ik = rospy.Publisher('/pose_ik', Pose, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
+
+        self.wrist_init = False
+
        
     ##### Callbacks ###########
 
@@ -75,7 +79,7 @@ class Arm_XBOX():
 
     def ikjointCallback(self, msg):
         self.joints.position = msg.position
-        self.pub_joints.publish(self.joints)
+        #self.pub_joints.publish(self.joints)
 
     # Functions
     def check_method(self):
@@ -83,16 +87,17 @@ class Arm_XBOX():
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
+        A = self.joy.buttons[0]
         
-        # if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES
-        #     if self.state.mode == 'JointControl':
-        #         self.state.mode = 'IK Arm - Base,Tool'
-        #     elif self.state.mode == 'IK Arm - Base,Tool':
-        #         self.state.mode = 'IK Arm - Tool,Tool'
-        #     else:
-        #         self.state.mode = 'JointControl'
-            # time.sleep(.25)
-            # rospy.loginfo(self.state.mode)
+        if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES
+            if self.state.mode == 'JointControl':
+                self.state.mode = 'IK Arm - Base,Tool'
+            elif self.state.mode == 'IK Arm - Base,Tool':
+                self.state.mode = 'IK Arm - Tool,Tool'
+            else:
+                self.state.mode = 'JointControl'
+            time.sleep(.25)
+            rospy.loginfo(self.state.mode)
             
         # Implement Kill Switch
         if home == 1:
@@ -101,12 +106,18 @@ class Arm_XBOX():
             else:
                 self.state.kill  = False
             time.sleep(.25)
+
+        if A == 1:
+            self.joints.position[4] = 0
+            self.joints.position[5] = 0
+            time.sleep(.25)
+            rospy.loginfo('Reset wrist')
         
         # Publish state commands
         self.pub_state.publish(self.state)
 
     def speed_check(self):
-    	# toggle between arm speeds
+        # toggle between arm speeds
         rb = self.joy.buttons[5]
         if rb == 1:
             if self.state.speed == 'Slow':
@@ -116,6 +127,7 @@ class Arm_XBOX():
             elif self.state.speed == 'Fast':
                 self.state.speed = 'Slow'
             time.sleep(.25)
+            rospy.loginfo(self.state.speed)
 
     def gripper(self):
         rt = (1 - self.joy.axes[5])/2.0
@@ -136,7 +148,7 @@ class Arm_XBOX():
     def arm_IK_base_tool(self):
 
         # read in & initialize position of arm
-    	# if first time
+        # if first time
         if self.init_ik:
             # Publish current joint position
             self.pub_joint_ik.publish(self.joints)
@@ -145,7 +157,7 @@ class Arm_XBOX():
             self.init_ik = False
         # FK on last commanded angles
         
-    	###### change pose with Xbox
+        ###### change pose with Xbox
         # Speed Check
         self.speed_check()
         
@@ -205,7 +217,7 @@ class Arm_XBOX():
         
        # print self.pose_cmd.position.x, -axes[0]*MAX_RATE, left_joy_right
         
-    	# send pose to IK
+        # send pose to IK
         self.pub_pose_ik.publish(self.pose_cmd)
         
         #print self.pose_cmd
@@ -276,7 +288,7 @@ class Arm_XBOX():
         mvnt = np.matrix([x_mvnt, y_mvnt, z_mvnt])
         dTool = tr.translation_matrix(mvnt)
         dBase = tr.concatenate_matrices(T, dTool)
-	
+    
         self.pose_cmd.position.x = dBase.item(0, 3)
         self.pose_cmd.position.y = dBase.item(1, 3)
         self.pose_cmd.position.z = dBase.item(2, 3)
@@ -318,10 +330,10 @@ class Arm_XBOX():
         return H
         
     def posemsg_to_transmatrix(self,posemsg):
-	    trans = np.matrix([posemsg.position.x,posemsg.position.y,posemsg.position.z])
-	    H = tr.translation_matrix(trans)
-	    return H
-	    
+        trans = np.matrix([posemsg.position.x,posemsg.position.y,posemsg.position.z])
+        H = tr.translation_matrix(trans)
+        return H
+        
     
         
         
@@ -336,11 +348,11 @@ class Arm_XBOX():
 
         # Set corresponding rate
         if self.state.speed == 'Fast':
-        	MAX_RATE = 2*np.pi/180.0
+            MAX_RATE = math.radians(.5)
         elif self.state.speed == 'Med':
-        	MAX_RATE = 1*np.pi/180.0
+            MAX_RATE = math.radians(0.25)
         elif self.state.speed == 'Slow':
-        	MAX_RATE = 0.5*np.pi/180.0
+            MAX_RATE = math.radians(0.1)
 
         # Calculate how to command arm (position control)
         DEADZONE = 0.1
@@ -372,6 +384,13 @@ class Arm_XBOX():
                 self.joints.position[i] = np.pi
             elif self.joints.position[i] < -np.pi:
                 self.joints.position[i] = -np.pi
+                
+        wristlimit1 = math.radians(80)
+        if self.joints.position[4] > wristlimit1:
+            self.joints.position[4] = wristlimit1
+        elif self.joints.position[4] < -wristlimit1:
+            self.joints.position[4] = -wristlimit1
+            
 
         self.joints.header.stamp = rospy.Time.now()
         self.joints.header.frame_id = 'JointControl'                
@@ -396,6 +415,21 @@ class Arm_XBOX():
         self.pub_joints.publish(self.joints)
         self.pub_joint_ik.publish(self.joints)
 
+    def getWristPosition(self):
+        if not self.wrist_init:
+            rospy.wait_for_service('wrist_position')
+            try:
+                wristReq = rospy.ServiceProxy('wrist_position', PositionReturn)
+                wristResp = wristReq()
+                self.joints.position[4] = wristResp.position[0]
+                self.joints.position[5] = wristResp.position[1]
+                rospy.loginfo('Got Wrist Position')
+                print wristResp.position
+            except rospy.ServiceException, e:
+                print "Service call failed: %s" %e
+            self.wrist_init = True
+
+
 
 #     # ==========================================================================
 #     # Velocity Arm Control ===============================================
@@ -407,11 +441,11 @@ class Arm_XBOX():
 
 #         # Set corresponding rate
 #         if self.state.speed == 'Fast':
-#         	MAX_RATE = 100
+#           MAX_RATE = 100
 #         elif self.state.speed == 'Med':
-#         	MAX_RATE = 75
+#           MAX_RATE = 75
 #         elif self.state.speed == 'Slow':
-#         	MAX_RATE = 50
+#           MAX_RATE = 50
 
 #         # Calculate how to command arm (position control)
 #         DEADZONE = 0.1
@@ -458,7 +492,7 @@ if __name__ == '__main__':
     rospy.init_node('xbox_arm_control')
     
     # set rate
-    hz = 10.0#60.0
+    hz = 500.0#60.0
     rate = rospy.Rate(hz)
 
     # init Arm_xbox object
@@ -467,25 +501,25 @@ if __name__ == '__main__':
     # Loop
     while not rospy.is_shutdown():
 
-    	# Start when Xbox controller recognized
+        # Start when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
-            
             # every time check toggle of state
             xbox.check_method()
 
             # check for kill switch (True = Killed)
             if xbox.state.kill  == False:
+                #xbox.getWristPosition()
 
-	            # call appropriate function for state
-	            # defaults to JointControl
-	            if xbox.state.mode == 'JointControl':
-	                xbox.joint_cmd()
-	            elif xbox.state.mode == 'IK Arm - Base,Tool':
-	                xbox.arm_IK_base_tool()
-	            elif xbox.state.mode == 'IK Arm - Tool,Tool':
-	                xbox.arm_IK_tool_tool()
-	            else:
-	                xbox.joint_cmd()
+                # call appropriate function for state
+                # defaults to JointControl
+                if xbox.state.mode == 'JointControl':
+                    xbox.joint_cmd()
+                elif xbox.state.mode == 'IK Arm - Base,Tool':
+                    xbox.arm_IK_base_tool()
+                elif xbox.state.mode == 'IK Arm - Tool,Tool':
+                    xbox.arm_IK_tool_tool()
+                else:
+                    xbox.joint_cmd()
         #else:
          #   xbox.pub_joints.publish(xbox.joints)
 

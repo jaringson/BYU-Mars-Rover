@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     nh_private.param<int>("rate", rate, 100);
 
     rover_hub::Rover_hub rh;
-    ros::Rate loop_rate(rate);
+    ros::Rate loop_rate(20);
     while(ros::ok())
     {
         rh;

@@ -1,0 +1,21 @@
+<launch>
+    
+  <param name="joy_node_drive/dev" value="/dev/input/js0" />
+  <param name="joy_node_arm/dev" value="/dev/input/js1" />
+
+  <node pkg="joy" type="joy_node" name="joy_node_arm" output="screen">
+  <param name="deadzone" value="0.10" />
+  <remap from="/joy" to="/joy_arm"/>
+  </node>
+
+  <node pkg="joy" type="joy_node" name="joy_node_drive">
+  <remap from="/joy" to="/joy_drive"/>
+  </node> 
+
+  <node pkg="hal_control" type="science_control.py" name="xbox_science_control">
+  </node> 
+
+  <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control">
+  </node>
+
+</launch>

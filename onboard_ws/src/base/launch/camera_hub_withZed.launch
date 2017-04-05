@@ -1,19 +1,22 @@
 <launch>
-
-
-
-  <!--  <node pkg="hal_control" type="drive_control.py" name="drive_control">
+  <!-- <node pkg="hal_control" type="drive_control.py" name="drive_control">
        <remap from="rover_state_cmd" to="rover_state_cmd" />
-    </node>-->
- <!-- <node respawn="true" pkg="joy"
+    </node>
+  <node respawn="true" pkg="joy"
         type="joy_node" name="joy_drive" >
     <param name="dev" type="string" value="/dev/input/js0" />
     <param name="deadzone" value="0.12" />
     <remap from="joy" to="joy_drive"/>
-  </node>-->
+  </node> -->
 
-  <node pkg="base" type="base" name="rover_hub">
-    <param name="num_cam" value="4"/>
+    <node pkg="base" type="base" name="rover_hub">
+      <param name="num_cam" value="4"/>
+    </node>
+
+
+  <node pkg="zed_wrapper" type="zed_wrapper_node" name="zed_wrappper">
+    <param name="resolution" value="3"/>
+    <param name="frame_rate" value="20"/>
   </node>
 
   <node name="usb_cam0" pkg="usb_cam" type="usb_cam_node" output="screen" >
@@ -26,7 +29,6 @@
     <param name="io_method" value="mmap"/>
   </node>
 
-
   <node name="usb_cam1" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video1" />
     <param name="image_width" value="320" />
@@ -38,8 +40,7 @@
     </node>
 
 
-
-   <node name="usb_cam2" pkg="usb_cam" type="usb_cam_node" output="screen" >
+  <node name="usb_cam2" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video2" />
     <param name="image_width" value="320" />
     <param name="image_height" value="240" />
@@ -49,13 +50,7 @@
     <param name="io_method" value="mmap"/>
     </node>
 
-<!--   <node name="usb_cam3" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/video3" />
-    <param name="image_width" value="800" />
-    <param name="image_height" value="600" />
-    <param name="pixel_format" value="yuyv" />
-    <param name="camera_frame_id" value="usb_cam" />
-    <param name="io_method" value="mmap"/>
-    
-  </node> -->
+
+
+
 </launch>

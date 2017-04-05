@@ -1,8 +1,8 @@
 string mode
 string speed
 bool kill
-uint16 pan
-uint16 tilt
+float32 pan
+float32 tilt
 bool camtoggle1
 bool camtoggle2
 uint8 chutes

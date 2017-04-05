@@ -5,11 +5,11 @@ import numpy as np
 x0 = 0
 
 # Simulation parameters
-Ts = 0.01                # Time step
+Ts = 1.0/15.0               # Time step
 sigma = 0.05
 
 limit = 100
 
 x_kp = 0.1
 x_kd = 0.05
-x_ki = 0.001
+x_ki = 0.05

@@ -20,7 +20,7 @@ Rover_hub::Rover_hub():
     state_sub = nh_.subscribe<rover_msgs::RoverState>("rover_state_cmd", 1, &Rover_hub::toggle_callback, this);
 
     //initialize subscribers
-    img_sub0 = it.subscribe("/usb_cam0/image_raw",10, &Rover_hub::image_callback0, this);
+    img_sub0 = it.subscribe("/rgb/image_raw_color",10, &Rover_hub::image_callback0, this);
 
     img_sub1 = it.subscribe("/usb_cam1/image_raw",10, &Rover_hub::image_callback1, this);
 

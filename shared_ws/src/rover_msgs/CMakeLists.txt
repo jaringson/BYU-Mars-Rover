@@ -48,8 +48,10 @@ find_package(catkin REQUIRED std_msgs message_generation)
    PSOC.msg
    NavigationData.msg
    Obstacles.msg
+   PSOC17.msg
    Science.msg
-   #NavState.msg
+   NavState.msg
+   GateInfo.msg
    #NavGoal.msg
    #Arm.msg
    #SciFeedback.msg
@@ -59,12 +61,13 @@ find_package(catkin REQUIRED std_msgs message_generation)
    #JointAngles.msg
  )
 
+
+
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+   FILES
+   PositionReturn.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
