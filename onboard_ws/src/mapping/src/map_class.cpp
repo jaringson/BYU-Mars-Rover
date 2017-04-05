@@ -18,6 +18,7 @@
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/conversions.h>
 
+
 #include <cmath>
 
 using namespace std;
@@ -35,6 +36,7 @@ private:
 	//class members
 	ros::Subscriber laser_sub_;											//subscribes to LaserScan
 	ros::Publisher map_pub_;												//publishes our map
+	ros::Publisher pcl_pub_;
 	tf::TransformListener listener_;								//does tf stuff
 	laser_geometry::LaserProjection projector_;			//transforms the LaserScan to PointCloud2
 	GridMap map_;																		//is the map
@@ -46,15 +48,17 @@ Constructor for Map_Maker. Accepts nodehandle and initializes subscriber, publis
 */
 Map_Maker::Map_Maker(ros::NodeHandle nh){
 	//initialize subscriber and publisher
-	laser_sub_ = nh.subscribe("laser_scan", 20, &Map_Maker::laser_cb, this);
+	laser_sub_ = nh.subscribe("/scan", 20, &Map_Maker::laser_cb, this);
 
 	//initialize map publisher
-	map_pub_ = nh.advertise<grid_map_msgs::GridMap>("local_map",1);
+	map_pub_ = nh.advertise<grid_map_msgs::GridMap>("/local_map",1);
+
+	pcl_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/pcl",1);
 
 	//initialize GridMap
 	GridMap map_temp({"elevation"});
 	map_ = map_temp;
-	map_.setFrameId("map");
+	map_.setFrameId("dynamixel_lidar");
 	map_.setGeometry(Length(5.0,5.0),0.1);
 
 	//check that it worked
@@ -73,16 +77,16 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	//check to make sure that the transform exists
 	if(!listener_.waitForTransform(
 		scan_in->header.frame_id,
-		"/base_link",
+		"/dynamixel_lidar",
 		//timestamp on scan is first point so need to check there is a transform for last point
 		scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment),
 		ros::Duration(1.0))){
 
      return;
 	}
-
+	ROS_INFO("here");
 	sensor_msgs::PointCloud2 cloud_msg;
-	projector_.transformLaserScanToPointCloud("/base_link",*scan_in,cloud_msg,listener_);
+	projector_.transformLaserScanToPointCloud("/dynamixel_lidar",*scan_in,cloud_msg,listener_);
 
 	//now do stuff with point cloud (probably iterate through points and add to map)
 	//make a PCL pointcloud
@@ -111,9 +115,9 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	tf::StampedTransform map_transform;
 
 	try{
-    listener_.waitForTransform("/base_station", "/rover",
+    listener_.waitForTransform("/dynamixel_lidar", "/lidar",
                               scan_in->header.stamp, ros::Duration(0.5));
-    listener_.lookupTransform("/base_station", "/rover",
+    listener_.lookupTransform("/dynamixel_lidar", "/lidar",
                              scan_in->header.stamp, map_transform);
 	}
 	catch (tf::TransformException &ex) {

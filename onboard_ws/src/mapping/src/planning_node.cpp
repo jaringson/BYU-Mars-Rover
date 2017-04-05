@@ -3,12 +3,13 @@
 
 //custom message type for a bunch of floats
 #include <mapping/FloatList.h>
+#include <std_msgs/Float64MultiArray.h>
 
 //grid map stuff
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
+#include <eigen_conversions/eigen_msg.h>
 
-//sqrt
 #include <Eigen/Core>
 
 using namespace std;
@@ -22,17 +23,22 @@ public:
   virtual ~Planner();
   void runtime();
   void map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in);
+  // void wp_cb(Eigen::MatrixXf path_in);
 
 private:
   //class members
   ros::Subscriber map_sub_;                   //subscribes to local map
   ros::Subscriber global_wp_sub_;             //subscribes to global waypoint path
   ros::Publisher wp_pub_;                     //publishes waypoints
+  ros::Publisher test_pub_;                   //used for testing generated maps
   GridMap map_;                               //actually stores the map
-  MatrixXf waypoints_;                        //nx2 matrix where n is number of waypoints
+  Eigen::MatrixXf waypoints_;                 //nx3 matrix where n is number of waypoints
+  int current_wp_;                            //current waypoint
+  Eigen::Vector2f current_pos_;               //current position of rover, update frequently
+  std_msgs::Float64MultiArray wp_msg_;        //message for waypoints
   bool received_path_;                        //if true, path is already received, do not let incoming topics update it
   const float THRESHOLD_ = 0.075;//0.15              //threshold for what the rover can't drive over
-  const float ROVER_WIDTH_ = 0.25;//1.25;            //width of rover in meters (measured)
+  const float ROVER_WIDTH_ = 1.25;            //width of rover in meters (measured as 1.07, safety at 1.25)
 
 };
 
@@ -41,14 +47,30 @@ Constructor for Planner. Accepts nodehandle and initializes subscriber, publishe
 */
 Planner::Planner(ros::NodeHandle nh){
   map_sub_ = nh.subscribe("/grid_map_tutorial_demo/grid_map", 5, &Planner::map_cb, this);
-  global_wp_sub_ = nh.subscribe("/global_path", 1, &Planner::wp_cb, this);
-  wp_pub_ = nh.advertise<grid_map_msgs::GridMap>("/waypoints",1);     //THIS IS WRONG BUT I'M NOT SURE WHAT IT WILL BE
+  // global_wp_sub_ = nh.subscribe("/global_path", 1, &Planner::wp_cb, this);
+  wp_pub_ = nh.advertise<std_msgs::Float64MultiArray>("/waypoint_path",1);
+  test_pub_ = nh.advertise<grid_map_msgs::GridMap>("/test_map",1);     //THIS IS WRONG BUT I'M NOT SURE WHAT IT WILL BE
 
+  //set this as false because we haven't got it yet
   received_path_ = false;
+
+  // initizilize waypoints to a dummy 0 matrix
+  Eigen::MatrixXf another_one = Eigen::MatrixXf::Zero(8,3);
+  waypoints_ = another_one;
+
+  //initialize current position to (0,0)
+  current_pos_ << 0,
+                  0;
+
+  //initialize current waypoint to 1 (first waypoint should be (0,0))
+  current_wp_ = 1;
 
   runtime();
 }
 
+/*
+Destructor for Planner
+*/
 Planner::~Planner() {}
 
 /*
@@ -99,7 +121,7 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   temp_map.setTimestamp(time.toNSec());
   grid_map_msgs::GridMap message;
   GridMapRosConverter::toMessage(temp_map, message);
-  wp_pub_.publish(message);
+  test_pub_.publish(message);
   ROS_INFO("Grid map (timestamp %f) published.", message.info.header.stamp.toSec());
 
   /*
@@ -111,9 +133,20 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 
   //-------------------Check the path ahead---------------
 
-  //find unit vector to next waypoint
+  //TODO add a transform listener that gets the current position in inertial frame
+  //and sets cuurent_pos_ to it
 
+  //find unit vector to next waypoint
+  Eigen::Vector2d uhat(2);
+  uhat << waypoints_(current_wp_,0) - current_pos_[0],
+          waypoints_(current_wp_,1) - current_pos_[1];
+  uhat = uhat / uhat.squaredNorm();
+
+  //------------------WP Pub test, this works. Move it wherever-----------------
   //test the waypoint publisher
+  // tf::matrixEigenToMsg(waypoints_,wp_msg_);
+  // wp_pub_.publish(wp_msg_);
+  //----------------------------------------------------------------------------
 
   // uhat = w_next-w_current
 
@@ -126,12 +159,12 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 /*
 Callback for global waypoint path (can we just have this publish continuously always?)
 */
-Planner::wp_cb(path_in){
-  if(!received_path_){
-    waypoints_ = path_in;
-    received_path_ = true;
-  }
-}
+// void Planner::wp_cb(Eigen::MatrixXf path_in){
+//   if(!received_path_){
+//     waypoints_ = path_in;
+//     received_path_ = true;
+//   }
+// }
 
 int main(int argc, char** argv){
 	//initialize node and publisher

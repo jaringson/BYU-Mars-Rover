@@ -29,7 +29,7 @@ class DynPub():
         if lidar:
             ids.append(5)
 
-        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
+        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB1',ids=ids)
         self.resetOverload(ids)
 
         # Set wrist to multi-turn
@@ -160,19 +160,33 @@ class DynPub():
                     self.lidar_time = rospy.Time.now()
 
                 t = rospy.Time.now() - self.lidar_time
-                amplitude = math.radians(45/2)
-                period = 2 #second
+                amplitude = math.radians(30/2)
+                period = 4 #second
                 omega = 2*math.pi/period
                 angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
                 self.dyn.move_angle(5, angle, blocking = False)
+		
+		time = rospy.Time.now()
 
                 br = tf.TransformBroadcaster()
-                br.sendTransform((0,0,0),
-                    tf.transformations.quaternion_from_euler(0,angle,0),
-                    rospy.Time.now(),
-                    "lidar","lidar_base")
+		br.sendTransform((0,0,0),
+                    tf.transformations.quaternion_from_euler(0,0,-math.pi/2),
+                    time,
+                    "laser","lidar")
+                br.sendTransform((0,0.03,0.085),
+                    tf.transformations.quaternion_from_euler(0,0,0),
+                    time,
+                    "lidar","lidar_horn_inverted")
+		br.sendTransform((0,0,0),
+                    tf.transformations.quaternion_from_euler(0,math.pi,0),
+                    time,
+                    "lidar_horn_inverted","lidar_horn")
+		br.sendTransform((0,0.05,0),
+			tf.transformations.quaternion_from_euler(0,angle,0),
+			time,
+			"lidar_horn","dynamixel_lidar")
 
-                print math.degrees(angle)
+                #print math.degrees(angle)
 
             self.rate.sleep()
     
