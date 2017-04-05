@@ -106,7 +106,7 @@ class gate_detector:
 
     def callback(self, data):
 
-        if self.gateDetectorEnable:
+        if True: #self.gateDetectorEnable:
             img_msg = data
 
             try:
