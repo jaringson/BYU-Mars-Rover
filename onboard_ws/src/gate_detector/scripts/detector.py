@@ -150,9 +150,13 @@ class gate_detector:
                 self.gi.gate_detected = False
 
             if len(contours) > 0:
+            # for cnt in contours:
                 c = max(contours, key=cv2.contourArea)
-                x, y, w, h = cv2.boundingRect(c)
+                rospy.logwarn(c)
+
+                # x, y, w, h = cv2.boundingRect(cnt)
                 # rospy.logwarn(w)
+                x, y, w, h = cv2.boundingRect(c)
                 cx, cy = x + w / 2, y + h / 2
 
                 self.gi.box_width = w
@@ -162,7 +166,7 @@ class gate_detector:
                 self.gi.gate_distance = self.calculate_distance(x, w, 2.7, 679.05882);
 
 
-                cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 0, 255], 2)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), [0, 255, 0], 2)
                 self.gi.gate_detected = True
                 self.isDetected = True
 
