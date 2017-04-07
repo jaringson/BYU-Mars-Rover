@@ -20,10 +20,11 @@ public:
     int x;   // the (x,y) positions of the node
     int y;
 
-    MatrixXf* map; // Pointer to the map
+    MatrixXf* map_; // Pointer to the map
     
     MapSearchNode() { x = y = 0; }
-    MapSearchNode( int px, int py ) { x=px; y=py; }
+    MapSearchNode( int px, int py, MatrixXf* map ) { x=px; y=py; map_ = map; }
+
 
 
     float GoalDistanceEstimate( MapSearchNode &nodeGoal );
@@ -33,8 +34,7 @@ public:
     bool IsSameState( MapSearchNode &rhs );
 
     void PrintNodeInfo(); 
-
-    void testfun2();
+    int GetMap(int xind, int yind);
 
 };
 

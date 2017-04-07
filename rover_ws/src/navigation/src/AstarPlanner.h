@@ -5,14 +5,22 @@
 
 class AstarPlanner {
 public:
-    MatrixXf* map;
+    MatrixXf* map_;
+    MatrixXf path_;
+    AStarSearch<MapSearchNode> astarsearch;
+    MapSearchNode start;
+    MapSearchNode goal;
 
-    AstarPlanner(MatrixXf *map_);
 
-    bool FunStuff( AStarSearch<MapSearchNode> *astarsearch, MapSearchNode *parent_node );
-    //AstarSearch *astar_srch:
+    AstarPlanner(MatrixXf *map);
+    void SetGoal(int x, int y);
+    MatrixXf GetPath();
+    void PrintMap();
 
-    void testfun();
+private:
+    unsigned int SearchCount;
+    unsigned int NumSearches;
+    bool pathfound;
     
 };
 
