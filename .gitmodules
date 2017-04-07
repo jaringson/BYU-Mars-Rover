@@ -56,3 +56,9 @@
 [submodule "rover_ws/src/astar-algorithm-cpp"]
 	path = rover_ws/src/astar-algorithm-cpp
 	url = https://github.com/justinhj/astar-algorithm-cpp.git
+[submodule "onboard_ws/rplidar_ros"]
+	path = onboard_ws/rplidar_ros
+	url = https://github.com/robopeak/rplidar_ros.git
+[submodule "onboard_ws/src/rplidar_ros"]
+	path = onboard_ws/src/rplidar_ros
+	url = https://github.com/robopeak/rplidar_ros.git
