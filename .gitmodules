@@ -47,3 +47,18 @@
 [submodule "onboard_ws/src/zed-ros-wrapper"]
 	path = onboard_ws/src/zed-ros-wrapper
 	url = https://github.com/stereolabs/zed-ros-wrapper.git
+[submodule "rover_ws/src/grid_map"]
+	path = rover_ws/src/grid_map
+	url = https://github.com/ethz-asl/grid_map.git
+[submodule "onboard_ws/src/grid_map"]
+	path = onboard_ws/src/grid_map
+	url = https://github.com/ethz-asl/grid_map.git
+[submodule "rover_ws/src/astar-algorithm-cpp"]
+	path = onboard_ws/src/astar-algorithm-cpp
+	url = https://github.com/justinhj/astar-algorithm-cpp.git
+[submodule "onboard_ws/rplidar_ros"]
+	path = onboard_ws/rplidar_ros
+	url = https://github.com/robopeak/rplidar_ros.git
+[submodule "onboard_ws/src/rplidar_ros"]
+	path = onboard_ws/src/rplidar_ros
+	url = https://github.com/robopeak/rplidar_ros.git

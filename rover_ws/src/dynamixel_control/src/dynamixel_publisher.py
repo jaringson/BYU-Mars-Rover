@@ -9,9 +9,10 @@ from rover_msgs.msg import RoverState
 from rover_msgs.srv import PositionReturn, PositionReturnResponse
 from sensor_msgs.msg import JointState
 import time
+import tf
 
 class DynPub():
-    def __init__(self, wrist=True, gimbal=True):
+    def __init__(self, wrist=True, gimbal=True, lidar=True):
         # Init node
         rospy.init_node('dynamixel_feedback_node',anonymous = True)
         hz = 100.0
@@ -25,8 +26,10 @@ class DynPub():
         if gimbal:
             ids.append(3)
             ids.append(4)
+        if lidar:
+            ids.append(5)
 
-        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
+        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB1',ids=ids)
         self.resetOverload(ids)
 
         # Set wrist to multi-turn
@@ -52,8 +55,14 @@ class DynPub():
             self.pub_gimbal = rospy.Publisher('/gimbal_feedback', Float32MultiArray, queue_size = 1)
             self.sub_gimbal = rospy.Subscriber('/rover_state_cmd', RoverState, self.gimbalCallback)
 
+        # Lidar
+        self.lidar_init = True
+        self.lidar_shift = 0
+        self.lidar_time = rospy.Time()
+
         self.wrist_enabled = wrist 
         self.gimbal_enabled = gimbal
+        self.lidar_enabled = lidar
         self.ready = {'wrist': False, 'gimbal': False}
         
         
@@ -141,10 +150,48 @@ class DynPub():
                     self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
                     self.dyn.move_angle(3,self.gimbal_command[1], blocking = False)
 
+            # Lidar
+            if self.lidar_enabled:
+                offset = math.radians(0)
+                if self.lidar_init:
+                    self.lidar_shift = self.dyn.read_angle(5)-offset
+                    self.lidar_init = False
+                    self.dyn.move_angle(5,self.lidar_shift)
+                    self.lidar_time = rospy.Time.now()
+
+                t = rospy.Time.now() - self.lidar_time
+                amplitude = math.radians(30/2)
+                period = 4 #second
+                omega = 2*math.pi/period
+                angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
+                self.dyn.move_angle(5, angle, blocking = False)
+		
+		time = rospy.Time.now()
+
+                br = tf.TransformBroadcaster()
+		br.sendTransform((0,0,0),
+                    tf.transformations.quaternion_from_euler(0,0,-math.pi/2),
+                    time,
+                    "laser","lidar")
+                br.sendTransform((0,0.03,0.085),
+                    tf.transformations.quaternion_from_euler(0,0,0),
+                    time,
+                    "lidar","lidar_horn_inverted")
+		br.sendTransform((0,0,0),
+                    tf.transformations.quaternion_from_euler(0,math.pi,0),
+                    time,
+                    "lidar_horn_inverted","lidar_horn")
+		br.sendTransform((0,0.05,0),
+			tf.transformations.quaternion_from_euler(0,angle,0),
+			time,
+			"lidar_horn","dynamixel_lidar")
+
+                #print math.degrees(angle)
+
             self.rate.sleep()
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(True,False)
+    dynpub = DynPub(False,False,True)
     dynpub.execute()
     
