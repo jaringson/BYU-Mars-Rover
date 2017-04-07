@@ -1,4 +1,5 @@
 from geometry_msgs.msg import Pose, Twist
+from rover_msgs.msg import NavState
 import tf.transformations as tr
 import math
 
@@ -8,17 +9,23 @@ class RobotState:
         self.twist = Twist()
         self.pose.orientation.w = 1
         self.default_v = def_v
+        self.state = NavState()
 
         self.goal = [0.0, 0.0]
 
         self.goal_distance = goal_distance
+        self.use_NavState = True
 
     def set_goal(self, goal):
         self.goal = goal
 
     def get_pose(self):
-        x, y = self.pose.position.x, self.pose.position.y
-        theta = self.get_heading()
+        if (self.use_NavState):
+            x, y = self.state.position[0], self.state.position[1]
+            theta = self.state.chi
+        else:
+            x, y = self.pose.position.x, self.pose.position.y
+            theta = self.get_heading()
         return [x, y, theta]
 
     def get_heading(self):
