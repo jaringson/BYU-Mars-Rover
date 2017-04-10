@@ -268,48 +268,48 @@ class PSOC_class():
 	def read_feedback(self):
 		# read feedback from psoc here if at least 13 bytes have been received
 		if self.ser.inWaiting() >= 15:
-			print "READ FEEDBACK!"
+#			print "READ FEEDBACK!"
 			while self.ser.inWaiting() > 0:
 				if self.ser.read(1).encode('hex') in 'e3':
 					try:
 						self.feedback.q1 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.q1
+#						print self.feedback.q1
 					except ValueError:
 						print "q1 Bad Feedback"
 
 					try:
 						self.feedback.q2 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.q2
+#						print self.feedback.q2
 					except ValueError:
 						print "q2 Bad Feedback"
 
 					try:
 						self.feedback.q3 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.q3
+#						print self.feedback.q3
 					except ValueError:
 						print "q3 Bad Feedback"
 
 					try:
 						self.feedback.q4 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.q4
+#						print self.feedback.q4
 					except ValueError:
 						print "q4 Bad Feedback"
 
 					try:
 						self.feedback.plate = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.plate
+#						print self.feedback.plate
 					except ValueError:
 						print "Plate Bad Feedback"
 
 					try:
 						self.feedback.temp = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.temp
+#						print self.feedback.temp
 					except ValueError:
 						print "Temp Bad Feedback"
 
 					try:
 						self.feedback.humidity = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
-						print self.feedback.humidity
+#						print self.feedback.humidity
 					except ValueError:
 						print "Humidity Bad Feedback"
 
@@ -319,7 +319,7 @@ class PSOC_class():
 
 if __name__ == '__main__':
 	rospy.init_node('psoc_node', anonymous=True)
-	hz = 10.0
+	hz = 10.0 #10.0
 	rate = rospy.Rate(hz)
 	# call the constructor
 	psoc = PSOC_class()
