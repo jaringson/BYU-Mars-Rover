@@ -26,7 +26,7 @@ class DynPub():
             ids.append(3)
             ids.append(4)
 
-        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB0',ids=ids)
+        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB4',ids=ids)
         self.resetOverload(ids)
 
         # Set wrist to multi-turn

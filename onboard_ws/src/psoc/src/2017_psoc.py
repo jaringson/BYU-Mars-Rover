@@ -218,7 +218,7 @@ class PSOC_class():
 			self.psoc.q1 = self.feedback.q1
 			self.psoc.q2 = self.feedback.q2
 			self.psoc.q3 = self.feedback.q3
-			self.psoc.q4 = self.feedback.q4
+			self.psoc.q4 = 2048 #self.feedback.q4
 			self.psoc.plate = self.feedback.plate
 
 		self.msg.data[0] = 0xEA
@@ -316,7 +316,7 @@ class PSOC_class():
 
 if __name__ == '__main__':
 	rospy.init_node('psoc_node', anonymous=True)
-	hz = 60.0
+	hz = 10.0
 	rate = rospy.Rate(hz)
 	# call the constructor
 	psoc = PSOC_class()
