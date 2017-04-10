@@ -232,11 +232,12 @@ if __name__ == '__main__':
     
 
     # set rate
-    hz = 200.0
+    hz = 60.0
     rate = rospy.Rate(hz)    
     
     # init XBOX object
     xbox = XBOX()
+    xbox.ready = True
     
     # Loop
     while not rospy.is_shutdown():
