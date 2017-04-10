@@ -83,8 +83,10 @@ class Arm_XBOX():
         self.pose_current = msg
 
     def ikjointCallback(self, msg):
-        self.joints.position = msg.position
-        #self.pub_joints.publish(self.joints)
+        for i in range(0,6):
+            self.joints.position[i] = msg.position[i]
+
+        self.pub_joints.publish(msg)
 
     def fbackCallback(self,msg):
     	self.fback_init = True
@@ -519,6 +521,7 @@ if __name__ == '__main__':
                     xbox.arm_IK_tool_tool()
                 else:
                     xbox.joint_cmd()
+                #print xbox.joints.position
         #else:
          #   xbox.pub_joints.publish(xbox.joints)
 
