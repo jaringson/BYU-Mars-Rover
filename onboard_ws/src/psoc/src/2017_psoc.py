@@ -185,6 +185,9 @@ class PSOC_class():
 		self.psoc.q5 = np.uint16(0)
 		self.psoc.q6 = np.uint16(0)
 
+		
+		self.arm_initialized = True
+
 		# self.set_rover_cmd()
 
 	def grip_callback(self, grip):
