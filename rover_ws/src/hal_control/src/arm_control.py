@@ -493,7 +493,7 @@ if __name__ == '__main__':
     rospy.init_node('xbox_arm_control')
     
     # set rate
-    hz = 500.0#60.0
+    hz = 60.0#60.0
     rate = rospy.Rate(hz)
 
     # init Arm_xbox object
