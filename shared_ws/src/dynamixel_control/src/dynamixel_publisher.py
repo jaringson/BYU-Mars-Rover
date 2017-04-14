@@ -145,6 +145,6 @@ class DynPub():
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(False,True)
+    dynpub = DynPub(True,False)
     dynpub.execute()
     

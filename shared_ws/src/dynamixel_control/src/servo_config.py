@@ -4,7 +4,7 @@ import math
 
 servo_param = {
     1: {                        # Default for new servo.  Please issue 'new_servo.write_id(new_id)' and setup your own home position!
-        'home_encoder': -168,
+        'home_encoder': -7,
         'max_encoder': 0xFFF*4,
         'max_ang': math.radians(360.0*7),
         'min_ang': math.radians(-360.0*7),
@@ -15,7 +15,7 @@ servo_param = {
         # 'max_encoder': 16380
        }, 
     2: {                        # Flop 90 each way
-        'home_encoder': -39,
+        'home_encoder': 4137,
         'max_encoder': 0xFFF*4,
         'max_ang': math.radians(360.0*7),
         'min_ang': math.radians(-360.0*7),
