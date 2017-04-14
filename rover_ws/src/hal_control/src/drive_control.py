@@ -232,7 +232,7 @@ if __name__ == '__main__':
     
 
     # set rate
-    hz = 60.0
+    hz = 30.0
     rate = rospy.Rate(hz)    
     
     # init XBOX object
