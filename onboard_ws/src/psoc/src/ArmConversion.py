@@ -12,7 +12,7 @@ class ArmConversion:
         self.sy = 3
         self.A = 15.375
         self.la = 20
-        self.eh = 3+1/16
+        self.eh = 3.0+1/16
         self.d1 = 0.5
         self.d2 = 0.75
         self.d3 = 2.25
@@ -34,11 +34,12 @@ class ArmConversion:
         gamma3 = theta3 - self.gamma1 - self.gamma6
         
         lae = (self.D**2 - 2*cos(gamma3)*self.D*self.E + self.E**2)**(1/2)
-        las = self.sh*cos(beta1) + (self.sh**2*cos(beta1)**2 + self.B**2 - self.sh**2)
+        las = self.sh*cos(beta1) + (self.sh**2*cos(beta1)**2 + self.B**2 - self.sh**2)**(1/2)
         
-        las_percent = -(las-self.las_min)/(self.las_min-self.las_max)*100
-        lae_percent = -(lae-self.lae_min)/(self.lae_min-self.lae_max)*100
-        return [las_percent,lae_percent]
+        las_percent = -(las-self.las_min)/(self.las_min-self.las_max)
+        lae_percent = -(lae-self.lae_min)/(self.lae_min-self.lae_max)
+        print lae, las
+	return [las_percent,lae_percent]
         
     def getAngles(self,las_percent,lae_percent):
     
@@ -54,3 +55,6 @@ class ArmConversion:
         theta3 = self.gamma1 + gamma3 + self.gamma6
         return [theta2, theta3]
         
+if __name__=="__main__":
+	a = ArmConversion()
+	print a.getLengths(0,0)
