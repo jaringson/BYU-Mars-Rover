@@ -80,7 +80,7 @@ class PSOC_class():
 		#self.arm_feedback = Pololu()
 
 		# initialize serial port here
-		self.ser = serial.Serial('/dev/ttyUSB2', 57600, timeout = 1)
+		self.ser = serial.Serial('/dev/serial/by-id/usb-FTDI_FT4232H_Hub_Module_FTX340DT-if02-port0', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
@@ -192,10 +192,27 @@ class PSOC_class():
 
 	def grip_callback(self, grip):
 
-		self.psoc.grip = np.uint16(grip.data)
+		val = grip.data
+		if val == 0:
+			self.psoc.grip = 0
+		elif val > 5:
+			self.psoc.grip = 1 #open
+		elif val < -5:
+			self.psoc.grip = 2 #close
 
 		# self.set_rover_cmd()
     
+	def test_grip(self):
+		self.msg.data[0] = 0xEA
+		self.msg.data[1] = self.psoc.grip
+		string = ''
+		for i in range(0,2):
+                        string += struct.pack('!B',self.msg.data[i])
+               	print string
+		bwrite = self.ser.write(string)
+		print bwrite
+
+
 	def set_rover_cmd(self):
 
 		# 2017 Psoc Code
@@ -274,44 +291,51 @@ class PSOC_class():
 					try:
 						self.feedback.q1 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q1
-					except ValueError:
+					except ValueError, TypeError:
 						print "q1 Bad Feedback"
+						pass
 
 					try:
 						self.feedback.q2 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q2
-					except ValueError:
+					except ValueError, TypeError:
 						print "q2 Bad Feedback"
+						pass
 
 					try:
 						self.feedback.q3 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q3
-					except ValueError:
+					except ValueError, TypeError:
 						print "q3 Bad Feedback"
+						pass
 
 					try:
 						self.feedback.q4 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q4
-					except ValueError:
+					except ValueError, TypeError:
 						print "q4 Bad Feedback"
+						pass
 
 					try:
 						self.feedback.plate = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.plate
-					except ValueError:
+					except ValueError, TypeError:
 						print "Plate Bad Feedback"
+						pass
 
 					try:
 						self.feedback.temp = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.temp
-					except ValueError:
+					except ValueError, TypeError:
 						print "Temp Bad Feedback"
+						pass
 
 					try:
 						self.feedback.humidity = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.humidity
-					except ValueError:
+					except ValueError, TypeError:
 						print "Humidity Bad Feedback"
+						pass
 
 					self.pub_fback.publish(self.feedback)
 					
@@ -327,6 +351,7 @@ if __name__ == '__main__':
 	while not rospy.is_shutdown():
 		psoc.set_rover_cmd()
 		psoc.read_feedback()
+		#psoc.test_grip()
 		rate.sleep()
 
 	psoc.ser.close()
