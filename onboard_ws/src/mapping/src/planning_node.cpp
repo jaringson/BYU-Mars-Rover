@@ -38,7 +38,7 @@ private:
   std_msgs::Float64MultiArray wp_msg_;        //message for waypoints
   bool received_path_;                        //if true, path is already received, do not let incoming topics update it
   const float THRESHOLD_ = 0.075;//0.15              //threshold for what the rover can't drive over
-  const float ROVER_WIDTH_ = 1.25;            //width of rover in meters (measured as 1.07, safety at 1.25)
+  const float ROVER_WIDTH_ = 0.5;//1.25;            //width of rover in meters (measured as 1.07, safety at 1.25)
 
 };
 
@@ -96,10 +96,11 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 
   //------------------Obstacle Inflation----------------
 
+  Position center;
+
   //inflate obstacles
   for (GridMapIterator it(map_); !it.isPastEnd(); ++it){
     //for use in inflating area around impassable spots
-    Position center;
     double radius = ROVER_WIDTH_/2.0;
 
     //if the elevation somewhere is a real value and above the threshold
@@ -109,9 +110,9 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 
       for (grid_map::CircleIterator iterator(map_, center, radius); !iterator.isPastEnd(); ++iterator){
         //set each spot in the circle to a non-clearable height
-        ROS_INFO("temp_map spot was to: %f",temp_map.at("elevation", *iterator));
+        // ROS_INFO("temp_map spot was to: %f",temp_map.at("elevation", *iterator));
         temp_map.at("elevation", *iterator) = 2*THRESHOLD_;
-        ROS_INFO("temp_map spot set to: %f",temp_map.at("elevation", *iterator));
+        // ROS_INFO("temp_map spot set to: %f",temp_map.at("elevation", *iterator));
       }
     }
   }
@@ -134,7 +135,7 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   //-------------------Check the path ahead---------------
 
   //TODO add a transform listener that gets the current position in inertial frame
-  //and sets cuurent_pos_ to it
+  //and sets curent_pos_ to it
 
   //find unit vector to next waypoint
   Eigen::Vector2d uhat(2);
@@ -142,13 +143,14 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
           waypoints_(current_wp_,1) - current_pos_[1];
   uhat = uhat / uhat.squaredNorm();
 
+  //figure out where uhat goes to at the edge of the grid by just dividing the
+  //grid into 4 sides, atan2, and similar triangles
+
   //------------------WP Pub test, this works. Move it wherever-----------------
   //test the waypoint publisher
   // tf::matrixEigenToMsg(waypoints_,wp_msg_);
   // wp_pub_.publish(wp_msg_);
   //----------------------------------------------------------------------------
-
-  // uhat = w_next-w_current
 
   //check if the line is safe
   //find closest node to next waypoint

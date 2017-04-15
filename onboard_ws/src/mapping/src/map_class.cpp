@@ -112,6 +112,7 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 	}
 
 	//move map (avoids asynchronicity) (real talk: makes sure you move the map after adding laser scan)
+	//TODO subscriber for /estimate instead
 	tf::StampedTransform map_transform;
 
 	try{

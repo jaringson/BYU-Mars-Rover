@@ -17,12 +17,14 @@ int main() {
            1,1,1,1,1,1,1,1,1,1,
            1,1,1,1,1,1,1,1,1,1;
 
-    
+
     Eigen::MatrixXf* map = new Eigen::MatrixXf(10,10);
     *map = mapinit;
 
     AstarPlanner astar(map);
     astar.SetGoal(9,0);
+    
+
 
     //MapSearchNode* start = &astar.start;
     //cout << start->x << endl;
