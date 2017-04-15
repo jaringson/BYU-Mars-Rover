@@ -152,6 +152,7 @@ class Arm_XBOX():
             self.grip = -lt*100
         else:
             self.grip = 0
+        self.pub_grip.publish(self.grip)
 
     # ==========================================================================
     # INVERSE KINEMATICS CONTROL Position = Base Frame; Orientation = End effector frame
