@@ -3,10 +3,10 @@ from math import *
 class ArmConversion:
     def __init__(self):
     
-        self.las_min = 13
-        self.las_max = 16
-        self.lae_min = 15
-        self.lae_max = 20
+        self.las_min = 12 # was 13
+        self.las_max = 17.0+3/16 # was 16
+        self.lae_min = 15 # was 15
+        self.lae_max = 20.0+15/16 # was 20
         
         self.sx = 2.5
         self.sy = 3
