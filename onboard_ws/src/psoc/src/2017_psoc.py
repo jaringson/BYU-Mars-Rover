@@ -6,6 +6,7 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import ByteMultiArray, Int8
 import re
 import numpy as np
+import ArmConversion as Arm
 
 class PSOC_class():
 
@@ -94,6 +95,7 @@ class PSOC_class():
         # initialize publishers
 		self.pub_psoc = rospy.Publisher('/psoc_out', PSOC17, queue_size=1)
 		self.pub_fback = rospy.Publisher('feedback', Feedback, queue_size=1)
+		self.Arm = Arm.ArmConversion()
 		print "Successfull"
      
    #self.pub_arm = rospy.Publisher('/arm_feedback', Pololu, queue_size=1)
@@ -137,6 +139,28 @@ class PSOC_class():
     # Last year = values from 0 to 4092 for each joint, representing commanded angle
     # Giving radian angle for each joint (we can give you velocities scalars from -100 to 100 if you want)
 	def joint_callback(self, joint):
+		pos_temp = [0, 0, 0, 0, 0, 0]
+		pos_temp[0] = 2046 + 2046*(joint.position[0]/np.pi)		
+		pos_temp[3] = 2046 + 2046*(joint.position[3]/np.pi)
+                pos_temp[4] = 2046 + 2046*(joint.position[4]/np.pi)
+                pos_temp[5] = 2046 + 2046*(joint.position[5]/np.pi)
+		
+		se = self.Arm.getLengths(joint.position[1],joint.position[2])
+		temp = [0,0]
+		
+		pos_temp[0] = 0
+		pos_temp[1] = 0
+		print se
+		
+
+                self.psoc.q1 = np.uint16(pos_temp[0])
+                self.psoc.q2 = np.uint16(pos_temp[1])
+                self.psoc.q3 = np.uint16(pos_temp[2])
+                self.psoc.q4 = np.uint16(pos_temp[3])
+                self.psoc.q5 = np.uint16(pos_temp[4])
+                self.psoc.q6 = np.uint16(pos_temp[5])
+
+	def joint_callback2(self, joint):
 		pos_temp = [0, 0, 0, 0, 0, 0]
 
 		# assume all joint go from -pi to pi
