@@ -43,7 +43,7 @@ MatrixXf AstarPlanner::GetPath() {
     vector<int> y;
 
     // Set Start and goal states
-        
+
     astarsearch.SetStartAndGoalStates( start, goal );
 
     unsigned int SearchState;
@@ -51,7 +51,7 @@ MatrixXf AstarPlanner::GetPath() {
     int steps = 0;
 
     //start.GetSuccessors(&astarsearch, &goal);
-    
+
     do
     {
         SearchState = astarsearch.SearchStep();
@@ -69,11 +69,11 @@ MatrixXf AstarPlanner::GetPath() {
             while( p )
             {
                 len++;
-                #if !DEBUG_LIST_LENGTHS_ONLY            
+                #if !DEBUG_LIST_LENGTHS_ONLY
                     ((MapSearchNode *)p)->PrintNodeInfo();
                 #endif
                 p = astarsearch.GetOpenListNext();
-                
+
             }
 
             cout << "Open list has " << len << " nodes\n";
@@ -85,9 +85,9 @@ MatrixXf AstarPlanner::GetPath() {
             while( p )
             {
                 len++;
-                #if !DEBUG_LIST_LENGTHS_ONLY            
+                #if !DEBUG_LIST_LENGTHS_ONLY
                     p->PrintNodeInfo();
-                #endif          
+                #endif
                 p = astarsearch.GetClosedListNext();
             }
 
@@ -105,7 +105,7 @@ MatrixXf AstarPlanner::GetPath() {
         #if DISPLAY_SOLUTION
             cout << "Displaying solution\n";
         #endif
-        
+
 
         node->PrintNodeInfo();
         for( ;; )
@@ -121,7 +121,7 @@ MatrixXf AstarPlanner::GetPath() {
             x.push_back(node->x);
             y.push_back(node->y);
             steps ++;
-        
+
         };
 
         cout << "Solution steps " << steps << endl;
@@ -131,19 +131,19 @@ MatrixXf AstarPlanner::GetPath() {
         pathfound = true;
 
     }
-    else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
+    else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED )
     {
         cout << "Search terminated. Did not find goal state\n";
-    
+
     }
 
     // Display the number of loops the search went through
     cout << "SearchSteps : " << SearchSteps << "\n";
 
     SearchCount ++;
-    
+
     astarsearch.EnsureMemoryFreed();
-    
+
     MatrixXf path(steps,2);
     for (int i=0; i<steps; i++){
         path(i,0) = x[i];
@@ -152,4 +152,3 @@ MatrixXf AstarPlanner::GetPath() {
     path_ = path;
     return path;
 }
-    

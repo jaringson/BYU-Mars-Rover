@@ -21,8 +21,5 @@ private:
     unsigned int SearchCount;
     unsigned int NumSearches;
     bool pathfound;
-    
+
 };
-
-
-

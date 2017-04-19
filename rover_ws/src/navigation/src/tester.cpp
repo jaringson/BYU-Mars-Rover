@@ -23,7 +23,7 @@ int main() {
 
     AstarPlanner astar(map);
     astar.SetGoal(9,0);
-    
+
 
 
     //MapSearchNode* start = &astar.start;
