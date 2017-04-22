@@ -11,7 +11,7 @@ from sensor_msgs.msg import JointState
 import time
 
 class DynPub():
-    def __init__(self, wrist=True, gimbal=True):
+    def __init__(self, wrist=False, gimbal=True):
         # Init node
         rospy.init_node('dynamixel_feedback_node',anonymous = True)
         hz = 100.0
@@ -26,7 +26,7 @@ class DynPub():
             ids.append(3)
             ids.append(4)
 
-        self.dyn = ld.Dynamixel_Chain(dev='/dev/ttyUSB4',ids=ids)
+        self.dyn = ld.Dynamixel_Chain(dev='/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AL02L2HN-if00-port0',ids=ids)
         self.resetOverload(ids)
 
         # Set wrist to multi-turn

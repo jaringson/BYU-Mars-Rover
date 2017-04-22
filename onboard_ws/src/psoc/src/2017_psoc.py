@@ -82,13 +82,14 @@ class PSOC_class():
 
 		# initialize serial port here
 		self.ser = serial.Serial('/dev/serial/by-id/usb-FTDI_FT4232H_Hub_Module_FTX340DT-if02-port0', 57600, timeout = 1)
+		#self.ser = serial.Serial('/dev/ttyUSB3', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
 
 		# initialize subscribers
 		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.drive_callback)
 		self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
-		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback)
+		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback2)
 		self.sub_science = rospy.Subscriber('/science_cmd', Science, self.science_callback)
 		self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
@@ -146,12 +147,7 @@ class PSOC_class():
                 pos_temp[5] = 2046 + 2046*(joint.position[5]/np.pi)
 		
 		se = self.Arm.getLengths(joint.position[1],joint.position[2])
-		temp = [0,0]
-		
-		pos_temp[0] = 0
-		pos_temp[1] = 0
 		print se
-		
 
                 self.psoc.q1 = np.uint16(pos_temp[0])
                 self.psoc.q2 = np.uint16(pos_temp[1])
