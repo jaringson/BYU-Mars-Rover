@@ -1,0 +1,15 @@
+<launch>
+
+<node pkg="rosbag" type="play" name="player" args="--clock /home/michael/mars_rover/BYU-Mars-Rover/scripts/rosbags/straight_walk_2017-04-22-21-32-49.bag"/>
+
+<!--Navigation Estimator-->
+  <node name="nav_estimator" pkg="rover_msgs" type="estimate.py" output="screen">
+  	<remap from="/estimate" to="new_estimate"/>
+  </node>
+
+  <!--Estimator Plots-->
+  <node name="est_plot" pkg="rover_msgs" type="estimator_plotter.py" output="screen">
+  	<!-- <remap from="/estimate" to="new_estimate"/> -->
+  </node>
+
+</launch>
