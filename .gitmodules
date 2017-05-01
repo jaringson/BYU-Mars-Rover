@@ -50,3 +50,12 @@
 [submodule "onboard_ws/src/rpg_svo"]
 	path = onboard_ws/src/rpg_svo
 	url = https://github.com/uzh-rpg/rpg_svo.git
+[submodule "onboard_ws/src/Sophus"]
+	path = onboard_ws/src/Sophus
+	url = https://github.com/strasdat/Sophus.git
+[submodule "onboard_ws/src/fast"]
+	path = onboard_ws/src/fast
+	url = https://github.com/uzh-rpg/fast.git
+[submodule "onboard_ws/src/rpg_vikit"]
+	path = onboard_ws/src/rpg_vikit
+	url = https://github.com/uzh-rpg/rpg_vikit.git
