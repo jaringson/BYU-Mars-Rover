@@ -7,7 +7,7 @@
   <remap from="/joy" to="/joy_arm"/>
   </node>
 
-  <node pkg="hal_control" type="science_control.py" name="xbox_science_control">
+  <node pkg="hal_control" type="science_control.py" name="xbox_science_control" output="screen">
   </node> 
   
 </launch>

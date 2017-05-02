@@ -12,10 +12,10 @@
   <remap from="/joy" to="/joy_drive"/>
   </node> 
 
-  <node pkg="hal_control" type="science_control.py" name="xbox_science_control">
+  <node pkg="hal_control" type="science_control.py" name="xbox_science_control" output="screen">
   </node> 
 
-  <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control">
+  <node pkg="hal_control" type="drive_control.py" name="xbox_drive_control" output="screen">
   </node>
 
 </launch>
