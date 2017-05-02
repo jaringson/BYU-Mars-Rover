@@ -33,7 +33,10 @@ class Arm_XBOX():
 		self.science.elevator = 0
 		self.science.plunge = 0
 		self.science.drill = 0
-		self.science.plate = 0
+		self.science.plate = 700
+		
+		# Maximum stuff
+		self.plunge_max = 3000
 
 	# Publishers and Subscribers
 
@@ -97,6 +100,7 @@ class Arm_XBOX():
 			elif self.state.speed == 'Fast':
 				self.state.speed = 'Slow'
 			time.sleep(.25)
+			rospy.loginfo(self.state.speed)
 
 	def gripper(self):
 		rt = (1 - self.joy.axes[5])/2.0
@@ -122,11 +126,11 @@ class Arm_XBOX():
 
 		# Set corresponding rate
 		if self.state.speed == 'Fast':
-			MAX_RATE = 100
+			MAX_RATE = 22
 		elif self.state.speed == 'Med':
-			MAX_RATE = 50
+			MAX_RATE = 17
 		elif self.state.speed == 'Slow':
-			MAX_RATE = 20
+			MAX_RATE = 10
 
 		# Calculate how to command arm (position control)
 		DEADZONE = 0.1
@@ -155,8 +159,8 @@ class Arm_XBOX():
 		self.science.plunge = self.science.plunge + MAX_RATE*right_joy_up
 		if self.science.plunge < 0:
 			self.science.plunge = 0
-		elif self.science.plunge > 4095:
-			self.science.plunge = 4095
+		elif self.science.plunge > self.plunge_max:
+			self.science.plunge = self.plunge_max
 
 		# DRILL
 		if x_button and (self.science.drill == 0):
@@ -170,11 +174,11 @@ class Arm_XBOX():
 		if lb:
 			self.science.plate = 0
 		elif (hat_up==1):
-			self.science.plate = 1000
+			self.science.plate = 700 # Auger 1
 		elif (hat_up == -1):
-			self.science.plate = 2900
+			self.science.plate = 2900 # Fork sensor
 		elif (hat_right == 1):
-			self.science.plate = 4000
+			self.science.plate = 3900 # Temperature?
 		elif (hat_right == -1):
 			self.science.plate = 2000
 
