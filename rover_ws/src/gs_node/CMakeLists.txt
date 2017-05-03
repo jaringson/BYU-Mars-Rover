@@ -5,8 +5,12 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rqt_gui
   rqt_gui_py
+  message_generation
+  message_runtime
 )
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS rospy std_msgs message_runtime
+)
 catkin_python_setup()
 
 #
@@ -21,3 +25,13 @@ install(FILES plugin.xml
 install(PROGRAMS scripts/ground_station
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+add_message_files(
+   FILES
+   FloatList.msg
+ )
+
+generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+ )

@@ -1,6 +1,8 @@
 from python_qt_binding import loadUi
 from PyQt4.Qt import *
 from PyQt4 import QtGui
+from gs_node.msg import FloatList
+
 
 try:
     from PyQt4.QtCore import QString
@@ -124,21 +126,44 @@ class WpWindow(QWidget):
 #                meter_data = self._marble_map.GB.gps_to_ned(lat, lon, alt/3.281)
                 self.WPP.publish_wp_to_plane(meter_data)
 
-    def add_waypoint(self):
-        # Check PARAMS and emit signal
-        try:
-            lat = float(str(self.textEdit.toPlainText()))
-            lon = float(str(self.textEdit_2.toPlainText()))
-#            alt = float(str(self.textEdit_3.toPlainText()))
-            pos = int(str(self.comboBox.currentText()))
-            self.waypoints.insert(pos, (lat, lon))
-#            self.waypoints.insert(pos, (lat, lon, alt))
-            self.update_lists()
-            self._marble_map.WPH.emit_inserted(lat, lon, pos)
-#            self._marble_map.WPH.emit_inserted(lat, lon, alt, pos)
-            self.transfer_waypoint_data()
-        except ValueError:
-            print('Incorrectly formatted fields. Must all be numbers.')
+    def add_waypoint(self):#this SHOULD be the "send to rover" button function
+        global_path_pub = rospy.Publisher("/global_path",FloatList,queue_size=1,latch=True)
+        msg = FloatList()
+
+msg.data.append(wp[0])
+msg.data.append(wp[1])
+
+
+        wp_file_path = os.path.join(PWD, 'resources', 'wp_data', '%s_wp_data.txt' % map_name)
+        if os.path.exists(wp_file_path):
+            with open(wp_file_path, 'r') as wp_file:
+                for line in wp_file:
+                    wp_t = line.split()
+                    lat = float(wp_t[0])
+                    lon = float(wp_t[1])
+#                    alt = float(wp_t[2])
+                    msg.data.append((lat, lon))
+#                    wp_list.append((lat, lon, alt))
+            return []
+        else:
+            return []
+
+        global_path_pub.publish(msg)
+
+#        # Check PARAMS and emit signal
+#        try:
+#            lat = float(str(self.textEdit.toPlainText()))
+#            lon = float(str(self.textEdit_2.toPlainText()))
+##            alt = float(str(self.textEdit_3.toPlainText()))
+#            pos = int(str(self.comboBox.currentText()))
+#            self.waypoints.insert(pos, (lat, lon))
+##            self.waypoints.insert(pos, (lat, lon, alt))
+#            self.update_lists()
+#            self._marble_map.WPH.emit_inserted(lat, lon, pos)
+##            self._marble_map.WPH.emit_inserted(lat, lon, alt, pos)
+#            self.transfer_waypoint_data()
+#        except ValueError:
+#            print('Incorrectly formatted fields. Must all be numbers.')
 
 #        try:
 #            lat = float(str(self.textEdit.toPlainText()))
