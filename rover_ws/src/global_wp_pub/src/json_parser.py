@@ -16,7 +16,7 @@ class json_parse:
 
     def import_json(self):
 
-        data = json.load(open('/home/peter/git/BYU-Mars-Rover/onboard_ws/src/global_wp_pub/src/costpath2.json','r'))
+        data = json.load(open('/home/peter/git/BYU-Mars-Rover/rover_ws/src/global_wp_pub/src/costpath2.json','r'))
 
         coords = data['features'][1]['geometry']['coordinates']
 
