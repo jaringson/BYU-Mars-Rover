@@ -59,29 +59,38 @@ class WpWindow(QWidget):
 
         self.WPP = WP_Publisher()
 
-    def load_wp_file(self):
-        filename = str(QtGui.QFileDialog.getOpenFileName(self, 'Open File', PWD)[0])
-        if not filename.strip() == '':
-            try:
-                new_wps = []
-                with open(filename.strip(), 'r') as wp_file:
-                    for line in wp_file:
-                        wp_t = line.split()
-                        lat = float(wp_t[0])
-                        lon = float(wp_t[1])
-#                        alt = float(wp_t[2])
-                        new_wps.append((lat, lon))
-#                        new_wps.append((lat, lon, alt))
-                for i in range(len(self.waypoints)):
-                    self._marble_map.WPH.emit_removed(0)
-                self.waypoints = new_wps
-                self.update_lists()
-                for i, wp in enumerate(self.waypoints):
-                    self._marble_map.WPH.emit_inserted(wp[0], wp[1], i)
-#                    self._marble_map.WPH.emit_inserted(wp[0], wp[1], wp[2], i)
-                self.transfer_waypoint_data()
-            except:
-                print('Invalid waypoint file selected. Ensure that format is correct.')
+    def load_wp_file(self):#changed this function to clearing the wp list in GUI and changed the button to "Clear Waypoints"
+        print type(self.waypoints)
+        for pos in range(len(self.waypoints)-1,-1,-1):
+            del self.waypoints[pos]
+            self.update_lists()
+            self._marble_map.WPH.emit_removed(pos)
+            self.transfer_waypoint_data()
+
+
+#        filename = str(QtGui.QFileDialog.getOpenFileName(self, 'Open File', PWD)[0])
+#        if not filename.strip() == '':
+#            try:
+#                new_wps = []
+#                with open(filename.strip(), 'r') as wp_file:
+#                    for line in wp_file:
+#                        wp_t = line.split()
+#                        lat = float(wp_t[0])
+#                        lon = float(wp_t[1])
+##                        alt = float(wp_t[2])
+#                        new_wps.append((lat, lon))
+##                        new_wps.append((lat, lon, alt))
+#                for i in range(len(self.waypoints)):
+#                    self._marble_map.WPH.emit_removed(0)
+#                self.waypoints = new_wps
+#                self.update_lists()
+#                for i, wp in enumerate(self.waypoints):
+#                    self._marble_map.WPH.emit_inserted(wp[0], wp[1], i)
+##                    self._marble_map.WPH.emit_inserted(wp[0], wp[1], wp[2], i)
+#                self.transfer_waypoint_data()
+#            except:
+#                print('Invalid waypoint file selected. Ensure that format is correct.')
+
 
     def update_lists(self):
         self.listWidget.clear()

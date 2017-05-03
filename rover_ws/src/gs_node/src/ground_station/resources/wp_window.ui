@@ -141,7 +141,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Load WP File</string>
+    <string>Clear WP List</string>
    </property>
   </widget>
  </widget>
