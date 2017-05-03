@@ -11,6 +11,7 @@
 #include <eigen_conversions/eigen_msg.h>
 
 #include <Eigen/Core>
+#include <math.h>
 
 using namespace std;
 using namespace grid_map;
@@ -37,6 +38,7 @@ private:
   Eigen::Vector2f current_pos_;               //current position of rover, update frequently
   std_msgs::Float64MultiArray wp_msg_;        //message for waypoints
   bool received_path_;                        //if true, path is already received, do not let incoming topics update it
+  bool clear_path_;                           //if true, no obstacles between current position and next waypoint
   const float THRESHOLD_ = 0.075;//0.15              //threshold for what the rover can't drive over
   const float ROVER_WIDTH_ = 0.5;//1.25;            //width of rover in meters (measured as 1.07, safety at 1.25)
 
@@ -54,9 +56,16 @@ Planner::Planner(ros::NodeHandle nh){
   //set this as false because we haven't got it yet
   received_path_ = false;
 
+  //set this as true because we don't know
+  clear_path_ = true;
+
   // initizilize waypoints to a dummy 0 matrix
   Eigen::MatrixXf another_one = Eigen::MatrixXf::Zero(8,3);
   waypoints_ = another_one;
+
+  //temporary (for testing checking along line)
+  waypoints_(1,0) = 0;
+  waypoints_(1,1) = 4;
 
   //initialize current position to (0,0)
   current_pos_ << 0,
@@ -74,7 +83,7 @@ Destructor for Planner
 Planner::~Planner() {}
 
 /*
-Method that just runs and waits for laser scans
+Method that just runs and waits for maps
 */
 void Planner::runtime(){
   ros::spin();
@@ -117,17 +126,9 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
     }
   }
 
-  //For testing, could publish right here and display in rviz
-  ros::Time time = ros::Time::now();
-  temp_map.setTimestamp(time.toNSec());
-  grid_map_msgs::GridMap message;
-  GridMapRosConverter::toMessage(temp_map, message);
-  test_pub_.publish(message);
-  ROS_INFO("Grid map (timestamp %f) published.", message.info.header.stamp.toSec());
-
   /*
   at this point, temp_map should have a number that could be 0 of (possibly intersecting)
-  circles of impassable points. all others should be nan or values below THRESHOLD_.
+  groups of impassable points. all others should be nan or values below THRESHOLD_.
   Now, figure out the line between our current position and next waypoint. If it's clear,
   just head in that direction. If not, then we need to replan our local path.
   */
@@ -138,10 +139,66 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   //and sets curent_pos_ to it
 
   //find unit vector to next waypoint
-  Eigen::Vector2d uhat(2);
+  Eigen::Vector2f uhat(2);
+  Eigen::Vector2f edge_pt(2);
   uhat << waypoints_(current_wp_,0) - current_pos_[0],
           waypoints_(current_wp_,1) - current_pos_[1];
-  uhat = uhat / uhat.squaredNorm();
+
+  uhat = uhat / uhat.norm();
+
+  //works to here
+
+  float PI = 3.14159265359;
+
+  float theta = atan2(waypoints_(current_wp_,1) - current_pos_[1],waypoints_(current_wp_,0) - current_pos_[0]);
+  theta = fmod(theta + 2.0*PI, 2.0*PI);
+
+  if(theta <= PI/4.0)
+      edge_pt << current_pos_[0] + map_.getLength().x()/2.0-map_.getResolution(),
+                 current_pos_[0] + map_.getLength().x()/2.0 * tan(theta)-map_.getResolution();
+  // else if(theta <= PI/2.0)
+  //     edge_pt << current_pos_[0] + map_.getLength().x()/2.0-map_.getResolution(),
+  //                current_pos_[1] + map_.getLength().x()/2.0-map_.getResolution();
+
+  ROS_INFO("edge0: %f",edge_pt[0]);
+
+  center = Position(edge_pt[0],edge_pt[1]);
+  temp_map.atPosition("elevation", center) = 2;
+  ROS_INFO("edge1: %f",edge_pt[1]);
+  center = Position(-edge_pt[0]+0.1,edge_pt[1]);
+  temp_map.atPosition("elevation", center) = 2;
+
+  Position startPos(current_pos_[0],current_pos_[1]);
+  Position endPos(edge_pt[0],edge_pt[1]);
+  Index start_idx;
+  Index end_idx;
+
+  temp_map.getIndex(startPos, start_idx);
+  temp_map.getIndex(endPos, end_idx);
+
+  for (grid_map::LineIterator iterator(temp_map, start_idx, end_idx);
+      !iterator.isPastEnd(); ++iterator) {
+    if(temp_map.at("elevation",*iterator) >= THRESHOLD_){
+      clear_path_ = false;
+      break;
+    }
+
+    //only executes if every spot along the line is below the threshold
+    clear_path_ = true;
+  }
+
+  if(clear_path_)
+    ROS_INFO("clear");
+  else
+    ROS_INFO("not clear");
+
+  //For testing, could publish right here and display in rviz
+  ros::Time time = ros::Time::now();
+  temp_map.setTimestamp(time.toNSec());
+  grid_map_msgs::GridMap message;
+  GridMapRosConverter::toMessage(temp_map, message);
+  test_pub_.publish(message);
+  ROS_INFO("Grid map (timestamp %f) published.", message.info.header.stamp.toSec());
 
   //figure out where uhat goes to at the edge of the grid by just dividing the
   //grid into 4 sides, atan2, and similar triangles
