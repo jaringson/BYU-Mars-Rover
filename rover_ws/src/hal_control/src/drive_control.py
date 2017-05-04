@@ -23,7 +23,7 @@ class XBOX():
         self.state.pan = 0.0
         self.state.tilt = 0.0
         self.state.camtoggle1 = False
-        self.state.chutes = 0
+        self.state.chutes = 67 # All closed
         
         # Initialize Drive
         self.drive_cmd.lw = 0
@@ -63,6 +63,9 @@ class XBOX():
 
         # check for camera toggle
         self.camera_toggle()
+
+        # check for chutes
+        self.chutes()
         
         # Publish state commands
         if self.ready:
@@ -205,23 +208,17 @@ class XBOX():
     # Chutes mode ===============================================
     # ==========================================================================
     def chutes(self):
-        # 7th bit is enable bit - keep it on
-        self.cmd.chutes |= 2^6
-        # get chute commands
-        c1 = self.joy.buttons[1]
-        c2 = self.joy.buttons[2]
-        c3 = self.joy.buttons[7]
-        c4 = self.joy.buttons[6]
-        c5 = self.joy.buttons[5]
-        c6 = self.joy.buttons[4]
-        
-        # toggle whichever chute button was pressed
-        if c1 == 1 or c2 == 1 or c3 == 1 or c4 == 1 or c5 == 1 or c6 == 1:
-            self.cmd.chutes ^= c1 | (c2 << 1) | (c3 << 2) | (c4 << 3) | (c5 << 4) | (c6 << 5)
-            time.sleep(.25)
+        X = self.joy.buttons[2]
+        B = self.joy.buttons[1]
 
-        # self.cmd.chutes |= self.joy.buttons[1] | (self.joy.buttons[2] << 1) | (self.joy.buttons[7] << 2) | (self.joy.buttons[6] << 3) | (self.joy.buttons[5] << 4) | (self.joy.buttons[4] << 5) | (1 << 6)
-        self.pub1.publish(self.cmd)
+        if X and not B:
+            self.state.chutes = 1 #65
+        elif B and not X:
+            self.state.chutes = 2 #66
+        elif X and B:
+            self.state.chutes = 3 #64
+        else:
+            self.state.chutes = 0 #67 
 
     # ==========================================================================
     # Main ===============================================
