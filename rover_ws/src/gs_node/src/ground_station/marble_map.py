@@ -7,7 +7,7 @@ from math import ceil, floor, sqrt, sin, asin, cos, acos, radians, degrees
 import map_info_parser
 import rospy
 from std_msgs.msg import String
-from fcu_common.msg import State, GPS
+from msg import FW_State, GPS
 from Signals import WP_Handler
 from .Geo import Geobase
 import json, re
@@ -86,8 +86,8 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.pn = 0.0
         self.psi = 0.0
 
-        rospy.Subscriber("/junker/truth", State, self.callback)
-        rospy.Subscriber("/state", State, self.callback)
+        rospy.Subscriber("/junker/truth", FW_State, self.callback)
+        rospy.Subscriber("/state", FW_State, self.callback)
 
     def callback(self, state):
         self.pe = state.position[1]

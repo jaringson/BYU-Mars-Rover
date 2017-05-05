@@ -14,7 +14,7 @@ find_package(orocos_kdl)
 
 
 catkin_package(
-  INCLUDE_DIRS include
+  #INCLUDE_DIRS include
   LIBRARIES
   CATKIN_DEPENDS  trac_ik_lib
   DEPENDS orocos_kdl

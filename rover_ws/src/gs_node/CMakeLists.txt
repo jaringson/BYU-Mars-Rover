@@ -7,11 +7,27 @@ find_package(catkin REQUIRED COMPONENTS
   rqt_gui_py
   message_generation
   message_runtime
+  std_msgs
 )
+
+catkin_python_setup()
+
+add_message_files(
+   FILES
+   FloatList.msg
+   FW_State.msg
+   FW_Waypoint.msg
+   GPS.msg
+ )
+
+generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+)
+
 catkin_package(
   CATKIN_DEPENDS rospy std_msgs message_runtime
 )
-catkin_python_setup()
 
 #
 include_directories(
@@ -25,13 +41,3 @@ install(FILES plugin.xml
 install(PROGRAMS scripts/ground_station
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-add_message_files(
-   FILES
-   FloatList.msg
- )
-
-generate_messages(
-   DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
- )

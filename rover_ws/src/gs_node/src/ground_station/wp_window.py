@@ -1,8 +1,19 @@
+#!/usr/bin/env python
+
+import rospy
 from python_qt_binding import loadUi
 from PyQt4.Qt import *
 from PyQt4 import QtGui
-from gs_node.msg import FloatList
 
+#import sys
+#sys.path.append('/home/rosie/BYU-Mars-Rover/rover_ws/src')
+# from ground_station.msg import FloatList
+# from ground_station import msg
+# import ground_station
+# from ground_station import msg
+# from ground_station.msg import FloatList
+# import msg
+from msg import FloatList
 
 try:
     from PyQt4.QtCore import QString
@@ -11,8 +22,9 @@ except ImportError:
 
 import os
 import map_info_parser
-import rospy
-from fcu_common.msg import FW_Waypoint
+
+from msg import FW_Waypoint
+#from fcu_common.msg import FW_Waypoint
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 
@@ -130,8 +142,8 @@ class WpWindow(QWidget):
         global_path_pub = rospy.Publisher("/global_path",FloatList,queue_size=1,latch=True)
         msg = FloatList()
 
-msg.data.append(wp[0])
-msg.data.append(wp[1])
+	msg.data.append(wp[0])
+	msg.data.append(wp[1])
 
 
         wp_file_path = os.path.join(PWD, 'resources', 'wp_data', '%s_wp_data.txt' % map_name)
