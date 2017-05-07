@@ -12,6 +12,7 @@
 
 #include <Eigen/Core>
 #include <math.h>
+// #include "AstarPlanner.h"
 
 using namespace std;
 using namespace grid_map;
@@ -64,8 +65,8 @@ Planner::Planner(ros::NodeHandle nh){
   waypoints_ = another_one;
 
   //temporary (for testing checking along line)
-  waypoints_(1,0) = 0;
-  waypoints_(1,1) = 4;
+  waypoints_(1,0) = -2.5;
+  waypoints_(1,1) = 2;
 
   //initialize current position to (0,0)
   current_pos_ << 0,
@@ -138,48 +139,58 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   //TODO add a transform listener that gets the current position in inertial frame
   //and sets curent_pos_ to it
 
-  //find unit vector to next waypoint
-  Eigen::Vector2f uhat(2);
+  //vector for going as far along direction to next waypoint from current position
+  //if next waypoint is outside map bounds, will be an edge
+  //otherwise set to be next waypoint
   Eigen::Vector2f edge_pt(2);
-  uhat << waypoints_(current_wp_,0) - current_pos_[0],
-          waypoints_(current_wp_,1) - current_pos_[1];
 
-  uhat = uhat / uhat.norm();
+  if(temp_map.isInside(Position(waypoints_(current_wp_,0),waypoints_(current_wp_,1)))){
+    edge_pt << waypoints_(current_wp_,0),
+               waypoints_(current_wp_,1);
+  } else {
+    //find unit vector to next waypoint
+    Eigen::Vector2f uhat(2);
+    uhat << waypoints_(current_wp_,0) - current_pos_[0],
+            waypoints_(current_wp_,1) - current_pos_[1];
 
-  //works to here
+    uhat = uhat / uhat.norm();
 
-  float PI = 3.14159265359;
+    float PI = 3.14159265359;
+    float h_over_2 = map_.getLength().x()/2.0-map_.getResolution();
+    float w_over_2 = map_.getLength().y()/2.0-map_.getResolution();
 
-  float theta = atan2(waypoints_(current_wp_,1) - current_pos_[1],waypoints_(current_wp_,0) - current_pos_[0]);
-  theta = fmod(theta + 2.0*PI, 2.0*PI);
+    float theta = atan2(waypoints_(current_wp_,1) - current_pos_[1],waypoints_(current_wp_,0) - current_pos_[0]);
+    theta = fmod(theta + 2.0*PI, 2.0*PI);
+    ROS_INFO("theta: %f", theta);
 
-  if(theta <= PI/4.0)
-      edge_pt << current_pos_[0] + map_.getLength().x()/2.0-map_.getResolution(),
-                 current_pos_[0] + map_.getLength().x()/2.0 * tan(theta)-map_.getResolution();
-  // else if(theta <= PI/2.0)
-  //     edge_pt << current_pos_[0] + map_.getLength().x()/2.0-map_.getResolution(),
-  //                current_pos_[1] + map_.getLength().x()/2.0-map_.getResolution();
+    if(theta <= PI/4.0)
+        edge_pt << current_pos_[0] + h_over_2,
+                   current_pos_[1] + h_over_2*tan(theta);
+    else if(theta <= 3.0*PI/4.0)
+        edge_pt << current_pos_[0] - w_over_2*tan(theta-PI/2.0),
+                   current_pos_[1] + w_over_2;
+    else if(theta <= 5.0*PI/4.0)
+        edge_pt << current_pos_[0] - h_over_2,
+                   current_pos_[1] - h_over_2*tan(theta-PI);
+    else if(theta <= 7.0*PI/4.0)
+        edge_pt << current_pos_[0] + w_over_2*tan(theta-3.0*PI/2.0),
+                   current_pos_[1] - w_over_2;
+    else
+        edge_pt << current_pos_[0] + h_over_2,
+                   current_pos_[1] + h_over_2*tan(theta);
+  }
 
   ROS_INFO("edge0: %f",edge_pt[0]);
-
-  center = Position(edge_pt[0],edge_pt[1]);
-  temp_map.atPosition("elevation", center) = 2;
   ROS_INFO("edge1: %f",edge_pt[1]);
-  center = Position(-edge_pt[0]+0.1,edge_pt[1]);
-  temp_map.atPosition("elevation", center) = 2;
 
   Position startPos(current_pos_[0],current_pos_[1]);
   Position endPos(edge_pt[0],edge_pt[1]);
-  Index start_idx;
-  Index end_idx;
 
-  temp_map.getIndex(startPos, start_idx);
-  temp_map.getIndex(endPos, end_idx);
-
-  for (grid_map::LineIterator iterator(temp_map, start_idx, end_idx);
+  for (grid_map::LineIterator iterator(temp_map, startPos, endPos);
       !iterator.isPastEnd(); ++iterator) {
     if(temp_map.at("elevation",*iterator) >= THRESHOLD_){
       clear_path_ = false;
+      ROS_INFO("elevation: %f",temp_map.at("elevation",*iterator));
       break;
     }
 
@@ -200,18 +211,8 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   test_pub_.publish(message);
   ROS_INFO("Grid map (timestamp %f) published.", message.info.header.stamp.toSec());
 
-  //figure out where uhat goes to at the edge of the grid by just dividing the
-  //grid into 4 sides, atan2, and similar triangles
-
-  //------------------WP Pub test, this works. Move it wherever-----------------
-  //test the waypoint publisher
-  // tf::matrixEigenToMsg(waypoints_,wp_msg_);
-  // wp_pub_.publish(wp_msg_);
-  //----------------------------------------------------------------------------
-
-  //check if the line is safe
-  //find closest node to next waypoint
-  //A*
+  //A* but if there is no safe path to where you're trying to go, need to
+  //come up with something
   //simplify path
 }
 
@@ -233,3 +234,9 @@ int main(int argc, char** argv){
 	//create planner object for local path planning
 	Planner p(nh);
 }
+
+//------------------WP Pub test, this works. Move it wherever-----------------
+//test the waypoint publisher
+// tf::matrixEigenToMsg(waypoints_,wp_msg_);
+// wp_pub_.publish(wp_msg_);
+//----------------------------------------------------------------------------

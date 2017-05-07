@@ -26,8 +26,8 @@ class json_parse:
         msg = FloatList()
 
         for l in coords:
-            msg.data.append(l[0])
             msg.data.append(l[1])
+            msg.data.append(l[0])
 
         self.wp_pub.publish(msg)
         print('published')
