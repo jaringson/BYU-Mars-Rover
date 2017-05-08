@@ -1,5 +1,6 @@
 #!/usr/bin/env python 
 
+import sys
 import rospy
 from std_msgs.msg import Float32MultiArray
 import lib_robotis as lr
@@ -21,12 +22,17 @@ class DynPub():
 
         # Init dynamixel objects
         ids = []
+        # print wrist, gimbal
         if wrist:
+            print "Adding Wrist"
             ids.append(1)
             ids.append(2)
+        
         if gimbal:
+            print "Adding gimbal"
             ids.append(3)
             ids.append(4)
+        
         if lidar:
             ids.append(5)
 
@@ -56,6 +62,7 @@ class DynPub():
 
             self.pub_gimbal = rospy.Publisher('/gimbal_feedback', Float32MultiArray, queue_size = 1)
             self.sub_gimbal = rospy.Subscriber('/rover_state_cmd', RoverState, self.gimbalCallback)
+        #if lidar:
 
         # Lidar
         self.lidar_init = True
@@ -131,8 +138,11 @@ class DynPub():
         while not rospy.is_shutdown():
             # Wrist
             if self.wrist_enabled:
-                self.wrist_feedback.data[0] = self.dyn.read_angle(1)
-                self.wrist_feedback.data[1] = self.dyn.read_angle(2)
+                try:
+                    self.wrist_feedback.data[0] = self.dyn.read_angle(1)
+                    self.wrist_feedback.data[1] = self.dyn.read_angle(2)
+                except RuntimeError:
+                    pass
                 torque = [self.dyn.read_torque(1), self.dyn.read_torque(2)]
                 if torque[0] > 90 or torque[1] > 90:
                     rospy.logwarn('Dangerous Torque')
@@ -143,8 +153,11 @@ class DynPub():
 
             # Gimbal
             if self.gimbal_enabled:
-                self.gimbal_feedback.data[0] = self.dyn.read_angle(4)
-                self.gimbal_feedback.data[1] = self.dyn.read_angle(3)
+                try:
+                    self.gimbal_feedback.data[0] = self.dyn.read_angle(4)
+                    self.gimbal_feedback.data[1] = self.dyn.read_angle(3)
+                except RuntimeError:
+                    pass
                 self.pub_gimbal.publish(self.gimbal_feedback)
                 if self.ready['gimbal']:
                     self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
@@ -165,26 +178,26 @@ class DynPub():
                 omega = 2*math.pi/period
                 angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
                 self.dyn.move_angle(5, angle, blocking = False)
-		
-		time = rospy.Time.now()
+        
+                time = rospy.Time.now()
 
                 br = tf.TransformBroadcaster()
-		br.sendTransform((0,0,0),
-                    tf.transformations.quaternion_from_euler(0,0,-math.pi/2),
+                br.sendTransform((0,0,0),
+                tf.transformations.quaternion_from_euler(0,0,-math.pi/2),
                     time,
                     "laser","lidar")
                 br.sendTransform((0,0.03,0.085),
                     tf.transformations.quaternion_from_euler(0,0,0),
                     time,
                     "lidar","lidar_horn_inverted")
-		br.sendTransform((0,0,0),
+                br.sendTransform((0,0,0),
                     tf.transformations.quaternion_from_euler(0,math.pi,0),
                     time,
                     "lidar_horn_inverted","lidar_horn")
-		br.sendTransform((0,0.05,0),
-			tf.transformations.quaternion_from_euler(0,angle,0),
-			time,
-			"lidar_horn","dynamixel_lidar")
+                br.sendTransform((0,0.05,0),
+                    tf.transformations.quaternion_from_euler(0,angle,0),
+                    time,
+                    "lidar_horn","dynamixel_lidar")
 
                 #print math.degrees(angle)
 
@@ -192,6 +205,13 @@ class DynPub():
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(False,False,True)
+
+    if len(sys.argv) == 3:
+        wrist = int(sys.argv[1])==1
+        gimbal = int(sys.argv[2])==1
+    else:
+        wrist = True
+        gimbal = True
+    dynpub = DynPub(wrist,gimbal,False)
     dynpub.execute()
     
