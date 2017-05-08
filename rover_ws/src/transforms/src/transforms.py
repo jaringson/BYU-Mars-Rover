@@ -10,6 +10,6 @@ if __name__ == '__main__':
         # LiDar to Base Frame
         br.sendTransform((0.0, 0.0, 0.0),
                          (0.0, 0.0, 0.0, 1.0),
-                         "LiDar",
+                         "lidar_base",
                          "rover_base")
         rate.sleep()

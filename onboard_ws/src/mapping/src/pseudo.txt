@@ -1,0 +1,21 @@
+Grid map usage stuff
+
+Make a gridmap (x,y,resolution)
+Center the map on the rover
+
+while(timesteps)
+
+move map to new rover pos
+
+laserscan -> use to fill in map - callback
+	rotate laserscan to local gradient
+check planned path for collisions
+
+#something so that it only replans when it got to that waypoint from the last plan or is on the main path
+if(collisions)
+plan new viable path
+end if
+
+end while
+
+time delay before replanning

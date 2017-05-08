@@ -1,0 +1,109 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(mapping)
+
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
+## Find catkin macros and libraries
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  grid_map_ros
+  grid_map_cv
+  grid_map_msgs
+  geometry_msgs
+  sensor_msgs
+  cv_bridge
+  tf
+  laser_geometry
+  pcl_conversions
+  pcl_ros
+  message_generation
+)
+
+add_message_files(
+  FILES
+  FloatList.msg
+  )
+
+  generate_messages(
+    DEPENDENCIES
+    std_msgs
+  )
+
+###################################
+## catkin specific configuration ##
+###################################
+## The catkin_package macro generates cmake config files for your package
+## Declare things to be passed to dependent projects
+## INCLUDE_DIRS: uncomment this if your package contains header files
+## LIBRARIES: libraries you create in this project that dependent projects also need
+## CATKIN_DEPENDS: catkin_packages dependent projects also need
+## DEPENDS: system dependencies of this project that dependent projects also need
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS message_runtime
+#  DEPENDS system_lib
+)
+
+###########
+## Build ##
+###########
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
+)
+
+## Declare a cpp executable
+add_executable(
+  simple_demo_guy
+  src/simple_demo_node.cpp
+)
+
+add_executable(
+  map_class
+  src/map_class.cpp
+)
+
+add_executable(
+  planning_node
+  src/planning_node.cpp
+)
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(
+  simple_demo_guy
+  ${catkin_LIBRARIES}
+)
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(
+  map_class
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+  planning_node
+  ${catkin_LIBRARIES}
+)
+
+#############
+## Install ##
+#############
+
+# Mark executables and/or libraries for installation
+#install(
+#  TARGETS simple_demo
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
+# Mark other files for installation
+#install(
+#  DIRECTORY config doc launch rviz scripts
+#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+#)

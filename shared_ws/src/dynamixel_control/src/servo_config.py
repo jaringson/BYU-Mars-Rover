@@ -22,7 +22,7 @@ servo_param = {
         'max_speed': math.radians(360*1.75),
         'flipped': 1
        },
-    3: {                        # Flop 90 each way
+    3: {                                # AX-12A - ZED Gimbal
         'home_encoder': 512,
         'rad_per_enc': math.radians(300)/1024.0,
         'max_ang': math.radians(90),
@@ -30,7 +30,15 @@ servo_param = {
         'max_speed': math.radians(360*1.75),
         'flipped': 1
        }, 
-    4: {                        # Flop 90 each way
+    4: {                                # AX-12A - ZED Gimbal
+        'home_encoder': 512,
+        'rad_per_enc': math.radians(300)/1024.0,
+        'max_ang': math.radians(150),
+        'min_ang': math.radians(-150),
+        'max_speed': math.radians(360*1.75),
+        'flipped': 0
+       }, 
+   5: {                                # AX-12A - Lidar
         'home_encoder': 512,
         'rad_per_enc': math.radians(300)/1024.0,
         'max_ang': math.radians(150),
