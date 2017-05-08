@@ -1,0 +1,32 @@
+<launch>
+  
+    <node name="usb_cam0" pkg="usb_cam" type="usb_cam_node" output="screen" >
+		<param name="video_device" value="/dev/video1" />
+		<param name="image_width" value="640" />
+		<param name="image_height" value="480" />
+		<param name="pixel_format" value="yuyv" />
+		<param name="framerate" value="60" />
+		<param name="camera_frame_id" value="usb_cam" />
+		<param name="io_method" value="mmap"/>
+    </node>
+
+    <node pkg="svo_ros" type="vo" name="svo" clear_params="true" output="screen">
+    
+        <!-- Camera topic to subscribe to -->
+        <param name="cam_topic" value="/usb_cam0/image_raw" type="str" />
+        
+        <!-- Camera calibration file -->
+        <rosparam file="$(find nav_estimation)/param/eye_calibration.yaml" />
+        
+        <!-- Default parameter settings: choose between vo_fast and vo_accurate -->
+        <rosparam file="$(find svo_ros)/param/vo_fast.yaml" />
+
+         <!-- Initial camera orientation, make it point downwards -->
+	    <param name="init_rx" value="3.14" />
+	    <param name="init_ry" value="0.00" />
+	    <param name="init_rz" value="0.00" />
+
+
+    </node>
+        
+</launch>
