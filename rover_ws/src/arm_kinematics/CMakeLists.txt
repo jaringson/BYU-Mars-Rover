@@ -1,20 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(arm_kinematics)
 
-find_package(catkin REQUIRED COMPONENTS 
-    rospy
-    roscpp
-	trac_ik_lib 
-	eigen_conversions
-	std_msgs
-	)
+find_package(catkin REQUIRED COMPONENTS
+  eigen_conversions
+  roscpp
+  rospy
+  std_msgs
+  trac_ik_lib
+)
+
 
 catkin_package(
+  INCLUDE_DIRS include
   LIBRARIES
-  CATKIN_DEPENDS
-    trac_ik_lib
-  DEPENDS
-    orocos_kdl
+  CATKIN_DEPENDS  trac_ik_lib
+  DEPENDS orocos_kdl
 )
 
 include_directories(
@@ -38,3 +38,4 @@ install(TARGETS ik_node
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   PATTERN ".svn" EXCLUDE)
+

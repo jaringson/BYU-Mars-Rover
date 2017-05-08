@@ -2,14 +2,17 @@
 
 import rospy, math
 #from ctypes import c_ushort
+from geometry_msgs.msg import Twist
 from rover_msgs.msg import RoverState, Drive
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
+from wheel_controller import WheelControl
 import time
 import numpy as np
 
 
 class XBOX():
+
     def __init__(self):
     # Variables
         self.joy = Joy()
@@ -102,7 +105,6 @@ class XBOX():
 
 ######################
     def camera_toggle(self):
-
         self.state.camtoggle1 = self.joy.buttons[0]
 
 ########################
@@ -199,6 +201,45 @@ class XBOX():
 
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
+        
+    def driveVelCommand(self):
+    # Check for slow/medium/fast mode
+        self.speed_check()
+
+        # set joystick commands
+        right_joy_left = self.joy.axes[3]
+        right_joy_up = self.joy.axes[4]
+
+        # Calculate drive speeds
+        # rw commands were multiplied by (-1)
+        msg = Twist()
+        if self.state.speed == 'Fast': # max = 2000
+            msg.angular.z = right_joy_left*self.wheel_controller.max_V
+            msg.linear.x = right_joy_up*self.wheel_controller.max_V 
+        elif self.state.speed == 'Med': # max = 1750
+            msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.5
+            msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.5
+        elif self.state.speed == 'Slow': # max = 1675
+            msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.35
+            msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.35
+
+        # Publish Drive Command
+        self.drive_cmd = self.wheel_controller.Twist2Drive(msg)
+        self.pub_drive.publish(self.drive_cmd)
+
+    # ==========================================================================
+    # Auto Drive Control ===============================================
+    # ==========================================================================
+    def autoCommand(self):
+    # RIGHT NOW THIS IS A COPY OF Xbox Drive
+
+        rt = (1 - self.joy.axes[5])/2.0
+        threshold = 0.1
+        if rt > threshold:
+            self.wheel_control.enable = False
+            self.driveCommand()
+        else:
+            self.wheel_control.enable = True
 
 
     # ==========================================================================
@@ -224,16 +265,25 @@ class XBOX():
         self.pub1.publish(self.cmd)
 
     # ==========================================================================
+    # Kill State ===============================================
+    # ==========================================================================    
+
+    def killstate(self):
+        # Publish zero wheel velocity for kill state
+        self.drive_cmd.lw = 0
+        self.drive_cmd.rw = 0
+        self.pub_drive.publish(self.drive_cmd)
+
+    # ==========================================================================
     # Main ===============================================
     # ==========================================================================
 if __name__ == '__main__':
     # init ROS node
     rospy.init_node('xbox_drive_control')
-    
 
     # set rate
-    hz = 200.0
-    rate = rospy.Rate(hz)    
+    hz = 60.0
+    rate = rospy.Rate(hz)
     
     # init XBOX object
     xbox = XBOX()
@@ -256,11 +306,12 @@ if __name__ == '__main__':
                     xbox.driveCommand()
                 elif xbox.state.mode == 'Auto':
                     xbox.autoCommand() # NEED this def
+                elif xbox.state.mode == 'Drive-Vel':
+                    xbox.driveVelCommand()
                 else:
                     xbox.driveCommand()
-                
-                # Gimbal
-                xbox.cam_pan_tilt()
+            else:
+                xbox.killstate()
 
         rate.sleep()
 

@@ -22,7 +22,7 @@ public:
 
 private:
     // ros stuff for this node
-    
+
 
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
@@ -55,7 +55,7 @@ private:
     void image_callback2(const sensor_msgs::ImageConstPtr& msg);
     void image_callback3(const sensor_msgs::ImageConstPtr& msg);
     void image_callback4(const sensor_msgs::ImageConstPtr& msg);
-    //JOY OBJECT
+
 
 
     //camera control stuff
@@ -63,6 +63,7 @@ private:
     #define num_cam 4
 
     ros::Time begin;
+   
 
 
 };

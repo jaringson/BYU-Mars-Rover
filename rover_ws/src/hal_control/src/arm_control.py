@@ -50,7 +50,7 @@ class Arm_XBOX():
 
         # Subscribe to /joy_arm /pose_cmd
         self.sub_joy = rospy.Subscriber('/joy_arm', Joy, self.joyCallback)
-        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd', Pose, self.ikPoseCallback)
+        self.sub_pose_cmd= rospy.Subscriber('/pose_cmd_ik', Pose, self.ikPoseCallback)
         self.sub_joint_cmd_ik = rospy.Subscriber('/joint_cmd_ik',JointState, self.ikjointCallback)
     
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
@@ -79,7 +79,7 @@ class Arm_XBOX():
 
     def ikjointCallback(self, msg):
         self.joints.position = msg.position
-        self.pub_joints.publish(self.joints)
+        #self.pub_joints.publish(self.joints)
 
     # Functions
     def check_method(self):
@@ -503,13 +503,12 @@ if __name__ == '__main__':
 
         # Start when Xbox controller recognized
         if len(xbox.joy.buttons) > 0:
-            
             # every time check toggle of state
             xbox.check_method()
 
             # check for kill switch (True = Killed)
             if xbox.state.kill  == False:
-                xbox.getWristPosition()
+                #xbox.getWristPosition()
 
                 # call appropriate function for state
                 # defaults to JointControl

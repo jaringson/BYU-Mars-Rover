@@ -167,7 +167,7 @@ class PSOC_class():
 
 		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
 		if msg.drill:
-			self.psoc.q4 = np.uint16(0)
+			self.psoc.q4 = np.uint16(4095)
 		elif not msg.drill:
 			self.psoc.q4 = np.uint16(2048)
 

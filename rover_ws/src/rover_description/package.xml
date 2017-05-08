@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>arm_kinematics</name>
+  <name>rover_description</name>
   <version>0.0.0</version>
-  <description>The arm_kinematics package</description>
+  <description>The rover_description package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/arm_kinematics</url> -->
+  <!-- <url type="website">http://wiki.ros.org/rover_description</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -40,16 +40,14 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>eigen_conversions</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>trac_ik_lib</build_depend>
-  <run_depend>eigen_conversions</run_depend>
+  <build_depend>tf</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>trac_ik_lib</run_depend>
+  <run_depend>tf</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
