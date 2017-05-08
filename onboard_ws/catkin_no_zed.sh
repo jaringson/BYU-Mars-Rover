@@ -1,1 +1,0 @@
-catkin_make -DCATKIN_BLACKLIST_PACKAGES="zed_ros_wrapper;zed_wrapper"
