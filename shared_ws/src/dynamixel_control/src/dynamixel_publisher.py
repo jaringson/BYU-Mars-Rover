@@ -1,5 +1,6 @@
 #!/usr/bin/env python 
 
+import sys
 import rospy
 from std_msgs.msg import Float32MultiArray
 import lib_robotis as lr
@@ -11,18 +12,22 @@ from sensor_msgs.msg import JointState
 import time
 
 class DynPub():
-    def __init__(self, wrist=False, gimbal=True):
+    def __init__(self, wrist=True, gimbal=True):
         # Init node
-        rospy.init_node('dynamixel_feedback_node',anonymous = True)
+	rospy.init_node('dynamixel_feedback_node',anonymous = True)
         hz = 100.0
         self.rate = rospy.Rate(hz)
 
         # Init dynamixel objects
         ids = []
-        if wrist:
+        print wrist, gimbal
+	if wrist:
+	    print "Adding Wrist"
             ids.append(1)
             ids.append(2)
+        
         if gimbal:
+            print "Adding gimbal"
             ids.append(3)
             ids.append(4)
 
@@ -122,8 +127,11 @@ class DynPub():
         while not rospy.is_shutdown():
             # Wrist
             if self.wrist_enabled:
-                self.wrist_feedback.data[0] = self.dyn.read_angle(1)
-                self.wrist_feedback.data[1] = self.dyn.read_angle(2)
+                try:
+		    self.wrist_feedback.data[0] = self.dyn.read_angle(1)
+                    self.wrist_feedback.data[1] = self.dyn.read_angle(2)
+		except RuntimeError:
+		    pass
                 torque = [self.dyn.read_torque(1), self.dyn.read_torque(2)]
                 if torque[0] > 90 or torque[1] > 90:
                     rospy.logwarn('Dangerous Torque')
@@ -134,9 +142,12 @@ class DynPub():
 
             # Gimbal
             if self.gimbal_enabled:
-                self.gimbal_feedback.data[0] = self.dyn.read_angle(4)
-                self.gimbal_feedback.data[1] = self.dyn.read_angle(3)
-                self.pub_gimbal.publish(self.gimbal_feedback)
+                try:
+		    self.gimbal_feedback.data[0] = self.dyn.read_angle(4)
+                    self.gimbal_feedback.data[1] = self.dyn.read_angle(3)
+                except RuntimeError:
+		    pass
+		self.pub_gimbal.publish(self.gimbal_feedback)
                 if self.ready['gimbal']:
                     self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
                     self.dyn.move_angle(3,self.gimbal_command[1], blocking = False)
@@ -145,6 +156,12 @@ class DynPub():
     
 
 if __name__ == "__main__":
-    dynpub = DynPub(True,False)
+    if len(sys.argv) == 3:
+        wrist = int(sys.argv[1])==1
+        gimbal = int(sys.argv[2])==1
+    else:
+	wrist = True
+        gimbal = True
+    dynpub = DynPub(wrist,gimbal)
     dynpub.execute()
     
