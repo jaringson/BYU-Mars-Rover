@@ -100,6 +100,7 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.blat = state.base_latitude
         self.blon = state.base_longitude
         print self.pe, self.pn, self.psi, self.blat, self.blon
+        print "callback"
 
 # Class for allowing the widget to paint to the marble map
 class PaintLayer(Marble.LayerInterface, QObject):
@@ -128,6 +129,31 @@ class PaintLayer(Marble.LayerInterface, QObject):
 #        self.marble.WPH.wp_inserted.connect(self.clicked_waypoint)
         self.marble.WPH.wp_removed.connect(self.remove_waypoint)
         self.marble.WPH.home_changed.connect(self.change_home)
+
+        self.pe = 0.0
+        self.pn = 0.0
+        self.psi = 0.0
+        self.blat = 38.4065
+        self.blon = -110.7919
+
+        #rospy.Subscriber("/junker/truth", NavState, self.callback)
+        rospy.Subscriber("/estimate", NavState, self.callback)
+
+    def callback(self, state):
+        self.pe = state.position[1]
+        self.pn = state.position[0]
+        self.psi = state.psi
+        self.psid = (state.psi)*180/pi
+        self.blat = state.base_latitude
+        self.blon = state.base_longitude
+        print self.pe, self.pn, self.psi, self.blat, self.blon
+        print "callback"
+
+    def printpos(self):
+        de = self.stateSubscriber.pe
+        dn = self.stateSubscriber.pn
+        print de
+        print dn
 
     def add_waypoint(self, lat, lon, pos):
         self.waypoints.insert(pos, (lat, lon))
@@ -310,17 +336,17 @@ class MarbleMap(Marble.MarbleWidget):
         self._map_coords = map_info_parser.get_gps_dict()
 #        def_latlonzoom = [self.ss.blat, self.ss.blon, 3300] #3300 is the same zoom as the map_info.xml for MDRS
         def_latlonzoom = self._map_coords[self._home_map]
-        print def_latlonzoom
-        print self.latlon
-        print self._home_map
-        print self._map_coords
-        self._home_pt = Marble.GeoDataCoordinates(def_latlonzoom[1], def_latlonzoom[0], 0.0, Marble.GeoDataCoordinates.Degree) # +
-        print self._home_pt
+
+        #self._home_pt = Marble.GeoDataCoordinates(def_latlonzoom[1], def_latlonzoom[0], 0.0, Marble.GeoDataCoordinates.Degree) # +
+        self.paintlayer = PaintLayer(self)
+        r = rospy.Rate(1)
+        r.sleep()
+        print self.paintlayer.pe
+        self._home_pt = Marble.GeoDataCoordinates(self.paintlayer.blon, self.paintlayer.blat, 0.0, Marble.GeoDataCoordinates.Degree)
         self.centerOn(self._home_pt)
         self.setZoom(def_latlonzoom[2])
         self._mouse_attentive = False
-        paintlayer = PaintLayer(self)
-        self.addLayer(paintlayer)
+        self.addLayer(self.paintlayer)
         self.seconds_tests = [2.0/3600, 5.0/3600, 15.0/3600, 30.0/3600, 60.0/3600]
         self.num_s_tests = len(self.seconds_tests)
 
