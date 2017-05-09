@@ -71,6 +71,7 @@ add_executable(
 add_executable(
   planning_node
   src/planning_node.cpp
+  src/AstarPlanner.cpp src/MapNode.cpp
 )
 
 ## Specify libraries to link a library or executable target against
