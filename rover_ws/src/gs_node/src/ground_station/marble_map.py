@@ -87,13 +87,14 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.pn = 0.0
         self.psi = 0.0
 
-        rospy.Subscriber("/junker/truth", FW_State, self.callback)
-        rospy.Subscriber("/state", FW_State, self.callback)
+        #rospy.Subscriber("/junker/truth", NavState, self.callback)
+        rospy.Subscriber("/estimate", NavState, self.callback)
 
     def callback(self, state):
         self.pe = state.position[1]
         self.pn = state.position[0]
         self.psi = state.psi
+        print self.pe, self.pn, self.psi
 
 # Class for allowing the widget to paint to the marble map
 class PaintLayer(Marble.LayerInterface, QObject):
