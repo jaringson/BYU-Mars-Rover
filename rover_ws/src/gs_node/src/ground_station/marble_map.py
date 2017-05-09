@@ -303,14 +303,19 @@ class MarbleMap(Marble.MarbleWidget):
         self.WPH = WP_Handler()
         # For waypoint conversion
         self._home_map = map_info_parser.get_default()
-        self.latlon = [self.ss.blat, self.ss.blon]
-#        self.latlon = map_info_parser.get_latlon(self._home_map)
+#        self.latlon = [self.ss.blat, self.ss.blon]
+        self.latlon = map_info_parser.get_latlon(self._home_map)
         self.GB = Geobase(self.latlon[0], self.latlon[1])
 
         self._map_coords = map_info_parser.get_gps_dict()
-        def_latlonzoom = [self.ss.blat, self.ss.blon, 3300] #3300 is the same zoom as the map_info.xml for MDRS
-#        def_latlonzoom = self._map_coords[self._home_map]
+#        def_latlonzoom = [self.ss.blat, self.ss.blon, 3300] #3300 is the same zoom as the map_info.xml for MDRS
+        def_latlonzoom = self._map_coords[self._home_map]
+        print def_latlonzoom
+        print self.latlon
+        print self._home_map
+        print self._map_coords
         self._home_pt = Marble.GeoDataCoordinates(def_latlonzoom[1], def_latlonzoom[0], 0.0, Marble.GeoDataCoordinates.Degree) # +
+        print self._home_pt
         self.centerOn(self._home_pt)
         self.setZoom(def_latlonzoom[2])
         self._mouse_attentive = False
