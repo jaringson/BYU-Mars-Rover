@@ -74,13 +74,13 @@ class WpWindow(QWidget):
         self.WPP = WP_Publisher()
 
     def load_wp_file(self):#changed this function to clearing the wp list in GUI and changed the button to "Clear Waypoints"
-        print type(self.waypoints)
+        
         for pos in range(len(self.waypoints)-1,-1,-1):
             del self.waypoints[pos]
             self.update_lists()
             self._marble_map.WPH.emit_removed(pos)
             self.transfer_waypoint_data()
-
+        print self.waypoints
 
 #        filename = str(QtGui.QFileDialog.getOpenFileName(self, 'Open File', PWD)[0])
 #        if not filename.strip() == '':
@@ -142,11 +142,11 @@ class WpWindow(QWidget):
         global_path_pub = rospy.Publisher("/global_path",FloatList,queue_size=1,latch=True)
         msg = FloatList()
 
-	msg.data.append(wp[0])
-	msg.data.append(wp[1])
+#        msg.data.append(wp[0])
+#        msg.data.append(wp[1])
 
 
-        wp_file_path = os.path.join(PWD, 'resources', 'wp_data', '%s_wp_data.txt' % map_name)
+        wp_file_path = os.path.join(PWD, 'resources', 'wp_data', '%s_wp_data.txt' % self._home_map)
         if os.path.exists(wp_file_path):
             with open(wp_file_path, 'r') as wp_file:
                 for line in wp_file:
@@ -154,14 +154,16 @@ class WpWindow(QWidget):
                     lat = float(wp_t[0])
                     lon = float(wp_t[1])
 #                    alt = float(wp_t[2])
-                    msg.data.append((lat, lon))
+                    msg.data.append(lat)
+                    msg.data.append(lon)
 #                    wp_list.append((lat, lon, alt))
+
+
+            global_path_pub.publish(msg)
+            print 'message published'
             return []
         else:
             return []
-
-        global_path_pub.publish(msg)
-
 #        # Check PARAMS and emit signal
 #        try:
 #            lat = float(str(self.textEdit.toPlainText()))

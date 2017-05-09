@@ -9,6 +9,7 @@ import rospy
 from std_msgs.msg import String
 from msg import FW_State, GPS
 from Signals import WP_Handler
+from rover_msgs.msg import NavState
 from .Geo import Geobase
 import json, re
 
