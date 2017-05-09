@@ -2,7 +2,7 @@ from PyKDE4.marble import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import os.path
-from math import ceil, floor, sqrt, sin, asin, cos, acos, radians, degrees
+from math import ceil, floor, sqrt, sin, asin, cos, acos, radians, degrees, pi
 
 import map_info_parser
 import rospy
@@ -86,6 +86,8 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.pe = 0.0
         self.pn = 0.0
         self.psi = 0.0
+        self.blat = 38.4065
+        self.blon = -110.7919
 
         #rospy.Subscriber("/junker/truth", NavState, self.callback)
         rospy.Subscriber("/estimate", NavState, self.callback)
@@ -94,7 +96,10 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.pe = state.position[1]
         self.pn = state.position[0]
         self.psi = state.psi
-        print self.pe, self.pn, self.psi
+        self.psid = (state.psi)*180/pi
+        self.blat = state.base_latitude
+        self.blon = state.base_longitude
+        print self.pe, self.pn, self.psi, self.blat, self.blon
 
 # Class for allowing the widget to paint to the marble map
 class PaintLayer(Marble.LayerInterface, QObject):
@@ -293,15 +298,18 @@ class MarbleMap(Marble.MarbleWidget):
             self.setMapThemeId("earth/openstreetmap/openstreetmap.dgml") # street view
         self.setProjection(Marble.Mercator)
         self.setShowOverviewMap(False)
+        self.ss = StateSubscriber()
 
         self.WPH = WP_Handler()
         # For waypoint conversion
         self._home_map = map_info_parser.get_default()
-        self.latlon = map_info_parser.get_latlon(self._home_map)
+        self.latlon = [self.ss.blat, self.ss.blon]
+#        self.latlon = map_info_parser.get_latlon(self._home_map)
         self.GB = Geobase(self.latlon[0], self.latlon[1])
 
         self._map_coords = map_info_parser.get_gps_dict()
-        def_latlonzoom = self._map_coords[self._home_map]
+        def_latlonzoom = [self.ss.blat, self.ss.blon, 3300] #3300 is the same zoom as the map_info.xml for MDRS
+#        def_latlonzoom = self._map_coords[self._home_map]
         self._home_pt = Marble.GeoDataCoordinates(def_latlonzoom[1], def_latlonzoom[0], 0.0, Marble.GeoDataCoordinates.Degree) # +
         self.centerOn(self._home_pt)
         self.setZoom(def_latlonzoom[2])
