@@ -12,7 +12,8 @@
 
 #include <Eigen/Core>
 #include <math.h>
-// #include "AstarPlanner.h"
+#include "AstarPlanner.h"
+#include <typeinfo>
 
 using namespace std;
 using namespace grid_map;
@@ -202,6 +203,32 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
     ROS_INFO("clear");
   else
     ROS_INFO("not clear");
+
+  Eigen::MatrixXf *inflated_elevation = new Eigen::MatrixXf;
+  *inflated_elevation = temp_map.get("elevation");
+  // AstarPlanner astar(inflated_elevation);
+
+  MatrixXf mapinit(10,10);
+  mapinit << 1,1,1,1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1,
+         1,9,1,1,1,1,1,1,1,1,
+         9,9,9,9,9,9,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1,
+         1,1,1,1,1,1,1,1,1,1;
+
+
+  Eigen::MatrixXf* map = new Eigen::MatrixXf(10,10);
+  *map = mapinit;
+
+  AstarPlanner astar(map);
+  astar.SetGoal(9,0);
+  astar.GetPath();
+  astar.PrintMap();
+  cout << "You Rock!" << endl;
 
   //For testing, could publish right here and display in rviz
   ros::Time time = ros::Time::now();
