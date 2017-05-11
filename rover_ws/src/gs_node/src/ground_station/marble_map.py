@@ -99,8 +99,8 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.psid = (state.psi)*180/pi
         self.blat = state.base_latitude
         self.blon = state.base_longitude
-        print self.pe, self.pn, self.psi, self.blat, self.blon
-        print "callback"
+#        print self.pe, self.pn, self.psi, self.blat, self.blon
+#        print "callback"
 
 # Class for allowing the widget to paint to the marble map
 class PaintLayer(Marble.LayerInterface, QObject):
@@ -119,6 +119,10 @@ class PaintLayer(Marble.LayerInterface, QObject):
         # For meters to GPS conversion and plane geometry
         # specifically starting lat, lon of the plane
         self.latlon = self.marble.latlon
+        #self.latlon[0] = self.stateSubscriber.blat
+        #self.latlon[1] = self.stateSubscriber.blon
+        #print self.latlon
+
         self.R = 6371000.0           # Radius of earth in meters
         self.R_prime = cos(radians(self.latlon[0]))*self.R
         self.h = 20
@@ -130,13 +134,13 @@ class PaintLayer(Marble.LayerInterface, QObject):
         self.marble.WPH.wp_removed.connect(self.remove_waypoint)
         self.marble.WPH.home_changed.connect(self.change_home)
 
-        self.pe = 0.0
-        self.pn = 0.0
-        self.psi = 0.0
-        self.blat = 38.4065
-        self.blon = -110.7919
+#        self.pe = 0.0
+#        self.pn = 0.0
+#        self.psi = 0.0
+#        self.blat = 38.4065
+#        self.blon = -110.7919
 
-        #rospy.Subscriber("/junker/truth", NavState, self.callback)
+#        rospy.Subscriber("/junker/truth", NavState, self.callback)
         rospy.Subscriber("/estimate", NavState, self.callback)
 
     def callback(self, state):
@@ -146,8 +150,6 @@ class PaintLayer(Marble.LayerInterface, QObject):
         self.psid = (state.psi)*180/pi
         self.blat = state.base_latitude
         self.blon = state.base_longitude
-        print self.pe, self.pn, self.psi, self.blat, self.blon
-        print "callback"
 
     def printpos(self):
         de = self.stateSubscriber.pe
@@ -203,6 +205,11 @@ class PaintLayer(Marble.LayerInterface, QObject):
         #self.R_prime = cos(radians(self.latlon[0]))*self.R
         de = self.stateSubscriber.pe
         dn = self.stateSubscriber.pn
+        #print self.pe, self.pn, self.psi, self.blat, self.blon
+        #print "drawplane callback"
+        #print de, dn
+        #print "???"
+
         #print((de, dn, self.latlon[0], self.latlon[1], self._home_map))#----------------
         psi = self.stateSubscriber.psi
 
@@ -341,7 +348,9 @@ class MarbleMap(Marble.MarbleWidget):
         self.paintlayer = PaintLayer(self)
         r = rospy.Rate(1)
         r.sleep()
-        print self.paintlayer.pe
+#        print self.paintlayer.pe
+        self.latlon[0] = self.paintlayer.blat
+        self.latlon[1] = self.paintlayer.blon
         self._home_pt = Marble.GeoDataCoordinates(self.paintlayer.blon, self.paintlayer.blat, 0.0, Marble.GeoDataCoordinates.Degree)
         self.centerOn(self._home_pt)
         self.setZoom(def_latlonzoom[2])
