@@ -10,9 +10,10 @@ public:
     AStarSearch<MapSearchNode> astarsearch;
     MapSearchNode start;
     MapSearchNode goal;
-
+    bool pathfound;
 
     AstarPlanner(MatrixXf *map);
+    void SetStart(int x, int y);
     void SetGoal(int x, int y);
     MatrixXf GetPath();
     void PrintMap();
@@ -20,6 +21,5 @@ public:
 private:
     unsigned int SearchCount;
     unsigned int NumSearches;
-    bool pathfound;
 
 };

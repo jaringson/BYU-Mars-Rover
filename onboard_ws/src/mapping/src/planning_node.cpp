@@ -26,6 +26,7 @@ public:
   virtual ~Planner();
   void runtime();
   void map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in);
+  MatrixXf smooth_path(const Eigen::MatrixXf& path);
   // void wp_cb(Eigen::MatrixXf path_in);
 
 private:
@@ -90,6 +91,14 @@ Method that just runs and waits for maps
 void Planner::runtime(){
   ros::spin();
 }
+
+// Eigen::MatrixXf smooth_path(const Eigen::MatrixXf& path){
+//   int length = path.rows();
+//   int current_point = 1;
+//
+//   Eigen::MatrixXf dummy = path;
+//   return dummy;
+// }
 
 /*
 Callback for map topic. Accepts map, checks if the current parth is good, and, if
@@ -225,10 +234,44 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   *map = mapinit;
 
   AstarPlanner astar(map);
-  astar.SetGoal(9,0);
-  astar.GetPath();
+  astar.SetGoal(4,0);
+  Eigen::MatrixXf path = astar.GetPath();
   astar.PrintMap();
-  cout << "You Rock!" << endl;
+
+  GridMap newOne;
+  newOne.setFrameId("whatever");
+  newOne.setGeometry(Length(10,10),1,Position(0,0));
+  newOne.add("elevation",mapinit);
+  // cout << newOne.get("elevation");
+  Position whatever;
+  if(astar.pathfound){
+    cout << "smoothing path" << endl;
+    Eigen::MatrixXf smoothed_path(1,2);
+    int base_index = 0;
+    smoothed_path.row(0) = path.row(0);
+    for(int i=1; i < path.rows(); i++){
+      Position base_pos(path(base_index,0),path(base_index,1));
+      Position check_pos(path(i,0),path(i,1));
+      for (grid_map::LineIterator iterator(newOne, base_pos, check_pos);
+          !iterator.isPastEnd(); ++iterator) {
+        if(newOne.at("elevation",*iterator) >= 2){//THRESHOLD_){
+          newOne.getPosition(*iterator, whatever);
+          cout << "Offending position: " << whatever << endl;
+          cout << "Height:" << newOne.at("elevation",*iterator) << endl;
+          cout << "There is something too tall between " << base_index << " and " << i << endl;
+          smoothed_path.conservativeResize(smoothed_path.rows()+1,NoChange);
+          smoothed_path.row(smoothed_path.rows()-1) = path.row(i-1);
+          base_index = i;
+          cout << "I'm increasing the index to : " << base_index << endl;
+          break;
+        }
+      }
+    }
+    smoothed_path.conservativeResize(smoothed_path.rows()+1,NoChange);
+    smoothed_path.row(smoothed_path.rows()-1) = path.row(path.rows()-1);
+    cout << "The smoothed path is: " << smoothed_path << endl;
+  }else
+    cout << "no path exists" << endl;
 
   //For testing, could publish right here and display in rviz
   ros::Time time = ros::Time::now();

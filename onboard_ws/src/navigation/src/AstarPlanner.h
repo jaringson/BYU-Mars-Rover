@@ -16,10 +16,10 @@ public:
     void SetGoal(int x, int y);
     MatrixXf GetPath();
     void PrintMap();
+    bool pathfound;
 
 private:
     unsigned int SearchCount;
     unsigned int NumSearches;
-    bool pathfound;
 
 };

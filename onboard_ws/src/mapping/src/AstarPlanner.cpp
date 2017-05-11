@@ -19,6 +19,11 @@ AstarPlanner::AstarPlanner(MatrixXf *map) {
     pathfound = false;
 }
 
+void AstarPlanner::SetStart(int x, int y){
+    start.x = x;
+    start.y = y;
+}
+
 void AstarPlanner::SetGoal(int x, int y) {
     goal.x = x;
     goal.y = y;
@@ -124,7 +129,7 @@ MatrixXf AstarPlanner::GetPath() {
 
         };
 
-        cout << "Solution steps " << steps << endl;
+        cout << "Solution steps " << steps + 1 << endl;
 
         // Once you're done with the solution you can free the nodes up
         astarsearch.FreeSolutionNodes();
@@ -144,10 +149,12 @@ MatrixXf AstarPlanner::GetPath() {
 
     astarsearch.EnsureMemoryFreed();
 
-    MatrixXf path(steps,2);
-    for (int i=0; i<steps; i++){
-        path(i,0) = x[i];
-        path(i,1) = y[i];
+    MatrixXf path(steps+1,2);
+    path(0,0) = start.x;
+    path(0,1) = start.y;
+    for (int i=1; i<steps+1; i++){
+        path(i,0) = x[i-1];
+        path(i,1) = y[i-1];
     }
     path_ = path;
     return path;
