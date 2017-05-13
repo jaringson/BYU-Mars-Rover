@@ -33,8 +33,8 @@ servo_param = {
     4: {                                # AX-12A - ZED Gimbal
         'home_encoder': 312,
         'rad_per_enc': math.radians(300)/1024.0,
-        'max_ang': math.radians(150),
-        'min_ang': math.radians(-150),
+        'max_ang': math.radians(207),
+        'min_ang': math.radians(-90),
         'max_speed': math.radians(360*1.75),
         'flipped': 0
        }, 

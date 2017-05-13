@@ -156,12 +156,15 @@ class DynPub():
                 try:
                     self.gimbal_feedback.data[0] = self.dyn.read_angle(4)
                     self.gimbal_feedback.data[1] = self.dyn.read_angle(3)
-                except RuntimeError:
+                except:
                     pass
                 self.pub_gimbal.publish(self.gimbal_feedback)
                 if self.ready['gimbal']:
-                    self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
-                    self.dyn.move_angle(3,self.gimbal_command[1], blocking = False)
+		    try:
+                        self.dyn.move_angle(4,self.gimbal_command[0], blocking = False)
+                        self.dyn.move_angle(3,self.gimbal_command[1], blocking = False)
+		    except:
+			pass
 
             # Lidar
             if self.lidar_enabled:
