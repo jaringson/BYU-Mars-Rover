@@ -12,14 +12,16 @@
     <remap from="joy" to="joy_drive"/>
   </node>-->
 
+  <!--
   <node pkg="base" type="base" name="rover_hub">
-    <param name="num_cam" value="4"/>
+    <param name="num_cam" value="2"/>
   </node>
+  -->
 
-  <node name="usb_cam0" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/video0" />
-    <param name="image_width" value="320" />
-    <param name="image_height" value="240" />
+  <node name="main_camera" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/rover/cameras/Logitech_C922x" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="460" />
     <param name="pixel_format" value="yuyv" />
     <param name="framerate" value="25" />
     <param name="camera_frame_id" value="usb_cam" />
@@ -27,8 +29,8 @@
   </node>
 
 
-  <node name="usb_cam1" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/video1" />
+  <node name="back_wheel_camera" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/rover/cameras/back_wheel" />
     <param name="image_width" value="320" />
     <param name="image_height" value="240" />
     <param name="pixel_format" value="yuyv" />
@@ -39,8 +41,8 @@
 
 
 
-   <node name="usb_cam2" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/video2" />
+   <node name="forearm_camera" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/rover/cameras/forearm" />
     <param name="image_width" value="320" />
     <param name="image_height" value="240" />
     <param name="pixel_format" value="yuyv" />
@@ -49,8 +51,8 @@
     <param name="io_method" value="mmap"/>
     </node>
 
-   <node name="usb_cam3" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/video3" />
+   <node name="camera_1" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/rover/cameras/camera_1" />
     <param name="image_width" value="320" />
     <param name="image_height" value="240" />
     <param name="pixel_format" value="yuyv" />
@@ -58,4 +60,9 @@
     <param name="io_method" value="mmap"/>
     
   </node>
+
+<!--  <node name="usb_cam0_process" pkg="image_proc" type="image_proc" output="screen">
+    <remap from="/image_raw" to="/usb_cam0/image_raw"/>
+  </node> -->
+
 </launch>

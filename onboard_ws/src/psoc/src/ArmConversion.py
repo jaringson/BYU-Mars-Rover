@@ -36,7 +36,7 @@ class ArmConversion:
         #print degrees(alpha4), degrees(beta1), degrees(gamma3), degrees(self.gamma1)
         
         lae = sqrt(self.D**2 - 2*cos(gamma3)*self.D*self.E + self.E**2)
-        las = self.sh*cos(beta1) + sqrt(self.sh**2*cos(beta1)**2 + self.B**2 - self.sh**2)
+        las = sqrt(self.B**2 - 2*cos(beta1)*self.B*self.sh + self.sh**2)
         
         las_percent = -(las-self.las_min)/(self.las_min-self.las_max)
         lae_percent = -(lae-self.lae_min)/(self.lae_min-self.lae_max)
@@ -48,7 +48,7 @@ class ArmConversion:
         las = self.las_min + las_percent*(self.las_max-self.las_min)
         lae = self.lae_min + lae_percent*(self.lae_max-self.lae_min)
         
-        beta1 = acos((las**2+self.sh**2-self.B**2)/(2*self.D*self.E))
+        beta1 = acos((-las**2+self.sh**2+self.B**2)/(2*self.B*self.sh))
         gamma3 = acos((self.D**2+self.E**2-lae**2)/(2*self.D*self.E))
         alpha4 = beta1+self.beta2
         

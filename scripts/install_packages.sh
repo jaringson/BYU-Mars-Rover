@@ -21,3 +21,5 @@ sudo apt-get install ros-kinetic-gps-umd
 sudo apt-get install ros-kinetic-geographic-msgs
 sudo apt-get install ros-kinetic-orocos-kdl
 sudo apt-get install ros-kinetic-orocos-kinematics-dynamics
+
+sudo apt-get install arduino arduino.core

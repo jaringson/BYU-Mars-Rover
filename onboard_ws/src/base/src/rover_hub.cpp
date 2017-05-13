@@ -43,6 +43,7 @@ Rover_hub::Rover_hub():
 
     //camera_toggle = RoverState();
 
+    // image;
     //initialize timer
     begin = ros::Time::now();
 }
@@ -54,7 +55,6 @@ Rover_hub::~Rover_hub()
 
 // TODO instead of sensor Msgs, we wand RoverState msgs.
 void Rover_hub::toggle_callback(const rover_msgs::RoverState::ConstPtr& msg){
-//ASK BRIAN AND MICHAEL
 
 //use ROS timer for debouncing
 ros::Time tempTime = ros::Time::now();
@@ -72,14 +72,21 @@ ROS_INFO_STREAM("Camera " << counter < "is selected");
 return;
 }
 
+
+// void publish_image(){
+//     img_pub0.publish(image);
+// }
+
 void Rover_hub::image_callback0(const sensor_msgs::ImageConstPtr& msg){
+    
 
     if (counter == 0){
-
 
         img_pub0.publish(msg);
         ROS_INFO_STREAM("Camera 0 is publishing. counter number is: " << counter);
     }
+
+
 
 }
 void Rover_hub::image_callback1(const sensor_msgs::ImageConstPtr& msg){
@@ -103,7 +110,7 @@ void Rover_hub::image_callback2(const sensor_msgs::ImageConstPtr& msg){
 
 void Rover_hub::image_callback3(const sensor_msgs::ImageConstPtr& msg){
 
-    if(counter ==3){
+    if(counter == 3){
 
 
         img_pub3.publish(msg);
@@ -121,9 +128,4 @@ void Rover_hub::image_callback4(const sensor_msgs::ImageConstPtr& msg){
 
 
 }
-
-/*
-different callback for each
-pass in msg type and subscriber number
-*/
 
