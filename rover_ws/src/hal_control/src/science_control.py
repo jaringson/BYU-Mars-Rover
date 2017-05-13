@@ -33,7 +33,7 @@ class Arm_XBOX():
 		self.science.elevator = 0
 		self.science.plunge = 0
 		self.science.drill = 0
-		self.science.plate = 700
+		self.science.plate = 300
 		
 		# Maximum stuff
 		self.plunge_max = 3000
@@ -174,13 +174,17 @@ class Arm_XBOX():
 		if lb:
 			self.science.plate = 0
 		elif (hat_up==1):
-			self.science.plate = 700 # Auger 1
+			self.science.plate = 300 # Auger 1
+			rospy.loginfo("Auger 1")
 		elif (hat_up == -1):
-			self.science.plate = 2900 # Fork sensor
+			self.science.plate = 1600 # Auger 2
+			rospy.loginfo("Auger 2")
 		elif (hat_right == 1):
-			self.science.plate = 3900 # Temperature?
+			self.science.plate = 2600 # Humidity
+			rospy.loginfo("Humidity Probe")
 		elif (hat_right == -1):
-			self.science.plate = 2000
+			self.science.plate = 3400 # Temperature
+			rospy.loginfo("Temperature Probe")
 
 		# Publish arm commands
 		self.pub_science.publish(self.science)
