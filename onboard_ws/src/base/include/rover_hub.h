@@ -58,6 +58,7 @@ private:
 
 
 
+    // void publish_image();
     //camera control stuff
     int counter;
     #define num_cam 4

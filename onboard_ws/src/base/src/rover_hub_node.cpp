@@ -14,7 +14,8 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(20);
     while(ros::ok())
     {
-        rh;
+        // rh;
+        // rh.publish_image();
         ros::spinOnce();
 //        ro.publish_image();
 
