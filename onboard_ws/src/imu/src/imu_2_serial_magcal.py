@@ -18,8 +18,8 @@ class IMUlive():
         # In order to get access to /dev/ttyUSB0 1 & 2 you will need to do the following:
         # execute sudo adduser $USER dialout and logout and in again or
         #sudo chmod 666 /dev/ttyUSB0 and 1 and 2 (3 commands) - This is for a single session only
-        #self.reader=serial.Serial('/dev/ttyUSB'+self.num,115200,timeout=1)
-        self.reader=serial.Serial('/dev/ttyUSB0',115200,timeout=1)
+        self.reader=serial.Serial('/dev/ttyUSB0',250000,timeout=1)
+       # self.reader=serial.Serial('/dev/ttyUSB0',115200,timeout=1)
         self.reader.flush()
         trash=self.reader.readline()
         print trash
@@ -162,6 +162,8 @@ class IMUlive():
         # read in new line of data
         start = time.time()
         self.buf_var = self.reader.readline() #This takes .007 s to execute
+	print 'here'
+	print self.buf_var
         finish = time.time()
         #print self.buf_var
 
