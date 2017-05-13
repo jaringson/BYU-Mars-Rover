@@ -69,7 +69,7 @@ class Arm_XBOX():
         self.arm_init = False
 
         self.getWristPosition()
-        #self.getArmPosition()
+        self.getArmPosition()
 
        
     ##### Callbacks ###########
