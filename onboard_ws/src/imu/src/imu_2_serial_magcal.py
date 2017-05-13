@@ -164,7 +164,7 @@ class IMUlive():
         self.buf_var = self.reader.readline() #This takes .007 s to execute
 	print 'here'
 	print self.buf_var
-        finish = time.time()
+	finish = time.time()
         #print self.buf_var
 
         # assign data to messages

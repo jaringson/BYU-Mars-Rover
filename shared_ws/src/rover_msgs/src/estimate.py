@@ -90,7 +90,7 @@ class Estimator():
 
 	# Publishers and Subscribers
 		self.sub_gps = rospy.Subscriber('/fix', NavSatFix, self.gpsCallback)
-		self.sub_imu = rospy.Subscriber('/imu', Imu, self.imuCallback)
+		self.sub_imu = rospy.Subscriber('/imu_Dro_0/data', Imu, self.imuCallback)
 		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.driveCallback)
 
 		self.pub_state = rospy.Publisher('/estimate', NavState, queue_size = 10)

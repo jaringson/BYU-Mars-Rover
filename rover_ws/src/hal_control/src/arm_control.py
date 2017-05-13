@@ -66,6 +66,10 @@ class Arm_XBOX():
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
 
         self.wrist_init = False
+        self.arm_init = False
+
+        self.getWristPosition()
+        #self.getArmPosition()
 
        
     ##### Callbacks ###########
@@ -419,6 +423,7 @@ class Arm_XBOX():
 
     def getWristPosition(self):
         if not self.wrist_init:
+            rospy.loginfo("Waiting for Wrist Position")
             rospy.wait_for_service('wrist_position')
             try:
                 wristReq = rospy.ServiceProxy('wrist_position', PositionReturn)
@@ -426,6 +431,23 @@ class Arm_XBOX():
                 self.joints.position[4] = wristResp.position[0]
                 self.joints.position[5] = wristResp.position[1]
                 rospy.loginfo('Got Wrist Position')
+                print wristResp.position
+            except rospy.ServiceException, e:
+                print "Service call failed: %s" %e
+            self.wrist_init = True
+
+    def getArmPosition(self):
+        if not self.arm_init:
+            rospy.loginfo("Waiting for Arm Position")
+            rospy.wait_for_service('arm_position')
+            try:
+                wristReq = rospy.ServiceProxy('arm_position', PositionReturn)
+                wristResp = wristReq()
+                self.joints.position[0] = wristResp.position[0]
+                self.joints.position[1] = wristResp.position[1]
+                self.joints.position[2] = wristResp.position[2]
+                self.joints.position[3] = wristResp.position[3]
+                rospy.loginfo('Got Arm Position')
                 print wristResp.position
             except rospy.ServiceException, e:
                 print "Service call failed: %s" %e
@@ -510,7 +532,6 @@ if __name__ == '__main__':
 
             # check for kill switch (True = Killed)
             if xbox.state.kill  == False:
-                #xbox.getWristPosition()
 
                 # call appropriate function for state
                 # defaults to JointControl
