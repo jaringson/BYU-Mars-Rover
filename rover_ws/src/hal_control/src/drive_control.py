@@ -69,6 +69,9 @@ class XBOX():
 
         # check for chutes
         self.chutes()
+
+        # gimbal
+        self.cam_pan_tilt()
         
         # Publish state commands
         if self.ready:
@@ -115,17 +118,19 @@ class XBOX():
         hat_x = self.joy.axes[6]
         hat_y = self.joy.axes[7]
         A = self.joy.buttons[0]
+        left_trigger = self.joy.axes[2]
+        right_trigger = self.joy.axes[5]
 
-        ang_inc = math.radians(0.5)
+        ang_inc = math.radians(1)
 
         # Pan
         if abs(hat_x) > 0.5:
             self.state.pan += ang_inc*np.sign(hat_x)
 
-        if self.state.pan > math.radians(149):
-            self.state.pan = math.radians(149)
-        elif self.state.pan < math.radians(-149):
-            self.state.pan = math.radians(-149)
+        if self.state.pan > math.radians(207):
+            self.state.pan = math.radians(207)
+        elif self.state.pan < math.radians(-90):
+            self.state.pan = math.radians(-90)
     
         # Tilt
         if abs(hat_y) > 0.5:
@@ -136,9 +141,15 @@ class XBOX():
         elif self.state.tilt < math.radians(-90):
             self.state.tilt = math.radians(-90)
 
-        if A==1:
+        if A==1: # home
             self.state.pan = 0.0
             self.state.tilt = 0.0
+        if left_trigger < 0.8 and A==1: # chutes
+            self.state.pan = 2.705
+            self.state.tilt = -1.222
+        if right_trigger < 0.8 and A==1: # behind
+            self.state.pan = 3.22
+            self.state.tilt = -0.4189
 
 
     # ==========================================================================
@@ -279,7 +290,7 @@ if __name__ == '__main__':
     rospy.init_node('xbox_drive_control')
 
     # set rate
-    hz = 30.0
+    hz = 60.0
     rate = rospy.Rate(hz)    
     
     # init XBOX object

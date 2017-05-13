@@ -8,7 +8,7 @@
   <remap from="/joy" to="/joy_arm"/>
   </node>
 
-  <node pkg="joy" type="joy_node" name="joy_node_drive">
+  <node pkg="joy" type="joy_node" name="joy_node_drive" output="screen">
   <remap from="/joy" to="/joy_drive"/>
   </node> 
 
