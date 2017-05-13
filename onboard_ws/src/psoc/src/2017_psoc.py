@@ -3,6 +3,7 @@
 import serial, rospy, struct
 from rover_msgs.msg import Drive, RoverState, PSOC17, Science, Feedback # Pololu, SciFeedback
 from sensor_msgs.msg import JointState
+from rover_msgs.srv import PositionReturn, PositionReturnResponse
 from std_msgs.msg import ByteMultiArray, Int8
 import re
 import numpy as np
@@ -73,6 +74,9 @@ class PSOC_class():
 		# initialize Grip Stuff
 		self.psoc.grip = np.uint16(0)
 
+		# Limits
+		self.drill_speed = 2900
+
 		# feedback: 0xE3, turret-low, turret-high, shoulder-low, shoulder-high,
 		# elbow-low, elbow-high, forearm-low, forearm-high, temperature-low,
 		# temperature-high, humidity-low, humidity-high
@@ -85,6 +89,10 @@ class PSOC_class():
 		#self.ser = serial.Serial('/dev/ttyUSB3', 57600, timeout = 1)
 		# if self.ser.is_open():
 		# 	self.ser.close()
+
+		# initialize service
+		self.srv_arm = rospy.Service('arm_position',PositionReturn,self.arm_position_srv)
+
 
 		# initialize subscribers
 		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.drive_callback)
@@ -132,10 +140,28 @@ class PSOC_class():
     #     
 	def state_callback(self, state):
 		
-		self.psoc.chutes = np.uint16(state.chutes)
+		if state.chutes == 1: # Chute 1 open
+		    value = 65
+		elif state.chutes == 2: # Chute 2 open
+		    value = 66
+		elif state.chutes == 3: # Both chutes open
+		    value = 64
+		else: # Both chutes closed
+		    value = 67
+		self.psoc.chutes = np.uint8(value)
+		#self.psoc.chutes = np.uint8(state.chutes)
 
 		# self.set_rover_cmd()
 
+	def arm_position_srv(self, srv):
+		angles = [0,0,0,0]
+		angles[0] = (self.feedback.q1-2046)*np.pi/2046
+		angles[1] = (self.feedback.q2-2046)*np.pi/2046
+		angles[2] = (self.feedback.q3-2046)*np.pi/2046
+		angles[3] = (self.feedback.q4-2046)*np.pi/2046
+		response = PositionReturnResponse(angles,True,'Arm Feedback')
+		return response
+	
     # Joint Callback
     # Last year = values from 0 to 4092 for each joint, representing commanded angle
     # Giving radian angle for each joint (we can give you velocities scalars from -100 to 100 if you want)
@@ -195,7 +221,7 @@ class PSOC_class():
 
 		# CHECK WHAT TO SEND FOR THE DRILL WHEN ON/OFF
 		if msg.drill:
-			self.psoc.q4 = np.uint16(4095)
+			self.psoc.q4 = np.uint16(self.drill_speed)
 		elif not msg.drill:
 			self.psoc.q4 = np.uint16(2048)
 
