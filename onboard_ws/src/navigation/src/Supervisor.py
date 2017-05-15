@@ -7,11 +7,13 @@ import math
 import tf
 import sys
 import tf.transformations as tr
-from std_srvs.srv import Empty as srv_Empty
+from std_srvs.srv import Empty, EmptyResponse
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from rover_msgs.msg import ArmState, NavState
 from rover_msgs.msg import NavigationData, Obstacles
+from rover_msgs.srv import WaypointSend, WaypointSendResponse
+from rover_msgs.srv import PositionReturn, PositionReturnResponse
 from RobotState import RobotState
 from gotogoal import GoToGoal, Stop
 
@@ -60,16 +62,18 @@ class Supervisor:
 
 
         # Get initial pose
-        pose = -1
-        fails = 0
-        while pose == -1:
-            pose = self.base_transform()
-            if pose == -1:
-                fails += -pose
-            if fails > 10000:
-                rospy.logwarn('Transfrom from /odom to /base_link not found')
-                pose = 0
-        self.initial_pose = pose
+        # pose = -1
+        # fails = 0
+        # while pose == -1:
+        #     pose = self.base_transform()
+        #     if pose == -1:
+        #         fails += -pose
+        #     if fails > 10000:
+        #         rospy.logwarn('Transfrom from /odom to /base_link not found')
+        #         pose = 0
+        self.initial_pose = NavState()
+        self.initial_pose.base_latitude = -9999
+        self.initial_pose.base_longitude = -9999
 
         # Set Goal
         goal = [5, 5]
@@ -85,9 +89,10 @@ class Supervisor:
 
         # Set up Services
         self.enable = False
-        self.srv_start = rospy.Service('StartAuto', srv_Empty, self.start_auto)
-        self.srv_stop = rospy.Service('StopAuto', srv_Empty, self.stop_auto)
-        self.srv_reset = rospy.Service('ResetAuto', srv_Empty, self.reset_auto)
+        self.srv_new = rospy.Service('NewWaypoints', WaypointSend, self.new_waypoints)
+        self.srv_start = rospy.Service('StartAuto', Empty, self.start_auto)
+        self.srv_stop = rospy.Service('StopAuto', Empty, self.stop_auto)
+        self.srv_reset = rospy.Service('ResetAuto', Empty, self.reset_auto)
 
     # Main Function
     # Continuous loop that gets the command from the controller and sends it out
@@ -197,14 +202,30 @@ class Supervisor:
     def start_auto(self, srv):
         self.enable = True
         rospy.loginfo('Starting Autonomous Mode')
+        return EmptyResponse()
     def stop_auto(self, srv):
         self.enable = False
         rospy.loginfo('Stopping Autonomous Mode')
+        return EmptyResponse()
     def reset_auto(self, srv):
         self.enable = False
         self.control = self.gtg
         self.cur_waypoint = 0
         rospy.loginfo('Resetting Autonomous Mode')
+        return EmptyResponse()
+    def new_waypoints(self, srv):
+        self.control = self.gtg
+        self.cur_waypoint = 0
+        self.wp_x = srv.wp_x
+        self.wp_y = srv.wp_y
+        msg = 'New Waypoints Received'
+        if not self.enable:
+            self.enable = True
+            msg += '. Starting Autonomous Mode'
+        # print srv.source
+        response = WaypointSendResponse(True)
+        rospy.loginfo(msg)
+        return response
 
 
 class Params:

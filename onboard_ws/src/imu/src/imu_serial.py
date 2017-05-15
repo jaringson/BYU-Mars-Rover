@@ -36,8 +36,8 @@ class IMUlive():
 
         # Set up ros publisher
         rospy.init_node('IMU2serial')
-        self.accel_gyro_pub = rospy.Publisher('imu_Dro_'+self.num+'/data_raw',Imu, queue_size=1)
-        self.mag_pub = rospy.Publisher('imu_Dro_'+self.num+'/mag',MagneticField, queue_size=1)
+        self.accel_gyro_pub = rospy.Publisher('imu/data_raw',Imu, queue_size=1)
+        self.mag_pub = rospy.Publisher('imu/mag',MagneticField, queue_size=1)
 
         # Initialize data
         self.buf_var = None
@@ -58,98 +58,17 @@ class IMUlive():
         self.magy_mid = 0
         self.magz_mid = 0
 
-        def plot_mag_data(color):
-            answer = raw_input('Would you like to see magnetometer calibration plot? (y/n): ')
-            if answer == 'y':
-
-                x = []
-                y = []
-                z = []
-                for i in range(0, 1000):
-                    self.get_data()
-                    print 'Move the gyroscope around in circles until count reaches 0',1000-i
-                    x.append(self.mag.x)
-                    y.append(self.mag.y)
-                    z.append(self.mag.z)
+        parameters = sio.loadmat('/home/marsrover/BYU-Mars-Rover/onboard_ws/src/imu/src/imu'+self.num+'calibration.mat')
+        self.magx_range = parameters['magx_range']
+        self.magx_mid = parameters['magx_mid']
+        self.magy_range = parameters['magy_range']
+        self.magy_mid = parameters['magy_mid']
+        self.magz_range = parameters['magz_range']
+        self.magz_mid = parameters['magz_mid']
+        self.calibrated = 1
 
 
-                fig=p.figure(1)
-                ax = p3.Axes3D(fig)
-                ax.scatter3D(x,y,z,c=color)
-                ax.set_xlabel('X')
-                ax.set_ylabel('Y')
-                ax.set_zlabel('Z')
-                fig.add_axes(ax)
-                #p.ion()
-                p.show()
-            else:
-                return 1
-
-        # run calibrator
-        yep = raw_input('Do you wish to calibrate imu '+self.num+'? (y/n): ')
-        if yep == 'y':
-            self.calibrated = self.calibrate()
-        else:
-            parameters = sio.loadmat('imu'+self.num+'calibration.mat')
-            self.magx_range = parameters['magx_range']
-            self.magx_mid = parameters['magx_mid']
-            self.magy_range = parameters['magy_range']
-            self.magy_mid = parameters['magy_mid']
-            self.magz_range = parameters['magz_range']
-            self.magz_mid = parameters['magz_mid']
-            self.calibrated = 1
-
-        plot_mag_data('b')
-
-
-    def calibrate(self):
-        print "Shake the magnetometer around for 30 seconds"
-        start_time = time.time()
-        while time.time()-start_time <30:
-            self.get_data()
-            if self.first==1:
-                self.magx_max = self.mag.x
-                self.magy_max = self.mag.y
-                self.magz_max = self.mag.z
-                self.magx_min = self.mag.x
-                self.magy_min = self.mag.y
-                self.magz_min = self.mag.z
-                self.first = 0
-            if self.mag.x > self.magx_max and self.mag.x !=0:
-                self.magx_max = self.mag.x
-            elif self.mag.x < self.magx_min and self.mag.x !=0:
-                self.magx_min = self.mag.x
-
-            if self.mag.y > self.magy_max and self.mag.y !=0:
-                self.magy_max = self.mag.y
-            elif self.mag.y < self.magy_min and self.mag.y !=0:
-                self.magy_min = self.mag.y
-
-            if self.mag.z > self.magz_max and self.mag.z !=0:
-                self.magz_max = self.mag.z
-            elif self.mag.z < self.magz_min and self.mag.z !=0:
-                self.magz_min = self.mag.z
-
-        self.magx_range = self.magx_max-self.magx_min
-        self.magy_range = self.magy_max-self.magy_min
-        self.magz_range = self.magz_max-self.magz_min
-
-        self.magx_mid = self.magx_min + self.magx_range/2.0
-        self.magy_mid = self.magy_min + self.magy_range/2.0
-        self.magz_mid = self.magz_min + self.magz_range/2.0
-
-        parameters = {'magx_range':self.magx_range,
-                      'magx_mid':self.magx_mid,
-                      'magy_range':self.magy_range,
-                      'magy_mid':self.magy_mid,
-                      'magz_range':self.magz_range,
-                      'magz_mid':self.magz_mid}
-
-        sio.savemat('imu'+self.num+'calibration.mat',parameters)
-
-
-        return 1
-
+    
     def get_data(self):
 
         # publish headers
@@ -160,11 +79,11 @@ class IMUlive():
 
 
         # read in new line of data
-        start = time.time()
+        # start = time.time()
         self.buf_var = self.reader.readline() #This takes .007 s to execute
 #	print 'here'
 #	print self.buf_var
-	finish = time.time()
+	   # finish = time.time()
         #print self.buf_var
 
         # assign data to messages
@@ -188,8 +107,9 @@ class IMUlive():
                 self.mag.z = -self.mag.z
                 x = self.mag.y
                 self.mag.y = self.mag.x
-                self.mag.x = self.mag.y
+                self.mag.x = x
             else:
+                print "Error Not Calibrated!"
                 self.buf_list = ast.literal_eval(self.buf_var)
                 self.gyro.x = (self.buf_list[4]-self.gyro_offset[0])*np.pi/180.0
                 self.gyro.y = (self.buf_list[5]-self.gyro_offset[1])*np.pi/180.0
