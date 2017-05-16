@@ -90,7 +90,11 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.psi = 0.0
         self.blat = 38.4065
         self.blon = -110.7919
-#        self.ah = TiltReadout(_marble_map)
+        self.distfrombase = 9999
+        self.roll = 9999
+        self.pitch = 9999
+        self.yaw = 9999
+
 
         #rospy.Subscriber("/junker/truth", NavState, self.callback)
         rospy.Subscriber("/estimate", NavState, self.callback)
@@ -145,6 +149,7 @@ class PaintLayer(Marble.LayerInterface, QObject):
         self.obsSubscriber = ObstaclesSubscriber()
         self.missionSubscriber = MissionSubscriber()
         self.stateSubscriber = StateSubscriber()
+#        self.ah = TiltReadout(_marble_map, uifname = 'ahnew.ui')
 
         # For meters to GPS conversion and plane geometry
         # specifically starting lat, lon of the plane
@@ -370,7 +375,8 @@ class MarbleMap(Marble.MarbleWidget):
             self.setMapThemeId("earth/openstreetmap/openstreetmap.dgml") # street view
         self.setProjection(Marble.Mercator)
         self.setShowOverviewMap(False)
-        self.ss = StateSubscriber()
+#        self.ss = StateSubscriber()
+
 
         self.WPH = WP_Handler()
         # For waypoint conversion

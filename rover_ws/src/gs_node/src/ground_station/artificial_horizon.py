@@ -38,31 +38,33 @@ class TiltReadout(QWidget):
         ui_file = os.path.join(PWD, 'resources', uifname)
         loadUi(ui_file, self)
         self.setObjectName(uifname)
+        self.wsms = rospy.Subscriber("/rover_state_cmd", RoverState, self.callbackrover)
+        self.asms = rospy.Subscriber("/arm_state_cmd", ArmState, self.callbackarm)
+        self.ss = rospy.Subscriber("/estimate", NavState, self.callbacknav)
 
+    def callbacknav(self, state):
+        self.pe = state.position[1]
+        self.pn = state.position[0]
+        self.blat = state.base_latitude
+        self.blon = state.base_longitude
+        self.distfrombase = (self.pe**2 + self.pn**2)**(0.5)
+        self.roll = state.phi
+        self.pitch = state.theta
+        self.yaw = state.psi
+        self.label_2.setText('%d degrees' % (self.roll*180/3.14159265358979))
+        self.label_4.setText('%d degrees' % (self.pitch*180/3.14159265358979))
+        self.label_6.setText('%d degrees' % (self.yaw*180/3.14159265358979))
+        self.label_8.setText('%d meters' % (self.distfrombase))
 
-#    def callbacknav(self, state):
-#        self.pe = state.position[1]
-#        self.pn = state.position[0]
-#        self.blat = state.base_latitude
-#        self.blon = state.base_longitude
-#        self.distfrombase = (self.pe**2 + self.pn**2)**(0.5)
-#        self.roll = state.phi
-#        self.pitch = state.theta
-#        self.yaw = state.psi
-#        self.label_2.setText('%d degrees' % (self.roll*180/3.14159265358979))
-#        self.label_4.setText('%d degrees' % (self.pitch*180/3.14159265358979))
-#        self.label_6.setText('%d degrees' % (self.yaw*180/3.14159265358979))
-#        self.label_8.setText('%d meters' % (self.distfrombase))
+    def callbackarm(self, astate):
+        self.armspeedmode = astate.mode
+        print self.armspeedmode
+        self.label_12.setText(self.armspeedmode)
 
-#    def callbackarm(self, astate):
-#        self.armspeedmode = astate.mode
-#        print self.armspeedmode
-#        self.label_12.setText(self.armspeedmode)
-
-#    def callbackrover(self, wstate):
-#        self.wheelsspeedmode = wstate.mode
-#        print self.wheelsspeedmode
-#        self.label_10.setText(self.wheelsspeedmode)
+    def callbackrover(self, wstate):
+        self.wheelsspeedmode = wstate.mode
+        print self.wheelsspeedmode
+        self.label_10.setText(self.wheelsspeedmode)
 
 
 
@@ -77,20 +79,22 @@ class TiltReadout(QWidget):
 
 
 
-#class wspeedmodeSubscriber():
-#    def __init__(self):
-#        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
-#    def callback(self, rstate):
-#        self.wheelsspeedmode = rstate.mode
-#        print self.wheelsspeedmode
+class wspeedmodeSubscriber():
+    def __init__(self):
+        self.wheelsspeedmode = 'none'
+        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
+    def callback(self, rstate):
+        self.wheelsspeedmode = rstate.mode
+        print self.wheelsspeedmode
 
 
-#class aspeedmodeSubscriber():
-#    def __init__(self):
-#        rospy.Subscriber("/arm_state_cmd", ArmState, self.callback)
-#    def callback(self, astate):
-#        self.armspeedmode = astate.mode
-#        print self.armspeedmode
+class aspeedmodeSubscriber():
+    def __init__(self):
+        self.armspeedmode = 'none'
+        rospy.Subscriber("/arm_state_cmd", ArmState, self.callback)
+    def callback(self, astate):
+        self.armspeedmode = astate.mode
+        print self.armspeedmode
 
 
 class StateSubscriber(): # For rendering rotated plane onto marble widget
