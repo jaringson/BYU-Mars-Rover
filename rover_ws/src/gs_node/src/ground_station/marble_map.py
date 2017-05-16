@@ -106,14 +106,19 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
 #        print "callback"
 
         #speedmode readout subscribers
-        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
-    def callback(self, state):
-        self.wheelsspeedmode = state.mode
-        print self.speedmode
 
+class wspeedmodeSubscriber(): # For rendering rotated plane onto marble widget
+    def __init__(self):
+        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
+    def callback(self, rstate):
+        self.wheelsspeedmode = rstate.mode
+
+
+class aspeedmodeSubscriber(): # For rendering rotated plane onto marble widget
+    def __init__(self):
         rospy.Subscriber("/arm_state_cmd", ArmState, self.callback)
-    def callback(self, state):
-        self.armspeedmode = state.mode
+    def callback(self, astate):
+        self.armspeedmode = astate.mode
 
 
 
@@ -179,6 +184,10 @@ class PaintLayer(Marble.LayerInterface, QObject):
 
     def remove_waypoint(self, pos):
         del self.waypoints[pos]
+#        self._marble_map.WPH.emit_removed(pos)
+#        self.marble.WPH.wp_removed.connect(self.remove_waypoint)
+        self.marble.WPH.emit_removed(pos)
+
 
     def change_home(self, new_home):
         self.waypoints = map_info_parser.get_waypoints(new_home)
