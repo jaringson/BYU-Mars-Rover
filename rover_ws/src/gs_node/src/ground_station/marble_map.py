@@ -9,7 +9,7 @@ import rospy
 from std_msgs.msg import String
 from msg import FW_State, GPS
 from Signals import WP_Handler
-from rover_msgs.msg import NavState
+from rover_msgs.msg import NavState, ArmState, RoverState
 from .Geo import Geobase
 import json, re
 
@@ -91,7 +91,6 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
 
         #rospy.Subscriber("/junker/truth", NavState, self.callback)
         rospy.Subscriber("/estimate", NavState, self.callback)
-
     def callback(self, state):
         self.pe = state.position[1]
         self.pn = state.position[0]
@@ -99,8 +98,24 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.psid = (state.psi)*180/pi
         self.blat = state.base_latitude
         self.blon = state.base_longitude
+        self.distfrombase = (self.pe**2 + self.pn**2)**(0.5)
+        self.roll = state.phi
+        self.pitch = state.theta
+        self.yaw = state.psi
 #        print self.pe, self.pn, self.psi, self.blat, self.blon
 #        print "callback"
+
+        #speedmode readout subscribers
+        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
+    def callback(self, state):
+        self.wheelsspeedmode = state.mode
+        print self.speedmode
+
+        rospy.Subscriber("/arm_state_cmd", ArmState, self.callback)
+    def callback(self, state):
+        self.armspeedmode = state.mode
+
+
 
 # Class for allowing the widget to paint to the marble map
 class PaintLayer(Marble.LayerInterface, QObject):
