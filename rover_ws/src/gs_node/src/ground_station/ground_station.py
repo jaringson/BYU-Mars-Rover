@@ -8,7 +8,7 @@ from .map_widget import MapWindow
 from .plot_widget import PlotWidget
 from .data_plot import DataPlot
 from .control_widget import ControlWindow
-from .artificial_horizon import ArtificialHorizon
+from .artificial_horizon import TiltReadout
 from .wp_window import WpWindow
 
 class GroundStationWidget(QWidget):
@@ -29,18 +29,19 @@ class GroundStationWidget(QWidget):
         #=============================
         self._mw = MapWindow()
         self._map_layout.addWidget(self._mw)
-        self._tv = PlotWidget()
-        self._data_plot = DataPlot(self._tv)
-        self._data_plot.set_autoscale(x=False)
-        self._data_plot.set_autoscale(y=DataPlot.SCALE_EXTEND|DataPlot.SCALE_VISIBLE)
-        self._data_plot.set_xlim([0, 10.0])
-        self._tv.switch_data_plot_widget(self._data_plot)
-# ratio of these numbers determines window proportions
-        self._control_layout.addWidget(self._tv, 1) # originally 1
         _marble_map = self._mw._marble_map
+        self._tv = TiltReadout(_marble_map, uifname = 'ahnew.ui')
+#        self._tv = PlotWidget()
+#        self._data_plot = DataPlot(self._tv)
+#        self._data_plot.set_autoscale(x=False)
+#        self._data_plot.set_autoscale(y=DataPlot.SCALE_EXTEND|DataPlot.SCALE_VISIBLE)
+#        self._data_plot.set_xlim([0, 10.0])
+#        self._tv.switch_data_plot_widget(self._data_plot)
+# ratio of these numbers determines window proportions
+        self._control_layout.addWidget(self._tv, 2) # originally 1
 #        self._ah = ArtificialHorizon()
         self._ah = WpWindow(_marble_map, uifname = 'wp_window.ui')
-        self._control_layout.addWidget(self._ah, 4) # originally 1
+        self._control_layout.addWidget(self._ah, 3) # originally 1
         #=============================
         print('fake init')
 

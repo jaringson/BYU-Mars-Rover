@@ -12,6 +12,8 @@ from Signals import WP_Handler
 from rover_msgs.msg import NavState, ArmState, RoverState
 from .Geo import Geobase
 import json, re
+from artificial_horizon import TiltReadout
+
 
 '''
 For changing color of current waypoint to green:
@@ -88,9 +90,11 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.psi = 0.0
         self.blat = 38.4065
         self.blon = -110.7919
+#        self.ah = TiltReadout(_marble_map)
 
         #rospy.Subscriber("/junker/truth", NavState, self.callback)
         rospy.Subscriber("/estimate", NavState, self.callback)
+
     def callback(self, state):
         self.pe = state.position[1]
         self.pn = state.position[0]
@@ -102,23 +106,29 @@ class StateSubscriber(): # For rendering rotated plane onto marble widget
         self.roll = state.phi
         self.pitch = state.theta
         self.yaw = state.psi
+#        self.ah.label_2.setText('%d degrees' % (self.roll*180/3.14159265358979))
+#        self.ah.label_4.setText('%d degrees' % (self.pitch*180/3.14159265358979))
+#        self.ah.label_6.setText('%d degrees' % (self.yaw*180/3.14159265358979))
+#        self.ah.label_8.setText('%d meters' % (self.distfrombase))
+
 #        print self.pe, self.pn, self.psi, self.blat, self.blon
 #        print "callback"
 
+
+
         #speedmode readout subscribers
+#class wspeedmodeSubscriber():
+#    def __init__(self):
+#        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
+#    def callback(self, rstate):
+#        self.wheelsspeedmode = rstate.mode
 
-class wspeedmodeSubscriber(): # For rendering rotated plane onto marble widget
-    def __init__(self):
-        rospy.Subscriber("/rover_state_cmd", RoverState, self.callback)
-    def callback(self, rstate):
-        self.wheelsspeedmode = rstate.mode
 
-
-class aspeedmodeSubscriber(): # For rendering rotated plane onto marble widget
-    def __init__(self):
-        rospy.Subscriber("/arm_state_cmd", ArmState, self.callback)
-    def callback(self, astate):
-        self.armspeedmode = astate.mode
+#class aspeedmodeSubscriber():
+#    def __init__(self):
+#        rospy.Subscriber("/arm_state_cmd", ArmState, self.callback)
+#    def callback(self, astate):
+#        self.armspeedmode = astate.mode
 
 
 
@@ -160,7 +170,7 @@ class PaintLayer(Marble.LayerInterface, QObject):
 #        self.blat = 38.4065
 #        self.blon = -110.7919
 
-#        rospy.Subscriber("/junker/truth", NavState, self.callback)
+
         rospy.Subscriber("/estimate", NavState, self.callback)
 
     def callback(self, state):
@@ -183,7 +193,10 @@ class PaintLayer(Marble.LayerInterface, QObject):
 #        self.waypoints.insert(pos, (lat, lon, alt))
 
     def remove_waypoint(self, pos):
+#            print self.waypoints
+        print pos
         del self.waypoints[pos]
+#            print self.waypoints
 #        self._marble_map.WPH.emit_removed(pos)
 #        self.marble.WPH.wp_removed.connect(self.remove_waypoint)
         self.marble.WPH.emit_removed(pos)
@@ -271,6 +284,8 @@ class PaintLayer(Marble.LayerInterface, QObject):
         painter.drawPolyline(line_2)
         painter.drawPolyline(line_3)
         painter.drawPolyline(line_4)
+
+#        TiltReadout(uifname = 'ahnew.ui').python_code()
 
     def drawMissionDetails(self, painter):
         mission_data = self.missionSubscriber.mission_data
@@ -374,6 +389,7 @@ class MarbleMap(Marble.MarbleWidget):
         r.sleep()
 #        print self.paintlayer.pe
         self.latlon[0] = self.paintlayer.blat
+#        self.latlon[0] = self.paintlayer.blat
         self.latlon[1] = self.paintlayer.blon
         self._home_pt = Marble.GeoDataCoordinates(self.paintlayer.blon, self.paintlayer.blat, 0.0, Marble.GeoDataCoordinates.Degree)
         self.centerOn(self._home_pt)

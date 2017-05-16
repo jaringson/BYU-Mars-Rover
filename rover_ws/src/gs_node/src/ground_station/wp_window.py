@@ -80,7 +80,7 @@ class WpWindow(QWidget):
             self.update_lists()
             self._marble_map.WPH.emit_removed(pos)
             self.transfer_waypoint_data()
-        print self.waypoints
+#        print self.waypoints, pos
 
 #        filename = str(QtGui.QFileDialog.getOpenFileName(self, 'Open File', PWD)[0])
 #        if not filename.strip() == '':
