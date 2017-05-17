@@ -1,7 +1,7 @@
 <launch>
 
     <group >
-        <param name="gain" type="double" value="1" />
+        <param name="gain" type="double" value="0.1" />
 	      <param name="zeta" type="double" value="0.0" />
 	      <param name="mag_bias_x" type="double" value="0.0" />
 	      <param name="mag_bias_y" type="double" value="0.0" />
@@ -13,7 +13,7 @@
 
     <group>
         <remap from="imu/data_raw" to="imu_Dro_0/data_raw"/>
-	      <remap from="imu/data" to="imu_Dro_0/data"/>
+	      <!--<remap from="imu/data" to="imu_Dro_0/data"/>-->
 	      <remap from="imu/mag" to="imu_Dro_0/mag"/>
 	      <remap from="imu/magnetic_field" to="imu_Dro_0/magnetic_field"/>
         <node name="imu_Dro_0" pkg="imu_filter_madgwick" type="imu_filter_node"/>

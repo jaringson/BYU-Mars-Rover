@@ -16,7 +16,7 @@ class IMUlive():
         # In order to get access to /dev/ttyUSB0 1 & 2 you will need to do the following:
         # execute sudo adduser $USER dialout and logout and in again or
         #sudo chmod 666 /dev/ttyUSB0 and 1 and 2 (3 commands) - This is for a single session only
-        self.reader=serial.Serial('/dev/ttyACM0',115200,timeout=1)
+        self.reader=serial.Serial('/dev/ttyACM1',115200,timeout=1)
        # self.reader=serial.Serial('/dev/ttyUSB0',115200,timeout=1)
         self.reader.flush()
         trash=self.reader.readline()
@@ -31,10 +31,14 @@ class IMUlive():
 
     def get_data(self):
 
+        if self.reader.inWaiting() > 0:
+#           print "READ FEEDBACK!"
+            self.buf_var = self.reader.readline()
+                # if self.ser.read(1).encode('hex') in 'e3':
 
-        # read in new line of data
-        self.reader.flush()
-        self.buf_var = self.reader.readline() #This takes .007 s to execute
+        # # read in new line of data
+        # self.reader.flush()
+        # self.buf_var = self.reader.readline() #This takes .007 s to execute
 	# print 'here'
 	# print self.buf_var
         #print self.buf_var
@@ -57,12 +61,11 @@ class IMUlive():
 
     def publish_to_ros(self):
 
-        rate  = rospy.Rate(100)
-        self.get_data()
-        self.angles.data = [self.roll, self.pitch, self.yaw]
-        self.est_pub.publish(self.angles)
+        while not rospy.is_shutdown():
+            self.get_data()
+            self.angles.data = [self.roll, self.pitch, self.yaw]
+            self.est_pub.publish(self.angles)
     
-        rate.sleep()
 
 if __name__=='__main__':
 

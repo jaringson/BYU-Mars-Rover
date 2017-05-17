@@ -90,7 +90,7 @@ class Estimator():
 
 	# Publishers and Subscribers
 		self.sub_gps = rospy.Subscriber('/fix', NavSatFix, self.gpsCallback)
-		self.sub_imu = rospy.Subscriber('/imu', Imu, self.imuCallback)
+		self.sub_imu = rospy.Subscriber('/imu/data', Imu, self.imuCallback)
 		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.driveCallback)
 
 		self.pub_state = rospy.Publisher('/estimate', NavState, queue_size = 10)
@@ -130,9 +130,9 @@ class Estimator():
 			# Compute alpha for time step
 			alpha = exp(-self.lpf_a*Ts)
 
-			self.phat = alpha*self.phat + (1-alpha)*msg.angular_velocity.x
-			self.qhat = alpha*self.qhat + (1-alpha)*msg.angular_velocity.y
-			self.rhat = alpha*self.rhat + (1-alpha)*msg.angular_velocity.z
+			# self.phat = alpha*self.phat + (1-alpha)*msg.angular_velocity.x
+			# self.qhat = alpha*self.qhat + (1-alpha)*msg.angular_velocity.y
+			# self.rhat = alpha*self.rhat + (1-alpha)*msg.angular_velocity.z
 
 			q = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
 			euler = tf.transformations.euler_from_quaternion(q)

@@ -1,0 +1,26 @@
+<launch>
+
+    <group >
+        <param name="gain" type="double" value="1.0" />
+	      <param name="zeta" type="double" value="0.0" />
+	      <param name="mag_bias_x" type="double" value="0.0" />
+	      <param name="mag_bias_y" type="double" value="0.0" />
+	      <param name="mag_bias_z" type="double" value="0.0" />
+	      <param name="use_mag" type="bool" value="false" />
+	      <param name="fixed_frame" type="string" value="world" />
+	      <param name="publish_tf" type="bool" value="true" />
+    </group>
+
+    <node name="imu" pkg="imu" type="imu_serial.py"/>
+
+    <group>
+<!--         <remap from="imu/data_raw" to="imu_Dro_0/data_raw"/>
+ -->	      <!--<remap from="imu/data" to="imu_Dro_0/data"/>-->
+<!-- 	      <remap from="imu/mag" to="imu_Dro_0/mag"/>
+ -->	     <!--  <remap from="imu/magnetic_field" to="imu_Dro_0/magnetic_field"/> -->
+        <node name="madgwick" pkg="imu_filter_madgwick" type="imu_filter_node"/>
+    </group>
+
+    <node name="estimator" pkg="nav_estimation" type="estimate.py"/>
+
+</launch>
