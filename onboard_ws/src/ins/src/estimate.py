@@ -31,9 +31,9 @@ class Estimator():
 		self.estimate.q = 0
 		self.estimate.r = 0
 		self.estimate.Vg = 0
-		self.estimate.base_latitude = 0
-		self.estimate.base_longitude = 0
-		self.estimate.base_altitude = 0
+		self.estimate.base_latitude = 0 # Hard code these in from the inertial sense
+		self.estimate.base_longitude = 0 # Hard code these in from the inertial sense
+		self.estimate.base_altitude = 0 # Hard code these in from the inertial sense
 
 	
 	# Publishers and Subscribers
