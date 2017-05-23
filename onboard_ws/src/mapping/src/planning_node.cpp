@@ -26,8 +26,8 @@ public:
   virtual ~Planner();
   void runtime();
   void map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in);
-  MatrixXf smooth_path(const Eigen::MatrixXf& path);
   // void wp_cb(Eigen::MatrixXf path_in);
+
 
 private:
   //class members
@@ -92,14 +92,6 @@ void Planner::runtime(){
   ros::spin();
 }
 
-// Eigen::MatrixXf smooth_path(const Eigen::MatrixXf& path){
-//   int length = path.rows();
-//   int current_point = 1;
-//
-//   Eigen::MatrixXf dummy = path;
-//   return dummy;
-// }
-
 /*
 Callback for map topic. Accepts map, checks if the current parth is good, and, if
 necessary, runs A*
@@ -130,9 +122,7 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 
       for (grid_map::CircleIterator iterator(map_, center, radius); !iterator.isPastEnd(); ++iterator){
         //set each spot in the circle to a non-clearable height
-        // ROS_INFO("temp_map spot was to: %f",temp_map.at("elevation", *iterator));
         temp_map.at("elevation", *iterator) = 2*THRESHOLD_;
-        // ROS_INFO("temp_map spot set to: %f",temp_map.at("elevation", *iterator));
       }
     }
   }
@@ -153,25 +143,24 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
   //if next waypoint is outside map bounds, will be an edge
   //otherwise set to be next waypoint
   Eigen::Vector2f edge_pt(2);
+  float PI = 3.14159265359;
+
+  //find unit vector to next waypoint
+  Eigen::Vector2f uhat(2);
+  uhat << waypoints_(current_wp_,0) - current_pos_[0],
+          waypoints_(current_wp_,1) - current_pos_[1];
+
+  uhat = uhat / uhat.norm();
+
+  float h_over_2 = map_.getLength().x()/2.0-map_.getResolution();
+  float w_over_2 = map_.getLength().y()/2.0-map_.getResolution();
 
   if(temp_map.isInside(Position(waypoints_(current_wp_,0),waypoints_(current_wp_,1)))){
     edge_pt << waypoints_(current_wp_,0),
                waypoints_(current_wp_,1);
   } else {
-    //find unit vector to next waypoint
-    Eigen::Vector2f uhat(2);
-    uhat << waypoints_(current_wp_,0) - current_pos_[0],
-            waypoints_(current_wp_,1) - current_pos_[1];
-
-    uhat = uhat / uhat.norm();
-
-    float PI = 3.14159265359;
-    float h_over_2 = map_.getLength().x()/2.0-map_.getResolution();
-    float w_over_2 = map_.getLength().y()/2.0-map_.getResolution();
-
-    float theta = atan2(waypoints_(current_wp_,1) - current_pos_[1],waypoints_(current_wp_,0) - current_pos_[0]);
+    float theta = atan2(uhat[1],uhat[0]);
     theta = fmod(theta + 2.0*PI, 2.0*PI);
-    ROS_INFO("theta: %f", theta);
 
     if(theta <= PI/4.0)
         edge_pt << current_pos_[0] + h_over_2,
@@ -208,70 +197,133 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
     clear_path_ = true;
   }
 
-  if(clear_path_)
+  //you'll act differently based on whether the path was clear.
+  //only execute A* if the path is not clear
+  if(clear_path_){
     ROS_INFO("clear");
-  else
+  }
+  else{
     ROS_INFO("not clear");
 
-  Eigen::MatrixXf *inflated_elevation = new Eigen::MatrixXf;
-  *inflated_elevation = temp_map.get("elevation");
-  // AstarPlanner astar(inflated_elevation);
+    //perform A*
+    Eigen::MatrixXf *inflated_elevation = new Eigen::MatrixXf;
+    *inflated_elevation = temp_map.get("elevation");
+    AstarPlanner astar(inflated_elevation);
+    astar.SetGoal(edge_pt[0],edge_pt[1]);
+    Eigen::MatrixXf path = astar.GetPath();
 
-  MatrixXf mapinit(10,10);
-  mapinit << 1,1,1,1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1,
-         1,9,1,1,1,1,1,1,1,1,
-         9,9,9,9,9,9,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1,
-         1,1,1,1,1,1,1,1,1,1;
-
-
-  Eigen::MatrixXf* map = new Eigen::MatrixXf(10,10);
-  *map = mapinit;
-
-  AstarPlanner astar(map);
-  astar.SetGoal(4,0);
-  Eigen::MatrixXf path = astar.GetPath();
-  astar.PrintMap();
-
-  GridMap newOne;
-  newOne.setFrameId("whatever");
-  newOne.setGeometry(Length(10,10),1,Position(0,0));
-  newOne.add("elevation",mapinit);
-  // cout << newOne.get("elevation");
-  Position whatever;
-  if(astar.pathfound){
-    cout << "smoothing path" << endl;
-    Eigen::MatrixXf smoothed_path(1,2);
-    int base_index = 0;
-    smoothed_path.row(0) = path.row(0);
-    for(int i=1; i < path.rows(); i++){
-      Position base_pos(path(base_index,0),path(base_index,1));
-      Position check_pos(path(i,0),path(i,1));
-      for (grid_map::LineIterator iterator(newOne, base_pos, check_pos);
-          !iterator.isPastEnd(); ++iterator) {
-        if(newOne.at("elevation",*iterator) >= 2){//THRESHOLD_){
-          newOne.getPosition(*iterator, whatever);
-          cout << "Offending position: " << whatever << endl;
-          cout << "Height:" << newOne.at("elevation",*iterator) << endl;
-          cout << "There is something too tall between " << base_index << " and " << i << endl;
-          smoothed_path.conservativeResize(smoothed_path.rows()+1,NoChange);
-          smoothed_path.row(smoothed_path.rows()-1) = path.row(i-1);
-          base_index = i;
-          cout << "I'm increasing the index to : " << base_index << endl;
-          break;
+    //smooth path (doesn't work perfectly but will reduce the path complexity)
+    //only smooth path if A* was successful
+    Position smoothing_pos;
+    if(astar.pathfound){
+      cout << "smoothing path" << endl;
+      Eigen::MatrixXf smoothed_path(1,2);
+      int base_index = 0;
+      smoothed_path.row(0) = path.row(0);
+      for(int i=1; i < path.rows(); i++){
+        Position base_pos(path(base_index,0),path(base_index,1));
+        Position check_pos(path(i,0),path(i,1));
+        for (grid_map::LineIterator iterator(temp_map, base_pos, check_pos);
+            !iterator.isPastEnd(); ++iterator) {
+          if(temp_map.at("elevation",*iterator) >= THRESHOLD_){
+            temp_map.getPosition(*iterator, smoothing_pos);
+            cout << "Offending position: " << smoothing_pos << endl;
+            cout << "Height:" << temp_map.at("elevation",*iterator) << endl;
+            cout << "There is something too tall between " << base_index << " and " << i << endl;
+            smoothed_path.conservativeResize(smoothed_path.rows()+1,NoChange);
+            smoothed_path.row(smoothed_path.rows()-1) = path.row(i-1);
+            base_index = i;
+            cout << "I'm increasing the index to : " << base_index << endl;
+            break;
+          }
         }
       }
-    }
-    smoothed_path.conservativeResize(smoothed_path.rows()+1,NoChange);
-    smoothed_path.row(smoothed_path.rows()-1) = path.row(path.rows()-1);
-    cout << "The smoothed path is: " << smoothed_path << endl;
-  }else
-    cout << "no path exists" << endl;
+      smoothed_path.conservativeResize(smoothed_path.rows()+1,NoChange);
+      smoothed_path.row(smoothed_path.rows()-1) = path.row(path.rows()-1);
+      cout << "The smoothed path is: " << smoothed_path << endl;
+    }else
+      cout << "no path exists" << endl;
+
+      //try just making unit vectors at -90,-45,45,90. Try all of those and
+      //keep the ones that have clear paths. go through the ends of them
+      //and select the one closest to the goal. Go to that one
+
+      //rotation matrices for 4 directions
+      Eigen::Rotation2D<float> neg90(-PI/2);
+      Eigen::Rotation2D<float> neg45(-PI/4);
+      Eigen::Rotation2D<float> pos45(PI/4);
+      Eigen::Rotation2D<float> pos90(PI/2);
+
+      //unit vectors along each direction
+      std::vector<Eigen::Vector2f> uhats;
+      uhats.push_back(neg90*uhat);
+      uhats.push_back(neg45*uhat);
+      uhats.push_back(pos45*uhat);
+      uhats.push_back(pos90*uhat);
+
+      //vector of bools for if the path to each is clear
+      std::vector<bool> clear = {true, true, true, true};
+      //vector of floats for distances to end
+      std::vector<float> distances;
+
+      //get the edge points of each new unit vector
+      std::vector<Eigen::Vector2f> edge_points;
+      for(int i = 0; i < 4; i++){
+        float theta = atan2(uhats[i][1],uhats[i][0]);
+        theta = fmod(theta + 2.0*PI, 2.0*PI);
+        cout << "theta: " << theta  << endl;
+        if(theta <= PI/4.0)
+            edge_points[i] << current_pos_[0] + h_over_2,
+                       current_pos_[1] + h_over_2*tan(theta);
+        else if(theta <= 3.0*PI/4.0){
+          cout << "alive" << endl;
+          //ERROR IS SOMEWHERE HERE
+            edge_points[i] << current_pos_[0] - w_over_2*tan(theta-PI/2.0),
+                       current_pos_[1] + w_over_2;
+          cout << "alive" << endl;
+        }
+        else if(theta <= 5.0*PI/4.0)
+            edge_points[i] << current_pos_[0] - h_over_2,
+                       current_pos_[1] - h_over_2*tan(theta-PI);
+        else if(theta <= 7.0*PI/4.0)
+            edge_points[i] << current_pos_[0] + w_over_2*tan(theta-3.0*PI/2.0),
+                       current_pos_[1] - w_over_2;
+        else
+            edge_points[i] << current_pos_[0] + h_over_2,
+                       current_pos_[1] + h_over_2*tan(theta);
+        cout << "alive" << endl;
+      }
+      cout << "alive" << endl;
+      //for each unit vector, check if it's clear. then, find the distance from its
+      //end point to goal. figure out which distance is shortest
+      float closest_distance = 999;
+      int closest_idx;
+      for(int i = 0; i < 4; i++){
+        endPos = Position(uhats[i][0],uhats[i][1]);
+        //check if clear
+        for (grid_map::LineIterator iterator(temp_map, startPos, endPos);
+            !iterator.isPastEnd(); ++iterator) {
+          if(temp_map.at("elevation",*iterator) >= THRESHOLD_){
+            clear[i] = false;
+            break;
+          }
+        }
+
+        //put distances into distance vector
+        if(clear[i])
+          distances.push_back(sqrt(pow(waypoints_(current_wp_,0),uhats[i][0])+pow(waypoints_(current_wp_,1),uhats[i][1])));
+        else
+          distances.push_back(9999);
+
+        //update shortest distance
+        if(distances[i] < closest_distance){
+          closest_distance = distances[i];
+          closest_idx = i;
+        }
+      }
+
+      cout << "Going to the point that is " << closest_distance << " meters from the goal.";
+  }
 
   //For testing, could publish right here and display in rviz
   ros::Time time = ros::Time::now();
@@ -283,7 +335,6 @@ void Planner::map_cb(const grid_map_msgs::GridMap::ConstPtr& map_in){
 
   //A* but if there is no safe path to where you're trying to go, need to
   //come up with something
-  //simplify path
 }
 
 /*
@@ -310,3 +361,29 @@ int main(int argc, char** argv){
 // tf::matrixEigenToMsg(waypoints_,wp_msg_);
 // wp_pub_.publish(wp_msg_);
 //----------------------------------------------------------------------------
+
+// MatrixXf mapinit(10,10);
+// mapinit << 1,1,1,1,1,1,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1,
+//        1,9,1,1,1,1,1,1,1,1,
+//        9,9,9,9,9,9,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1,
+//        1,1,1,1,1,1,1,1,1,1;
+
+
+// Eigen::MatrixXf* map = new Eigen::MatrixXf(10,10);
+// *map = mapinit;
+
+// AstarPlanner astar(map);
+// astar.SetGoal(4,0);
+// Eigen::MatrixXf path = astar.GetPath();
+// astar.PrintMap();
+
+// GridMap newOne;
+// newOne.setFrameId("whatever");
+// newOne.setGeometry(Length(10,10),1,Position(0,0));
+// newOne.add("elevation",mapinit);
