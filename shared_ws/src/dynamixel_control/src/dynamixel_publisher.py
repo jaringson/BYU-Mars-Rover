@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import sys
 import rospy
@@ -27,12 +27,12 @@ class DynPub():
             print "Adding Wrist"
             ids.append(1)
             ids.append(2)
-        
+
         if gimbal:
             print "Adding gimbal"
             ids.append(3)
             ids.append(4)
-        
+
         if lidar:
             ids.append(5)
 
@@ -69,16 +69,16 @@ class DynPub():
         self.lidar_shift = 0
         self.lidar_time = rospy.Time()
 
-        self.wrist_enabled = wrist 
+        self.wrist_enabled = wrist
         self.gimbal_enabled = gimbal
         self.lidar_enabled = lidar
         self.ready = {'wrist': False, 'gimbal': False}
-        
-        
+
+
     def wristCallback(self,msg):
         theta5 = msg.position[4] #% (2*math.pi) #hinge
         theta6 = msg.position[5] #% (2*math.pi) #twist
-        
+
         self.wrist_command[0] = (theta6+theta5) #dyn1
         self.wrist_command[1] = (theta5-theta6) #dyn2
         self.ready['wrist'] = True
@@ -93,13 +93,13 @@ class DynPub():
         # response.tag = 'Wrist Feedback'
         return response
 
-        
+
     def gimbalCallback(self, msg):
         self.gimbal_command[0] = msg.pan
         self.gimbal_command[1] = msg.tilt
         self.ready['gimbal'] = True
 
-            
+
     def diffangle(self,angleTo,angleCur):
         # Returns the closest angle between two angles
         # negative is clockwise, positive is counter-clockwise
@@ -181,7 +181,7 @@ class DynPub():
                 omega = 2*math.pi/period
                 angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
                 self.dyn.move_angle(5, angle, blocking = False)
-        
+
                 time = rospy.Time.now()
 
                 br = tf.TransformBroadcaster()
@@ -198,14 +198,26 @@ class DynPub():
                     time,
                     "lidar_horn_inverted","lidar_horn")
                 br.sendTransform((0,0.05,0),
-                    tf.transformations.quaternion_from_euler(0,angle,0),
+                    #IMPORTANT SPOT TO CHECK IF THE ANGLE IS BEING SENT CORRECTLY
+                    tf.transformations.quaternion_from_euler(0,math.radians(10),0),
                     time,
                     "lidar_horn","dynamixel_lidar")
+                br.sendTransform((0,0,0.25),
+                    tf.transformations.quaternion_from_euler(0,0,0),
+                    time,
+                    "dynamixel_lidar","ins")
+                #the following transform is from the spot on the ground directly
+                #below the INS to the INS. it is necessary so that the laser scans
+                #are transformed with z-components relative to the ground
+                br.sendTransform((0,0,-1),
+                    tf.transformations.quaternion_from_euler(0,0,0),
+                    time,
+                    "ins","ins_ground")
 
                 #print math.degrees(angle)
 
             self.rate.sleep()
-    
+
 
 if __name__ == "__main__":
 
@@ -219,4 +231,3 @@ if __name__ == "__main__":
 	lidar = True
     dynpub = DynPub(wrist,gimbal,lidar)
     dynpub.execute()
-    
