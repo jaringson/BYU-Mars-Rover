@@ -22,7 +22,7 @@ class RobotState:
     def get_pose(self):
         if (self.use_NavState):
             x, y = self.state.position[0], self.state.position[1]
-            theta = self.state.chi
+            theta = self.state.psi
         else:
             x, y = self.pose.position.x, self.pose.position.y
             theta = self.get_heading()
@@ -35,6 +35,7 @@ class RobotState:
             self.pose.orientation.z,
             self.pose.orientation.w)
         psi, theta, phi = tr.euler_from_quaternion(quaternion, 'rzyx')
+        psi = self.state.psi
         return psi
 
     def dist_to_goal(self):

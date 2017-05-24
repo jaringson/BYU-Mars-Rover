@@ -8,7 +8,7 @@ from rover_msgs.msg import Drive
 class WheelControl:
     def __init__(self):
         # Set Parameters
-        self.L = 0.6096  # Distance between wheels (2 ft)
+        self.L = 1.2#0.6096  # Distance between wheels (2 ft)
         self.R = 0.1524  # Radius of wheels
         self.C = 6.5617  # Revolutions for 1 m/s
         self.max_V = 3.5   # Maxiumum linear velocity (m/s)
@@ -41,8 +41,11 @@ class WheelControl:
         v = Twist.linear.x
         w = Twist.angular.z
     
-        vr = (2*v + w*self.L)/(2*self.R) # Turn rate of right wheel
-        vl = (2*v - w*self.L)/(2*self.R) # Turn rate of left wheel
+        vr = (2*v - w*self.L)/(2*self.R) # Turn rate of right wheel
+        vl = (2*v + w*self.L)/(2*self.R) # Turn rate of left wheel
+
+        if w > 0:
+            vr -= 20
 
         rw = self.sat(vr/self.max_vel, 100)
         lw = self.sat(vl/self.max_vel, 100)
