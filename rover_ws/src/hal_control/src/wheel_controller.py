@@ -11,16 +11,16 @@ class WheelControl:
         self.L = 0.6096  # Distance between wheels (2 ft)
         self.R = 0.1524  # Radius of wheels
         self.C = 6.5617  # Revolutions for 1 m/s
-        self.max_V = 1   # Maxiumum linear velocity (m/s)
-        self.max_vel = self.max_V*self.C/75.0  # Maximum turn rate, corresponds to 100 in /rover_msg/Drive. Radians per second
+        self.max_V = 3.5   # Maxiumum linear velocity (m/s)
+        self.max_vel = self.max_V*self.C/100.0  # Maximum turn rate, corresponds to 100 in /rover_msg/Drive. Radians per second
 
 
         # init ROS node
-        #rospy.init_node('navigation')
+        rospy.init_node('wheel_controller')
 
         # set rate
-        #hz = 10.0  # 60.0
-        #self.rate = rospy.Rate(hz)
+        hz = 10.0  # 60.0
+        self.rate = rospy.Rate(hz)
 
         # Set up Subscriber
         self.sub_cmd = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
@@ -29,7 +29,7 @@ class WheelControl:
         self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size=10)
 
         # Spin the Node
-        # rospy.spin()
+        rospy.spin()
 
     def cmd_vel_callback(self, msg):
         cmd = self.Twist2Drive(msg)
@@ -61,3 +61,5 @@ class WheelControl:
 
 if __name__ == '__main__':
     W = WheelControl()
+        
+    
