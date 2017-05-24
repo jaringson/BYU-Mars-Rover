@@ -108,7 +108,7 @@ class Arm_XBOX():
         home = self.joy.buttons[8]
         A = self.joy.buttons[0]
         
-        if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES
+        if y == 1 and False: # IK modes currently disabled (remove 'and False')
             if self.state.mode == 'JointControl':
                 self.state.mode = 'IK Arm - Base,Tool'
             elif self.state.mode == 'IK Arm - Base,Tool':
