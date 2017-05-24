@@ -39,12 +39,12 @@ servo_param = {
         'flipped': 0
        }, 
    5: {                                # AX-12A - Lidar
-        'home_encoder': 512,
+        'home_encoder': 512-307,
         'rad_per_enc': math.radians(300)/1024.0,
         'max_ang': math.radians(207),
         'min_ang': math.radians(-90),
         'max_speed': math.radians(360*1.75),
-        'flipped': 0
+        'flipped': 1
        }, 
 }
 

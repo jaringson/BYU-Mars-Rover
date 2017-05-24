@@ -180,7 +180,8 @@ class DynPub():
                 period = 4 #second
                 omega = 2*math.pi/period
                 angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
-                self.dyn.move_angle(5, angle, blocking = False)
+                # angle = math.radians(30)
+		self.dyn.move_angle(5, angle, blocking = False)
 
                 time = rospy.Time.now()
 
@@ -189,27 +190,27 @@ class DynPub():
                 tf.transformations.quaternion_from_euler(0,0,-math.pi/2),
                     time,
                     "laser","lidar")
-                br.sendTransform((0,0.03,0.085),
+                br.sendTransform((0,-0.03,0.085),
                     tf.transformations.quaternion_from_euler(0,0,0),
                     time,
-                    "lidar","lidar_horn_inverted")
-                br.sendTransform((0,0,0),
-                    tf.transformations.quaternion_from_euler(0,math.pi,0),
-                    time,
-                    "lidar_horn_inverted","lidar_horn")
-                br.sendTransform((0,0.05,0),
+                    "lidar","lidar_horn")
+                br.sendTransform((0,-0.05,0),
                     #IMPORTANT SPOT TO CHECK IF THE ANGLE IS BEING SENT CORRECTLY
-                    tf.transformations.quaternion_from_euler(0,math.radians(10),0),
+                    tf.transformations.quaternion_from_euler(0,angle,0),
                     time,
                     "lidar_horn","dynamixel_lidar")
-                br.sendTransform((0,0,0.25),
+                br.sendTransform((0,0,0.14),
                     tf.transformations.quaternion_from_euler(0,0,0),
                     time,
-                    "dynamixel_lidar","ins")
+                    "dynamixel_lidar","ins_nwu")
+		br.sendTransform((0,0,0),
+		    tf.transformations.quaternion_from_euler(math.pi,0,0),
+		    time,
+		    "ins_nwu","ins")
                 #the following transform is from the spot on the ground directly
                 #below the INS to the INS. it is necessary so that the laser scans
                 #are transformed with z-components relative to the ground
-                br.sendTransform((0,0,-1),
+                br.sendTransform((0,0,-0.406),
                     tf.transformations.quaternion_from_euler(0,0,0),
                     time,
                     "ins","ins_ground")
