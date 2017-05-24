@@ -65,8 +65,12 @@ class Arm_XBOX():
         self.pub_pose_ik = rospy.Publisher('/pose_ik', Pose, queue_size = 10)
         self.pub_grip = rospy.Publisher('/grip', Int8, queue_size = 10)
 
+        self.trigger_init = {'left': False, 'right': False}
+
         self.wrist_init = False
         self.arm_init = False
+
+        self.ready_msg = False
 
         self.getWristPosition()
         self.getArmPosition()
@@ -93,8 +97,8 @@ class Arm_XBOX():
         self.pub_joints.publish(msg)
 
     def fbackCallback(self,msg):
-    	self.fback_init = True
-    	self.fback = msg
+        self.fback_init = True
+        self.fback = msg
 
     # Functions
     def check_method(self):
@@ -130,6 +134,19 @@ class Arm_XBOX():
         
         # Publish state commands
         self.pub_state.publish(self.state)
+    
+    def trigger_check(self):
+        rt = (1 - self.joy.axes[5])/2.0
+        lt = (1 - self.joy.axes[2])/2.0
+        if rt == 1:
+            self.trigger_init['right'] = True
+        if lt == 1:
+            self.trigger_init['left'] = True
+
+        if self.trigger_init['left'] and self.trigger_init['right']:
+            return True
+        else:
+            return False
 
     def speed_check(self):
         # toggle between arm speeds
@@ -521,12 +538,19 @@ if __name__ == '__main__':
 
     # init Arm_xbox object
     xbox = Arm_XBOX()
+
+    rospy.loginfo("Press and release both Triggers to initialize")
     
     # Loop
     while not rospy.is_shutdown():
 
         # Start when Xbox controller recognized
-        if len(xbox.joy.buttons) > 0:
+        if len(xbox.joy.buttons) > 0 and xbox.trigger_check():
+
+            if not xbox.ready_msg:
+                rospy.loginfo('Arm Controller Ready')
+                xbox.ready_msg = True
+
             # every time check toggle of state
             xbox.check_method()
 

@@ -40,6 +40,9 @@ class XBOX():
 
         self.ready = False
 
+        self.ready_msg = False
+        self.trigger_init = {'left': False, 'right': False}
+
 
     # Functions
     
@@ -77,7 +80,7 @@ class XBOX():
         if self.ready:
             self.pub_state.publish(self.state)
 
-#####################
+################################################
     def joyCallback(self,msg):
         self.joy=msg
         if self.joy.buttons[9] == 1:
@@ -94,6 +97,20 @@ class XBOX():
             self.state.tilt = msg.data[1]
             self.ready = True
             time.sleep(0.1)
+
+##################################################
+    def trigger_check(self):
+        rt = (1 - self.joy.axes[5])/2.0
+        lt = (1 - self.joy.axes[2])/2.0
+        if rt == 1:
+            self.trigger_init['right'] = True
+        if lt == 1:
+            self.trigger_init['left'] = True
+
+        if self.trigger_init['left'] and self.trigger_init['right']:
+            return True
+        else:
+            return False
 
                 
 #######################
@@ -296,11 +313,17 @@ if __name__ == '__main__':
     # init XBOX object
     xbox = XBOX()
     xbox.ready = True
+
+    rospy.loginfo("Press and release both Triggers to initialize")
     
     # Loop
     while not rospy.is_shutdown():
         # only run when Xbox controller recognized
-        if len(xbox.joy.buttons) > 0:
+        if len(xbox.joy.buttons) > 0 and xbox.trigger_check():
+
+            if not xbox.ready_msg:
+                rospy.loginfo('Drive Controller Ready')
+                xbox.ready_msg = True
 
             # every time check toggle of state and cameras
             xbox.check_method()
