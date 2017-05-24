@@ -32,6 +32,10 @@ class XBOX():
         self.drive_cmd.lw = 0
         self.drive_cmd.rw = 0
 
+        # Import wheel controller
+        self.wheel_controller = WheelControl()
+        self.wheel_controller.enable = False
+
     # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
         self.sub_gimbal = rospy.Subscriber('/gimbal_feedback', Float32MultiArray, self.gimbalCallback)
@@ -52,12 +56,18 @@ class XBOX():
         # [A, B, X, Y] = buttons[0, 1, 2, 3]
         y = self.joy.buttons[3] # toggle between modes
         home = self.joy.buttons[8]
-        # if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
-        #     if self.state.mode == 'Drive':
-        #         self.state.mode = 'Auto'
-        #     else:
-        #         self.state.mode = 'Drive'
-            # time.sleep(.25)
+        if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
+            if self.state.mode == 'Drive':
+                self.state.mode = 'Drive-Vel'
+                rospy.loginfo('Drive Mode: Drive-Vel')
+            elif self.state.mode == 'Drive-Vel':
+                self.state.mode = 'Auto'
+                rospy.loginfo('Drive Mode: Auto. Hold right trigger to enable')
+            else:
+                self.zeroSpeed()
+                self.state.mode = 'Drive'
+                rospy.loginfo('Drive Mode: Drive')
+            time.sleep(.25)
 
         # Implement Kill Switch
         if home == 1:
@@ -120,10 +130,13 @@ class XBOX():
         if rb == 1:
             if self.state.speed == 'Slow':
                 self.state.speed = 'Med'
+                rospy.loginfo('Drive Speed: Medium')
             elif self.state.speed == 'Med':
                 self.state.speed = 'Fast'
+                rospy.loginfo('Drive Speed: Fast')
             elif self.state.speed == 'Fast':
                 self.state.speed = 'Slow'
+                rospy.loginfo('Drive Speed: Slow')
             time.sleep(.25)
 
 ######################
@@ -196,43 +209,8 @@ class XBOX():
         self.pub_drive.publish(self.drive_cmd)
         
     # ==========================================================================
-    # Auto Drive Control ===============================================
+    # Velocity Drive Control ===============================================
     # ==========================================================================
-    def autoCommand(self):
-    # RIGHT NOW THIS IS A COPY OF Xbox Drive
-    
-        # Check for slow/medium/fast mode
-        self.speed_check()
-
-        # set joystick commands
-        left_joy_up = self.joy.axes[1]
-        right_joy_up = self.joy.axes[4]
-
-        # Calculate drive speeds
-        # rw commands were multiplied by (-1)
-        if self.state.speed == 'Fast': # max = 2000
-            self.drive_cmd.lw = left_joy_up*100
-            self.drive_cmd.rw = right_joy_up*100 
-        elif self.state.speed == 'Med': # max = 1750
-            self.drive_cmd.lw = left_joy_up*50
-            self.drive_cmd.rw = right_joy_up*50
-        elif self.state.speed == 'Slow': # max = 1675
-            self.drive_cmd.lw = left_joy_up*35
-            self.drive_cmd.rw = right_joy_up*35
-
-        # Pan and Tilt
-        #self.cam_pan_tilt() # NEED TO IMPLEMENT
-
-        # Turn analog video on or off with left bumper
-        # On/off is most significant bit in camnum in command
-#        lb = self.joy.buttons[4]
-#        if lb == 1:
-#            self.analog_cam ^= 1
-#            time.sleep(.25)
-
-        # Publish drive commands
-        self.pub_drive.publish(self.drive_cmd)
-        
     def driveVelCommand(self):
     # Check for slow/medium/fast mode
         self.speed_check()
@@ -267,11 +245,16 @@ class XBOX():
         rt = (1 - self.joy.axes[5])/2.0
         threshold = 0.1
         if rt > threshold:
-            self.wheel_control.enable = False
             self.driveCommand()
+            self.wheel_controller.enable = False
         else:
-            self.wheel_control.enable = True
+            self.wheel_controller.enable = True
 
+    def zeroSpeed(self):
+        self.drive_cmd.lw = 0
+        self.drive_cmd.rw = 0
+        self.wheel_controller.enable = False
+        self.pub_drive.publish(self.drive_cmd)
 
     # ==========================================================================
     # Chutes mode ===============================================
