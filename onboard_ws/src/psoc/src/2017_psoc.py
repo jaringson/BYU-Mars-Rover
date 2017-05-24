@@ -92,12 +92,13 @@ class PSOC_class():
 
 		# initialize service
 		self.srv_arm = rospy.Service('arm_position',PositionReturn,self.arm_position_srv)
+		
 
-
-		# initialize subscribers
-		self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.drive_callback)
-		self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
-		self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback2)
+                # initialize subscribers
+                self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.drive_callback)
+                self.sub_state = rospy.Subscriber('/rover_state_cmd', RoverState, self.state_callback)
+                self.sub_joint = rospy.Subscriber('/joint_cmd', JointState, self.joint_callback2)
+		self.joints_ready = {'q1': False, 'q2': False, 'q3': False}
 		self.sub_science = rospy.Subscriber('/science_cmd', Science, self.science_callback)
 		self.sub_grip = rospy.Subscriber('/grip', Int8, self.grip_callback)        
 
@@ -316,14 +317,20 @@ class PSOC_class():
 		string = ''
 		for i in self.msg.data:
 			string += struct.pack('!B',i)
-		bwrite = self.ser.write(string)
 		# print bwrite
 
 		# reset new drive flag
 		self.new_drive = 0
 
 		# publish values just written to psoc
-		self.pub_psoc.publish(self.psoc)
+		ready = True
+		for key in self.joints_ready:
+		    ready = ready and self.joints_ready[key]
+		#print self.joints_ready
+		print ready
+		if ready:
+		    self.pub_psoc.publish(self.psoc)
+	            bwrite = self.ser.write(string)
 
 	def remove_non_ascii(self,text):
 		return ''.join([i if ord(i)<128 else ' ' for i in text])
@@ -337,6 +344,9 @@ class PSOC_class():
 					try:
 						self.feedback.q1 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q1
+						if self.joints_ready['q1'] == False:
+						    print 'q1 initialized'
+						self.joints_ready['q1'] = True
 					except ValueError, TypeError:
 						print "q1 Bad Feedback"
 						pass
@@ -344,6 +354,9 @@ class PSOC_class():
 					try:
 						self.feedback.q2 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q2
+						if self.joints_ready['q2'] == False:
+						    print 'q2 initialized'
+						self.joints_ready['q2'] = True
 					except ValueError, TypeError:
 						print "q2 Bad Feedback"
 						pass
@@ -351,6 +364,10 @@ class PSOC_class():
 					try:
 						self.feedback.q3 = ord(self.ser.read(1).decode('string_escape')) | (ord(self.ser.read(1).decode('string_escape')) << 8)
 #						print self.feedback.q3
+						if self.joints_ready['q3'] == False:
+						    print 'q3 initialized'
+	
+						self.joints_ready['q3'] = True
 					except ValueError, TypeError:
 						print "q3 Bad Feedback"
 						pass
