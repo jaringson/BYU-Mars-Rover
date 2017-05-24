@@ -209,12 +209,14 @@ class DynPub():
 
 if __name__ == "__main__":
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
         wrist = int(sys.argv[1])==1
         gimbal = int(sys.argv[2])==1
+	lidar = int(sys.argv[3])==1
     else:
         wrist = True
         gimbal = True
-    dynpub = DynPub(wrist,gimbal,False)
+	lidar = True
+    dynpub = DynPub(wrist,gimbal,lidar)
     dynpub.execute()
     
