@@ -76,7 +76,7 @@ class Supervisor:
         self.initial_pose.base_longitude = -9999
 
         # Set Goal
-        goal = [0, -0]
+        goal = [0, 0]
         self.robot.set_goal(goal)
 
         # Set up waypoint stuff

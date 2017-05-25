@@ -41,7 +41,7 @@ class GoToGoal(Controller):
             w = w_max*numpy.sign(w)
             alpha = 1
         else:
-            alpha = w/w_max
+            alpha = abs(w/w_max)
             
         v = robotstate.default_v * (1-alpha)
 
