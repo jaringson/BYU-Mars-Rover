@@ -1,0 +1,8 @@
+port: /dev/ttyUSB0
+inclination: 1.14878541071
+declination: 0.20007290992
+dynamic_model: 3
+GPS_ref_lla: [40.2477025, -111.6479188, 1387.0]
+sIMU: false
+sbaro: false
+smag: false

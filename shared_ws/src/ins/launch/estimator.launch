@@ -1,0 +1,9 @@
+<launch>
+
+	<node name="inertial_sense_node" pkg="inertial_sense" type="inertial_sense_node" output="screen">
+		<rosparam command="load" file="$(find ins)/param/ins_param.yaml"/>
+	</node>
+
+	<node name="estimator" pkg="ins" type="estimate.py" output="screen">
+	</node>
+</launch>
