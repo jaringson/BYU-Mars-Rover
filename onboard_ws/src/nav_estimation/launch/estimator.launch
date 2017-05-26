@@ -6,7 +6,7 @@
 	      <param name="mag_bias_x" type="double" value="0.0" />
 	      <param name="mag_bias_y" type="double" value="0.0" />
 	      <param name="mag_bias_z" type="double" value="0.0" />
-	      <param name="use_mag" type="bool" value="false" />
+	      <param name="use_mag" type="bool" value="true" />
 	      <param name="fixed_frame" type="string" value="world" />
 	      <param name="publish_tf" type="bool" value="true" />
     </group>
