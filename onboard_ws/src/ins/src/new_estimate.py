@@ -44,8 +44,8 @@ class Estimator():
 
 	
 	# Publishers and Subscribers
-	self.sub_ins = rospy.Subscriber('/ins1', Odometry, self.insCallback)
-	self.sub_gps = rospy.Subscriber('/gps', GPS, self.GPSCallback)
+		self.sub_ins = rospy.Subscriber('/ins1', Odometry, self.insCallback)
+		self.sub_gps = rospy.Subscriber('/gps', GPS, self.GPSCallback)
 		# self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.driveCallback)
 
 		self.pub_state = rospy.Publisher('/estimate', NavState, queue_size = 10)
