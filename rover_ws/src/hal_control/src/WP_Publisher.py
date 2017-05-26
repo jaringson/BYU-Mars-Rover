@@ -37,6 +37,12 @@ class WP_Publisher:
         if status:
             rospy.loginfo('Waypoints Received')
 
+    def SendWaypoints(self, wp_x, wp_y):
+
+        status = WPsrv(wp_x,wp_y,'tester')
+        if status:
+            rospy.loginfo('Waypoints Received')
+
 if __name__ == '__main__':
     rospy.init_node('wp_publisher')
     rate = rospy.Rate(10)

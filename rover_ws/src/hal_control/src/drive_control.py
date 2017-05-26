@@ -4,9 +4,10 @@ import rospy, math
 #from ctypes import c_ushort
 from geometry_msgs.msg import Twist
 from rover_msgs.msg import RoverState, Drive
-from sensor_msgs.msg import Joy, JointState
+from sensor_msgs.msg import Joy, JointState, NavState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
 from wheel_controller import WheelControl
+from WP_Publisher import WP_Publisher
 import time
 import numpy as np
 
@@ -36,9 +37,20 @@ class XBOX():
         self.wheel_controller = WheelControl()
         self.wheel_controller.enable = False
 
-    # Publishers and Subscribers
+        # Autonomous stuff
+        self.last_NED = [0, 0]
+        self.last_gps = [0, 0]
+        self.wp_lat = []
+        self.wp_lon = []
+        self.wp_N = []
+        self.wp_E = []
+        self.good_est = False
+        self.wp_pubs = WP_Publisher()
+
+        # Publishers and Subscribers
         self.sub_joy = rospy.Subscriber('/joy_drive', Joy, self.joyCallback)
         self.sub_gimbal = rospy.Subscriber('/gimbal_feedback', Float32MultiArray, self.gimbalCallback)
+        self.sub_estimate = rospy.Subscriber('/estimate', NavState, self.estimateCallback)
         self.pub_drive = rospy.Publisher('/drive_cmd', Drive, queue_size = 1)
         self.pub_state = rospy.Publisher('/rover_state_cmd', RoverState, queue_size = 1)
 
@@ -58,7 +70,7 @@ class XBOX():
         home = self.joy.buttons[8]
         if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
             if self.state.mode == 'Drive':
-                self.state.mode = 'Drive-Vel'
+                self.state.mode = 'Auto'
                 rospy.loginfo('Drive Mode: Drive-Vel')
             elif self.state.mode == 'Drive-Vel':
                 self.state.mode = 'Auto'
@@ -107,6 +119,12 @@ class XBOX():
             self.state.tilt = msg.data[1]
             self.ready = True
             time.sleep(0.1)
+
+    def estimateCallback(self, msg):
+        self.last_NED = [msg.position[0], msg.position[1]]
+        self.last_gps = [msg.gps_pos[0], msg.gps_pos[1]]
+        self.good_est = True
+
 
 ##################################################
     def trigger_check(self):
@@ -207,40 +225,64 @@ class XBOX():
 
         # Publish drive commands
         self.pub_drive.publish(self.drive_cmd)
+
+        # Add waypoint if click lb
+        # lb = self.joy.buttons[4]
+        if self.joy.buttons[4]: #LB button
+            if self.good_est:
+                self.wp_lat.append(self.last_gps[0])
+                self.wp_lon.append(self.last_gps[1])
+                self.wp_N.append(self.last_NED[0])
+                self.wp_E.append(self.last_NED[1])
+                rospy.logwarn('Added Waypoint To Q!')
+            else:
+                rospy.logwarn('ERROR: Waypoint not added, no good estimate')
+            time.sleep(.25)
+
+        if self.joy.buttons[6]: # Back button
+            self.wp_lat = []
+            self.wp_lon = []
+            self.wp_N = []
+            self.wp_E = []
+            rospy.logwarn('Waypoint Q reset')
+        if self.joy.buttons[7]: # Start button
+            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_y)
+            rospy.logwarn('Waypoints sent in NED')
+            # self.wp_pubs.ConvertandSendWaypoints(self.wp_lat, self.wp_lon)
+            # rospy.logwarn('Waypoints send in GPS')
         
-    # ==========================================================================
-    # Velocity Drive Control ===============================================
-    # ==========================================================================
-    def driveVelCommand(self):
-    # Check for slow/medium/fast mode
-        self.speed_check()
+    # # ==========================================================================
+    # # Velocity Drive Control ===============================================
+    # # ==========================================================================
+    # def driveVelCommand(self):
+    # # Check for slow/medium/fast mode
+    #     self.speed_check()
 
-        # set joystick commands
-        right_joy_left = self.joy.axes[3]
-        right_joy_up = self.joy.axes[4]
+    #     # set joystick commands
+    #     right_joy_left = self.joy.axes[3]
+    #     right_joy_up = self.joy.axes[4]
 
-        # Calculate drive speeds
-        # rw commands were multiplied by (-1)
-        msg = Twist()
-        if self.state.speed == 'Fast': # max = 2000
-            msg.angular.z = right_joy_left*self.wheel_controller.max_V
-            msg.linear.x = right_joy_up*self.wheel_controller.max_V 
-        elif self.state.speed == 'Med': # max = 1750
-            msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.5
-            msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.5
-        elif self.state.speed == 'Slow': # max = 1675
-            msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.35
-            msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.35
+    #     # Calculate drive speeds
+    #     # rw commands were multiplied by (-1)
+    #     msg = Twist()
+    #     if self.state.speed == 'Fast': # max = 2000
+    #         msg.angular.z = right_joy_left*self.wheel_controller.max_V
+    #         msg.linear.x = right_joy_up*self.wheel_controller.max_V 
+    #     elif self.state.speed == 'Med': # max = 1750
+    #         msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.5
+    #         msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.5
+    #     elif self.state.speed == 'Slow': # max = 1675
+    #         msg.angular.z = right_joy_left*self.wheel_controller.max_V*0.35
+    #         msg.linear.x = right_joy_up*self.wheel_controller.max_V*0.35
 
-        # Publish Drive Command
-        self.drive_cmd = self.wheel_controller.Twist2Drive(msg)
-        self.pub_drive.publish(self.drive_cmd)
+    #     # Publish Drive Command
+    #     self.drive_cmd = self.wheel_controller.Twist2Drive(msg)
+    #     self.pub_drive.publish(self.drive_cmd)
 
     # ==========================================================================
     # Auto Drive Control ===============================================
     # ==========================================================================
     def autoCommand(self):
-    # RIGHT NOW THIS IS A COPY OF Xbox Drive
 
         rt = (1 - self.joy.axes[5])/2.0
         threshold = 0.1
