@@ -4,6 +4,6 @@
 		<rosparam command="load" file="$(find ins)/param/ins_param.yaml"/>
 	</node>
 
-	<node name="estimator" pkg="ins" type="estimate.py" output="screen">
+	<node name="estimator" pkg="ins" type="gps_estimate.py" output="screen">
 	</node>
 </launch>
