@@ -44,8 +44,8 @@ class Estimator():
 
 	
 	# Publishers and Subscribers
-		self.sub_ins = rospy.Subscriber('/ins1', Odometry, self.insCallback)
-		self.sub_gps = rospy.Subscriber('/gps', GPS, self.GPSCallback)
+	self.sub_ins = rospy.Subscriber('/ins1', Odometry, self.insCallback)
+	self.sub_gps = rospy.Subscriber('/gps', GPS, self.GPSCallback)
 		# self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.driveCallback)
 
 		self.pub_state = rospy.Publisher('/estimate', NavState, queue_size = 10)
@@ -65,8 +65,7 @@ class Estimator():
 
 			self.estimate.position[0] = EARTH_RADIUS*(msg.latitude - self.estimate.base_latitude)*np.pi/180.0 #pn
 			self.estimate.position[1] = EARTH_RADIUS*cos(self.estimate.base_latitude*np.pi/180.0)*(msg.longitude - self.estimate.base_longitude)*np.pi/180.0 # lon
-			self.estimate.position[2] = msg.altitude - self.estimate.base_altitude # alt
-
+		self.estimate.position[2] = msg.altitude - self.estimate.base_altitude # all
 		self.estimate.Vg = msg.ground_speed_2d
 
 		# # init GPS
@@ -106,7 +105,6 @@ class Estimator():
 #		else:
 #			self.estimate.chi+= 180.0
 #		self.estimate.chi %= 180.0
-
 		self.estimate.p = msg.twist.twist.angular.x
 		self.estimate.q = msg.twist.twist.angular.y
 		self.estimate.r = msg.twist.twist.angular.z
