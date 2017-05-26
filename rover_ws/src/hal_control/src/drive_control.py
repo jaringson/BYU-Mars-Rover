@@ -235,6 +235,14 @@ class XBOX():
                 self.wp_N.append(self.last_NED[0])
                 self.wp_E.append(self.last_NED[1])
                 rospy.logwarn('Added Waypoint To Q!')
+                with open('NED_waypoints.txt','a') as myfile:
+                    myfile.write(str(self.last_NED[0]))
+                    myfile.write(str(self.last_NED[1]))
+                    myfile.write('\n')
+                # with open('GPS_waypoints.txt','a') as myfile:
+                #     myfile.write(str(self.last_gps[0]))
+                #     myfile.write(str(self.last_gps[1]))
+                #     myfile.write('\n')
             else:
                 rospy.logwarn('ERROR: Waypoint not added, no good estimate')
             time.sleep(.25)
@@ -245,10 +253,28 @@ class XBOX():
             self.wp_N = []
             self.wp_E = []
             rospy.logwarn('Waypoint Q reset')
+        if (self.joy.axes[2] == -1) and self.joy.buttons[7]: # LT AND START
+            # Send waypoints from txt file
+            # SEND as NED
+            with open('waypoints_to_be_sent_NED.txt') as file:
+                for line in f:
+                    NED = line.split()
+                    self.wp_N.append(NED[0])
+                    self.wp_E.append(NED[1])
+            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_E)
+
+            # SEND AS gps
+            # with open('waypoints_to_be_sent_gps.txt') as file:
+            #     for line in f:
+            #         latlon = line.split()
+            #         self.wp_lat.append(latlon[0])
+            #         self.wp_lon.append(latlon[1])
+            # self.wp_pubs.convertAndSendWaypoints(self.wp_lat, self.wp_lon)
+
         if self.joy.buttons[7]: # Start button
-            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_y)
+            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_E)
             rospy.logwarn('Waypoints sent in NED')
-            # self.wp_pubs.ConvertandSendWaypoints(self.wp_lat, self.wp_lon)
+            # self.wp_pubs.convertAndSendWaypoints(self.wp_lat, self.wp_lon)
             # rospy.logwarn('Waypoints send in GPS')
         
     # # ==========================================================================
