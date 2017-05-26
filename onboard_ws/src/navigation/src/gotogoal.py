@@ -35,7 +35,7 @@ class GoToGoal(Controller):
                   robotstate.get_heading(),          # current heading
                   0]                                 # time
 
-        w_max = 2
+        w_max = 3
         w = self.pid.execute(inputs)
         if abs(w) > w_max:
             w = w_max*numpy.sign(w)

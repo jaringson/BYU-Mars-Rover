@@ -32,11 +32,11 @@ class Supervisor:
 
         # Set Params
         dt = 0.01
-        ki, kd, kp = 1, 10, 3
+        ki, kd, kp = 1, 5, 1.5
         sigma = 0.05
         params = Params(ki, kd, kp, dt, sigma)
-        goal_distance = 0.1
-        default_vel = 1
+        goal_distance = 2
+        default_vel = 1.5
 
         # Instantiate Classes
         self.robot = RobotState(goal_distance, default_vel)
@@ -44,7 +44,7 @@ class Supervisor:
         self.stop = Stop(params)
 
         # Other admin stuff
-        self.msgread = {'estimate': False, 'navdata': False}
+        self.msgread = {'estimate': False, 'navdata': True}
         self.goal_in_base_frame = baseframe
         if baseframe:
             rospy.loginfo("Goal in Base Frame")
@@ -76,7 +76,7 @@ class Supervisor:
         self.initial_pose.base_longitude = -9999
 
         # Set Goal
-        goal = [5, 5]
+        goal = [0, -0]
         self.robot.set_goal(goal)
 
         # Set up waypoint stuff
@@ -98,6 +98,9 @@ class Supervisor:
     # Continuous loop that gets the command from the controller and sends it out
     def execute(self):
         while not rospy.is_shutdown():
+
+            print self.robot.dist_to_goal()
+
             if self.ready() and self.enable:
                 # Update goal
                 self.robot.set_goal(self.get_goal())
