@@ -180,7 +180,7 @@ class DynPub():
                 period = 4 #second
                 omega = 2*math.pi/period
                 angle = math.sin(t.to_sec()*omega+self.lidar_shift)*amplitude+offset
-                # angle = math.radians(30)
+                angle = math.radians(15)
 		self.dyn.move_angle(5, angle, blocking = False)
 
                 time = rospy.Time.now()
