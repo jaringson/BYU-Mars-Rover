@@ -88,6 +88,8 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 		scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment),
 		ros::Duration(1.0))){
 
+		ROS_INFO("Transform not Found");
+
      return;
 	}
 
@@ -109,8 +111,8 @@ void Map_Maker::laser_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in){
 		float y_temp = cloud_xyz->points[i].y;
 		float z_temp = cloud_xyz->points[i].z;
 
-		if z_temp <= 0
-			continue;
+		//if (z_temp <= 0)
+			//continue;
 
 		//add the current map position to x and y
 		x_temp += map_.getPosition().x();
@@ -152,11 +154,13 @@ void Map_Maker::runtime(){
 		map_.setTimestamp(time.toNSec());
 		grid_map_msgs::GridMap msg;
 		GridMapRosConverter::toMessage(map_, msg);
+		//cout << ros::Time::now();
+		msg.info.header.stamp = ros::Time::now();
 		map_pub_.publish(msg);
 		ROS_INFO_THROTTLE(1.0, "Grid map (timestamp %f) published.", msg.info.header.stamp.toSec());
 		// ros::spinOnce();
 		r.sleep();
-		ros::spin();
+		//ros::spin();
 	}
 
 }
