@@ -45,9 +45,9 @@ class Estimator():
 		self.gps_init = False
 
 	
-	# Publishers and Subscribers
-	self.sub_ins = rospy.Subscriber('/ins1', Odometry, self.insCallback)
-	self.sub_gps = rospy.Subscriber('/gps', GPS, self.GPSCallback)
+		# Publishers and Subscribers
+		self.sub_ins = rospy.Subscriber('/ins1', Odometry, self.insCallback)
+		self.sub_gps = rospy.Subscriber('/gps', GPS, self.GPSCallback)
 		# self.sub_drive = rospy.Subscriber('/drive_cmd', Drive, self.driveCallback)
 
 		self.pub_state = rospy.Publisher('/estimate', NavState, queue_size = 10)
@@ -56,10 +56,23 @@ class Estimator():
 	def GPSCallback(self, msg):
 		# print 'GPS Callback'
 		if not self.gps_init:
-			self.estimate.base_latitude = msg.latitude
-			self.estimate.base_longitude = msg.longitude
-			self.estimate.base_altitude = msg.altitude
-			self.gps_init = True
+			file = open('gps_init.txt', 'r')
+			data = file.readline()
+			items = data.split()
+
+			if len(items) < 0:
+				self.estimate.base_latitude = float(items[0])
+				self.estimate.base_longitude = float(items[1])
+				self.estimate.base_altitude = msg.altitude
+				self.gps_init = True
+			else:
+				self.estimate.base_latitude = msg.latitude
+				self.estimate.base_longitude = msg.longitude
+				self.estimate.base_altitude = msg.altitude
+				file = open('gps_init.txt', 'w')
+				file.write(str(self.estimate.base_latitude))
+				file.write(str(self.estimate.base_longitude))
+				self.gps_init = True
 			# self.position_init = True
 			print "gps_init"
 		else:
