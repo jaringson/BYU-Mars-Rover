@@ -62,3 +62,6 @@
 [submodule "onboard_ws/src/rplidar_ros"]
 	path = onboard_ws/src/rplidar_ros
 	url = https://github.com/robopeak/rplidar_ros.git
+[submodule "shared_ws/src/inertial_sense"]
+	path = shared_ws/src/inertial_sense
+	url = https://github.com/superjax/inertial_sense.git
