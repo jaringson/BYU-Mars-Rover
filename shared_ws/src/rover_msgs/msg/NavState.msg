@@ -1,4 +1,5 @@
 float32[3] position	# north, east, hieght (m)
+float32[2] gps_pos #lat, lon
 float32 Vw		# wheelspeed (m/s)
 float32 phi		# Roll angle (rad)
 float32 theta		# Pitch angle (rad)
