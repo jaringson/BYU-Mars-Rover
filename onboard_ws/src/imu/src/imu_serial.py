@@ -58,7 +58,7 @@ class IMUlive():
         self.magy_mid = 0
         self.magz_mid = 0
 
-        parameters = sio.loadmat('/home/marsrover/BYU-Mars-Rover/onboard_ws/src/imu/src/imu'+self.num+'calibration.mat')
+        parameters = sio.loadmat('/home/ubuntu/BYU-Mars-Rover/onboard_ws/src/imu/src/imu'+self.num+'calibration.mat')
         self.magx_range = parameters['magx_range']
         self.magx_mid = parameters['magx_mid']
         self.magy_range = parameters['magy_range']
