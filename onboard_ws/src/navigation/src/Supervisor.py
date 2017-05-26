@@ -32,11 +32,11 @@ class Supervisor:
 
         # Set Params
         dt = 0.01
-        ki, kd, kp = 1, 5, 1.5
+        ki, kd, kp = 1.5, 10, 3
         sigma = 0.05
         params = Params(ki, kd, kp, dt, sigma)
         goal_distance = 2
-        default_vel = 1.5
+        default_vel = 1.0
 
         # Instantiate Classes
         self.robot = RobotState(goal_distance, default_vel)

@@ -58,7 +58,7 @@ class XBOX():
         home = self.joy.buttons[8]
         if y == 1: # UNCOMMENT THIS TO SWITCH BETWEEN MODES WITH THE Y BUTTON
             if self.state.mode == 'Drive':
-                self.state.mode = 'Drive-Vel'
+                self.state.mode = 'Auto'
                 rospy.loginfo('Drive Mode: Drive-Vel')
             elif self.state.mode == 'Drive-Vel':
                 self.state.mode = 'Auto'

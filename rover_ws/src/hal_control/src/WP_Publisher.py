@@ -2,7 +2,7 @@
 
 import rospy
 import numpy as np
-from Supervisor import Supervisor
+#from Supervisor import Supervisor
 from rover_msgs.srv import WaypointSend
 from rover_msgs.msg import NavState
 from math import *
@@ -33,7 +33,13 @@ class WP_Publisher:
             wp_x.append(EARTH_RADIUS*(self.wp_lat[i] - self.estimate.base_latitude)*np.pi/180.0)
             wp_y.append(EARTH_RADIUS*cos(self.estimate.base_latitude*np.pi/180.0) * (self.wp_long[i] - self.estimate.base_longitude)*np.pi/180.0)
 
-        status = WPsrv(wp_x,wp_y,'tester')
+        status = self.WPsrv(wp_x,wp_y,'tester')
+        if status:
+            rospy.loginfo('Waypoints Received')
+
+    def SendWaypoints(self, wp_x, wp_y):
+        
+        status = self.WPsrv(wp_x,wp_y,'tester')
         if status:
             rospy.loginfo('Waypoints Received')
 
@@ -42,6 +48,11 @@ if __name__ == '__main__':
     rate = rospy.Rate(10)
     
     wp = WP_Publisher()
+    wp_x = [0,20,30,40]
+    wp_y = [0,5,0,-5]
+    wp.SendWaypoints(wp_x,wp_y)
+
+
 
     while not rospy.is_shutdown():
         rospy.spin()

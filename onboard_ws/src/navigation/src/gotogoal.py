@@ -43,6 +43,7 @@ class GoToGoal(Controller):
         else:
             alpha = abs(w/w_max)
             
+        alpha = 0
         v = robotstate.default_v * (1-alpha)
 
         return v, w
