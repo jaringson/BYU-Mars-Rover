@@ -1,0 +1,76 @@
+<launch>
+
+    <group ns="imu_6">
+        <param name="gain" type="double" value=".5" />
+	<param name="zeta" type="double" value="0.0" />
+	<param name="mag_bias_x" type="double" value="0.0" />
+	<param name="mag_bias_y" type="double" value="0.0" />
+	<param name="mag_bias_z" type="double" value="0.0" />
+	<param name="use_mag" type="bool" value="true" />
+	<param name="fixed_frame" type="string" value="world" />
+	<param name="publish_tf" type="bool" value="true" />
+	<param name="input_topic" type="string" value="mag_wrong" />
+	<param name="output_topic" type="string" value="mag" />
+	<param name="imu_number" type="string" value="6" />
+	<param name="run_calibration" type="bool" value="0" />
+        <node name="MagCalibrated6" pkg="low_level_control" type="MagCalibrated.py" output="screen"/>
+	
+    </group>
+
+    <group>
+        <remap from="imu/data_raw" to="imu_6/data_raw"/>
+	<remap from="imu/data" to="imu_6/data"/>
+	<remap from="imu/mag" to="imu_6/mag"/>
+	<remap from="imu/magnetic_field" to="imu_6/magnetic_field"/>
+        <node name="imu_6" pkg="imu_filter_madgwick" type="imu_filter_node"/>
+    </group>
+
+    <group ns="imu_0">
+        <param name="gain" type="double" value=".5" />
+	<param name="zeta" type="double" value="0.0" />
+	<param name="mag_bias_x" type="double" value="0.0" />
+	<param name="mag_bias_y" type="double" value="0.0" />
+	<param name="mag_bias_z" type="double" value="0.0" />
+	<param name="use_mag" type="bool" value="true" />
+	<param name="fixed_frame" type="string" value="world" />
+	<param name="publish_tf" type="bool" value="true" />
+	<param name="input_topic" type="string" value="mag_wrong" />
+	<param name="output_topic" type="string" value="mag" />
+	<param name="imu_number" type="string" value="0" />
+	<param name="run_calibration" type="bool" value="0" />
+        <node name="MagCalibrated0" pkg="low_level_control" type="MagCalibrated.py" output="screen"/>
+    </group>
+
+    <group>
+        <remap from="imu/data_raw" to="imu_0/data_raw"/>
+	<remap from="imu/data" to="imu_0/data"/>
+	<remap from="imu/mag" to="imu_0/mag"/>
+	<remap from="imu/magnetic_field" to="imu_0/magnetic_field"/>
+        <node name="imu_0" pkg="imu_filter_madgwick" type="imu_filter_node"/>
+    </group>
+
+    <group ns="imu_2">
+        <param name="gain" type="double" value=".5" />
+	<param name="zeta" type="double" value="0.0" />
+	<param name="mag_bias_x" type="double" value="0.0" />
+	<param name="mag_bias_y" type="double" value="0.0" />
+	<param name="mag_bias_z" type="double" value="0.0" />
+	<param name="use_mag" type="bool" value="true" />
+	<param name="fixed_frame" type="string" value="world" />
+	<param name="publish_tf" type="bool" value="true" />
+	<param name="input_topic" type="string" value="mag_wrong" />
+	<param name="output_topic" type="string" value="mag" />
+	<param name="imu_number" type="string" value="2" />
+	<param name="run_calibration" type="bool" value="0" />
+        <node name="MagCalibrated2" pkg="low_level_control" type="MagCalibrated.py" output="screen"/>
+    </group>
+
+    <group>
+        <remap from="imu/data_raw" to="imu_2/data_raw"/>
+	<remap from="imu/data" to="imu_2/data"/>
+	<remap from="imu/mag" to="imu_2/mag"/>
+	<remap from="imu/magnetic_field" to="imu_2/magnetic_field"/>
+        <node name="imu_2" pkg="imu_filter_madgwick" type="imu_filter_node"/>
+    </group>
+
+</launch>
