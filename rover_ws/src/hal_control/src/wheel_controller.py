@@ -45,7 +45,9 @@ class WheelControl:
         vl = (2*v + w*self.L)/(2*self.R) # Turn rate of left wheel
 
         if w > 0:
-            vr -= 20
+            vr -= 20*0
+        if w < 0:
+            vl -= 20
 
         rw = self.sat(vr/self.max_vel, 100)
         lw = self.sat(vl/self.max_vel, 100)
