@@ -4,7 +4,7 @@ import tf.transformations as tr
 import math
 
 class RobotState:
-    def __init__(self, goal_distance=0.2, def_v=0.5):
+    def __init__(self, goal_distance=0.2, def_v=0.5, stuck_time=15, stuck_dist=5):
         self.pose = Pose()
         self.twist = Twist()
         self.pose.orientation.w = 1
@@ -15,6 +15,24 @@ class RobotState:
 
         self.goal_distance = goal_distance
         self.use_NavState = True
+
+        self.pos_old = []
+        self.estimate_rate = 10 # Hz
+        self.stuck_time = stuck_time # sec
+        self.stuck_dist = stuck_dist # m
+
+
+    def set_pose(self, msg):
+
+        # Store current state
+        self.state = msg
+
+        # Store old position
+        self.pos_old.append(msg.position[0:2])
+
+        # Pop off points when they become too old
+        if len(self.pos_old) > self.estimate_rate*self.stuck_time:
+            self.pos_old.pop(0)
 
     def set_goal(self, goal):
         self.goal = goal
@@ -44,4 +62,13 @@ class RobotState:
 
     def at_goal(self):
         return self.dist_to_goal() < self.goal_distance
+
+    def is_stuck(self):
+        x, y , theta = self.get_pose()
+        old_pos = self.pos_old[0] 
+        dist_moved = math.sqrt((old_pos[0]-x)**2 + (old_pos[1]-y)**2)
+        return (dist_moved < self.stuck_dist)
+            
+
+
 

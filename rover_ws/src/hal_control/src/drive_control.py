@@ -3,8 +3,8 @@
 import rospy, math
 #from ctypes import c_ushort
 from geometry_msgs.msg import Twist
-from rover_msgs.msg import RoverState, Drive
-from sensor_msgs.msg import Joy, JointState, NavState
+from rover_msgs.msg import RoverState, Drive, NavState
+from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import String,Float32MultiArray,UInt16MultiArray, Header, Int8
 from wheel_controller import WheelControl
 from WP_Publisher import WP_Publisher
@@ -58,6 +58,7 @@ class XBOX():
 
         self.ready_msg = False
         self.trigger_init = {'left': False, 'right': False}
+        print "init done"
 
 
     # Functions
@@ -253,6 +254,7 @@ class XBOX():
             self.wp_N = []
             self.wp_E = []
             rospy.logwarn('Waypoint Q reset')
+            time.sleep(.25)
         if (self.joy.axes[2] == -1) and self.joy.buttons[7]: # LT AND START
             # Send waypoints from txt file
             # SEND as NED
@@ -276,6 +278,7 @@ class XBOX():
             rospy.logwarn('Waypoints sent in NED')
             # self.wp_pubs.convertAndSendWaypoints(self.wp_lat, self.wp_lon)
             # rospy.logwarn('Waypoints send in GPS')
+            time.sleep(.25)
         
     # # ==========================================================================
     # # Velocity Drive Control ===============================================
@@ -362,6 +365,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(hz)    
     
     # init XBOX object
+    print "initing"
     xbox = XBOX()
     xbox.ready = True
 

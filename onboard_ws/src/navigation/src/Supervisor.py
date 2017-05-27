@@ -16,6 +16,7 @@ from rover_msgs.srv import WaypointSend, WaypointSendResponse
 from rover_msgs.srv import PositionReturn, PositionReturnResponse
 from RobotState import RobotState
 from gotogoal import GoToGoal, Stop
+from backup import Backup
 
 
 class Supervisor:
@@ -32,16 +33,22 @@ class Supervisor:
 
         # Set Params
         dt = 0.01
-        ki, kd, kp = 1, 5, 1.5
+        ki, kd, kp = 1, 5, 2.5
         sigma = 0.05
         params = Params(ki, kd, kp, dt, sigma)
-        goal_distance = 2
+        goal_distance = 1
         default_vel = 1.5
+        backup_time = 3 # sec
+        backup_twist = [-1,1] # m/s, rad/s (leave w positive)
+        stuck_time = 15 # sec
+        stuck_dist = 5 # m
+
 
         # Instantiate Classes
-        self.robot = RobotState(goal_distance, default_vel)
+        self.robot = RobotState(goal_distance, default_vel, stuck_time, stuck_dist)
         self.gtg = GoToGoal(params)
         self.stop = Stop(params)
+        self.backup = Backup(params,backup_time)
 
         # Other admin stuff
         self.msgread = {'estimate': False, 'navdata': True}
@@ -138,6 +145,18 @@ class Supervisor:
                     rospy.loginfo("AT GOAL!!!!")
                     self.cur_waypoint = 0
 
+        #         # Is stuck going to goal
+        #         if self.robot.is_stuck():
+        #             self.control = self.backup
+        #             self.control.start()
+        #             rospy.loginfo('Switching to Backup Mode')
+
+        # if self.control.name == "backup":
+
+        #     # Go back to Go to Goal
+        #     if self.control.is_done():
+        #         self.control = self.gtg
+
     # Send velocities to wheel_controller
     def send_command(self, v, w):
         cmd = Twist()
@@ -156,7 +175,7 @@ class Supervisor:
       
     ############# CALLBACKS #############
     def estimateCallback(self, msg):
-        self.robot.state = msg
+        self.robot.set_pose(msg)
         self.msgread['estimate'] = True
 
     def odomCallback(self, msg):
@@ -221,13 +240,15 @@ class Supervisor:
         self.cur_waypoint = 0
         self.wp_x = srv.wp_x
         self.wp_y = srv.wp_y
-        msg = 'New Waypoints Received'
+        msg = 'New Waypoints Received:'
         if not self.enable:
             self.enable = True
             msg += '. Starting Autonomous Mode'
         # print srv.source
         response = WaypointSendResponse(True)
         rospy.loginfo(msg)
+        rospy.loginfo(str(self.wp_x))
+        rospy.loginfo(str(self.wp_y))
         return response
 
 

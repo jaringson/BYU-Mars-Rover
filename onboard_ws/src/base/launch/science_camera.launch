@@ -18,10 +18,10 @@
   </node>
   -->
 
-  <node name="main_camera" pkg="usb_cam" type="usb_cam_node" output="screen" >
+  <node name="main_camera_HD" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/rover/cameras/Logitech_C922x" />
-    <param name="image_width" value="640" />
-    <param name="image_height" value="480" />
+    <param name="image_width" value="1920" />
+    <param name="image_height" value="1080" />
     <param name="pixel_format" value="yuyv" />
     <param name="framerate" value="25" />
     <param name="camera_frame_id" value="usb_cam" />
@@ -34,35 +34,22 @@
     <param name="image_height" value="240" />
     <param name="pixel_format" value="yuyv" />
     <param name="camera_frame_id" value="usb_cam" />
-    <param name="framerate" value="15" />
+    <param name="framerate" value="25" />
     <param name="io_method" value="mmap"/>
     </node>
 
-
-
-   <node name="forearm_camera" pkg="usb_cam" type="usb_cam_node" output="screen" >
+   <node name="sensor" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/rover/cameras/forearm" />
-    <param name="image_width" value="320" />
-    <param name="image_height" value="240" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
     <param name="pixel_format" value="yuyv" />
     <param name="camera_frame_id" value="usb_cam" />
-    <param name="framerate" value="15" />
+    <param name="framerate" value="25" />
     <param name="io_method" value="mmap"/>
     </node>
 
-   <node name="hand" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/rover/cameras/hand" />
-    <param name="image_width" value="320" />
-    <param name="image_height" value="240" />
-    <param name="pixel_format" value="yuyv" />
-    <param name="camera_frame_id" value="usb_cam" />
-    <param name="framerate" value="15" />
-    <param name="io_method" value="mmap"/>
-    
-  </node>
-
-  <node name="hand" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/rover/cameras/hand" />
+   <node name="elevator" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/rover/cameras/camera_1" />
     <param name="image_width" value="320" />
     <param name="image_height" value="240" />
     <param name="pixel_format" value="yuyv" />
@@ -71,16 +58,6 @@
     
   </node>
   
-  <node name="drive" pkg="usb_cam" type="usb_cam_node" output="screen" >
-    <param name="video_device" value="/dev/rover/cameras/camera_2" />
-    <param name="image_width" value="320" />
-    <param name="image_height" value="240" />
-    <param name="pixel_format" value="yuyv" />
-    <param name="framerate" value="15" />
-    <param name="camera_frame_id" value="usb_cam" />
-    <param name="io_method" value="mmap"/>
-    
-  </node>
 
 
 <!--  <node name="usb_cam0_process" pkg="image_proc" type="image_proc" output="screen">
