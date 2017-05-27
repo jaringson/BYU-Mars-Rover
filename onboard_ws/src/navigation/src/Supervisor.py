@@ -33,10 +33,10 @@ class Supervisor:
 
         # Set Params
         dt = 0.01
-        ki, kd, kp = 1, 5, 1.5
+        ki, kd, kp = 1, 5, 2.5
         sigma = 0.05
         params = Params(ki, kd, kp, dt, sigma)
-        goal_distance = 2
+        goal_distance = 1
         default_vel = 1.5
         backup_time = 3 # sec
         backup_twist = [-1,1] # m/s, rad/s (leave w positive)
@@ -145,17 +145,17 @@ class Supervisor:
                     rospy.loginfo("AT GOAL!!!!")
                     self.cur_waypoint = 0
 
-                # Is stuck going to goal
-                if self.robot.is_stuck():
-                    self.control = self.backup
-                    self.control.start()
-                    rospy.loginfo('Switching to Backup Mode')
+        #         # Is stuck going to goal
+        #         if self.robot.is_stuck():
+        #             self.control = self.backup
+        #             self.control.start()
+        #             rospy.loginfo('Switching to Backup Mode')
 
-        if self.control.name == "backup":
+        # if self.control.name == "backup":
 
-            # Go back to Go to Goal
-            if self.control.is_done():
-                self.control = self.gtg
+        #     # Go back to Go to Goal
+        #     if self.control.is_done():
+        #         self.control = self.gtg
 
     # Send velocities to wheel_controller
     def send_command(self, v, w):
