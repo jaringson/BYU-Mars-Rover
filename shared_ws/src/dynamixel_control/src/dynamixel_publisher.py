@@ -141,15 +141,18 @@ class DynPub():
                 try:
                     self.wrist_feedback.data[0] = self.dyn.read_angle(1)
                     self.wrist_feedback.data[1] = self.dyn.read_angle(2)
-                except RuntimeError:
+                except:
                     pass
                 torque = [self.dyn.read_torque(1), self.dyn.read_torque(2)]
                 if torque[0] > 90 or torque[1] > 90:
                     rospy.logwarn('Dangerous Torque')
                 self.pub_wrist.publish(self.wrist_feedback)
                 if self.ready['wrist']:
-                    self.dyn.move_angle(1,self.wrist_command[0], blocking = False)
-                    self.dyn.move_angle(2,self.wrist_command[1], blocking = False)
+                    try:
+		    	self.dyn.move_angle(1,self.wrist_command[0], blocking = False)
+                    	self.dyn.move_angle(2,self.wrist_command[1], blocking = False)
+		    except:
+			pass
 
             # Gimbal
             if self.gimbal_enabled:
