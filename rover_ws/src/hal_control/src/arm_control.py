@@ -50,6 +50,13 @@ class Arm_XBOX():
         self.fback = Feedback()
         self.fback_init = False
 
+        # Pre-set configurations
+        self.rear_home = [1.993613731915641, 1.3638573442625272, -1.9024088846738332, 3.1415926,0,0]
+        self.chute_X = [-2.0072881634599167, -3.133000038583872, -1.5707963267949143, 3.141592653589793, -1.3962634015954636, -0.22139284306119847]
+        self.chute_B = [-1.8934929065727808, -2.085644591127973, -0.6981317007977555, 3.141592653589793, -1.3056585228132516, -0.2324545221772961]
+        self.clear = [-0.32585369964372624, -3.1156041310086553, -1.5882496193148574, 3.141592653589793, 0.0, 0.0]
+        self.clamp = [-2.2390036006982235, -2.985329081867853, -2.0071286397934918, 3.141592653589793, -0.03300194177241969, -3.141592653589793]
+
     # Publishers and Subscribers
 
         # Subscribe to /joy_arm /pose_cmd
@@ -134,6 +141,40 @@ class Arm_XBOX():
         
         # Publish state commands
         self.pub_state.publish(self.state)
+
+        # Check for position commands
+        self.programmed_positions()
+
+    def programmed_positions(self):
+        lb = self.joy.buttons[4]
+        X = self.joy.buttons[2]
+        B = self.joy.buttons[1]
+        Y = self.joy.buttons[3]
+        A = self.joy.buttons[0]
+        rjoy_press = self.joy.buttons[10]
+
+        if lb == 1:
+            if X:
+                self.joints.position = self.chute_X
+                rospy.loginfo('Moving to Chute X')
+                time.sleep(0.25)
+            elif B:
+                self.joints.position = self.chute_B
+                rospy.loginfo('Moving to Chute B')
+                time.sleep(0.25)
+            elif A:
+                self.joints.position = self.rear_home
+                rospy.loginfo('Moving to Rear')
+                time.sleep(0.25)
+            elif Y:
+                self.joints.position = self.clear
+                rospy.loginfo('Clearing arm')
+                time.sleep(0.25)
+            elif rjoy_press:
+                self.joints.position = self.clamp
+                rospy.loginfo('Moving to Clamping position')
+                time.sleep(0.25)
+            
     
     def trigger_check(self):
         rt = (1 - self.joy.axes[5])/2.0
