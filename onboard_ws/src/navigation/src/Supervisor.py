@@ -14,9 +14,11 @@ from rover_msgs.msg import ArmState, NavState
 from rover_msgs.msg import NavigationData, Obstacles
 from rover_msgs.srv import WaypointSend, WaypointSendResponse
 from rover_msgs.srv import PositionReturn, PositionReturnResponse
+from inertial_sense.msg import GPS
 from RobotState import RobotState
 from gotogoal import GoToGoal, Stop
 from backup import Backup
+from downhill import Downhill
 
 
 class Supervisor:
@@ -43,12 +45,16 @@ class Supervisor:
         stuck_time = 15 # sec
         stuck_dist = 5 # m
 
+        downhill_pitch = 25
+        downhill_speed = 0.75
+
 
         # Instantiate Classes
-        self.robot = RobotState(goal_distance, default_vel, stuck_time, stuck_dist)
+        self.robot = RobotState(goal_distance, default_vel, stuck_time, stuck_dist, downhill_pitch)
         self.gtg = GoToGoal(params)
         self.stop = Stop(params)
         self.backup = Backup(params,backup_time)
+        self.downhill = Downhill(params,downhill_speed)
 
         # Other admin stuff
         self.msgread = {'estimate': False, 'navdata': True}
@@ -63,6 +69,7 @@ class Supervisor:
         self.sub_estimate = rospy.Subscriber('/odometry/filtered', Odometry, self.odomCallback)
         self.sub_navdata = rospy.Subscriber('/navigation_data', NavigationData, self.navdataCallback)
         self.sub_obst = rospy.Subscriber('/obstacles', Obstacles, self.obstacleCallback)
+        self.sub_Vg = rospy.Subscriber('/ins1',Odometry, self.VgCallback)
 
         # Publish /arm_state_cmd; /joint_cmd; /grip; /joint_cart_cmd
         self.pub_drive = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
@@ -106,7 +113,7 @@ class Supervisor:
     def execute(self):
         while not rospy.is_shutdown():
 
-            print self.robot.dist_to_goal()
+            #print self.robot.dist_to_goal()
 
             if self.ready() and self.enable:
                 # Update goal
@@ -144,6 +151,18 @@ class Supervisor:
                     self.control = self.stop
                     rospy.loginfo("AT GOAL!!!!")
                     self.cur_waypoint = 0
+
+            print self.robot.get_roll()
+            if self.robot.is_downhill() or True:
+                self.control = self.downhill
+                self.control.pid.reset()
+                rospy.loginfo("Switching to Downhill Behavior")
+
+        if self.control.name == "downhill":
+            if not self.robot.is_downhill() and False:
+                self.control = self.gtg
+                rospy.loginfo("Switching to Go to Goal")
+                self.cur_waypoint = 0
 
         #         # Is stuck going to goal
         #         if self.robot.is_stuck():
@@ -191,6 +210,9 @@ class Supervisor:
 
     def obstacleCallback(self, msg):
         a = 1
+
+    def VgCallback(self, msg):
+        self.robot.Vg = msg.twist.twist.linear.x
 
     ############# USEFUL FUNCTIONS #############
     # Checks if all the inital messages have been read in

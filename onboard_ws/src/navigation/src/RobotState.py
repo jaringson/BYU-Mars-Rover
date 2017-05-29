@@ -4,12 +4,13 @@ import tf.transformations as tr
 import math
 
 class RobotState:
-    def __init__(self, goal_distance=0.2, def_v=0.5, stuck_time=15, stuck_dist=5):
+    def __init__(self, goal_distance=0.2, def_v=0.5, stuck_time=15, stuck_dist=5, downhill_pitch=15):
         self.pose = Pose()
         self.twist = Twist()
         self.pose.orientation.w = 1
         self.default_v = def_v
         self.state = NavState()
+        self.Vg = 0
 
         self.goal = [0.0, 0.0]
 
@@ -20,7 +21,13 @@ class RobotState:
         self.estimate_rate = 10 # Hz
         self.stuck_time = stuck_time # sec
         self.stuck_dist = stuck_dist # m
+        self.downhill_pitch = downhill_pitch
 
+    def get_pitch(self):
+        return self.state.theta * 180.0/math.pi
+
+    def get_roll(self):
+        return self.state.phi * 180.0/math.pi
 
     def set_pose(self, msg):
 
@@ -68,6 +75,9 @@ class RobotState:
         old_pos = self.pos_old[0] 
         dist_moved = math.sqrt((old_pos[0]-x)**2 + (old_pos[1]-y)**2)
         return (dist_moved < self.stuck_dist)
+
+    def is_downhill(self):
+        return self.get_pitch() < self.downhill_pitch*-1
             
 
 

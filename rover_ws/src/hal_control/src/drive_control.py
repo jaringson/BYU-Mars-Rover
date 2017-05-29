@@ -248,12 +248,15 @@ class XBOX():
                 rospy.logwarn('ERROR: Waypoint not added, no good estimate')
             time.sleep(.25)
         if self.joy.buttons[6]: # Back button
-        	self.wp_lat.pop()
-        	self.wp_lon.pop()
-        	self.wp_N.pop()
-        	self.wp_E.pop()
-        	rospy.logwarn('Last Waypoint removed')
-        	time.sleep(.25)
+        	if len(self.wp_N) > 0:
+	        	self.wp_lat.pop()
+	        	self.wp_lon.pop()
+	        	self.wp_N.pop()
+	        	self.wp_E.pop()
+	        	rospy.logwarn('Last Waypoint removed')
+	        	time.sleep(.25)
+        	else:
+        		rospy.logwarn('Cant delete anymore')
         if (self.joy.axes[2] == -1) and self.joy.buttons[6]: # LT and Back button
             self.wp_lat = []
             self.wp_lon = []
@@ -283,11 +286,14 @@ class XBOX():
             # self.wp_pubs.convertAndSendWaypoints(self.wp_lat, self.wp_lon)
 
         if self.joy.buttons[7]: # Start button
-            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_E)
-            rospy.logwarn('Waypoints sent in NED')
-            # self.wp_pubs.convertAndSendWaypoints(self.wp_lat, self.wp_lon)
-            # rospy.logwarn('Waypoints send in GPS')
-            time.sleep(.25)
+        	if len(self.wp_N) > 0:
+	            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_E)
+	            rospy.logwarn('Waypoints sent in NED')
+	            # self.wp_pubs.convertAndSendWaypoints(self.wp_lat, self.wp_lon)
+	            # rospy.logwarn('Waypoints send in GPS')
+	            time.sleep(.25)
+	        else:
+	        	rospy.logwarn('Tried to send empty WP list')
         
     # # ==========================================================================
     # # Velocity Drive Control ===============================================
