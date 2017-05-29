@@ -247,8 +247,14 @@ class XBOX():
             else:
                 rospy.logwarn('ERROR: Waypoint not added, no good estimate')
             time.sleep(.25)
-
         if self.joy.buttons[6]: # Back button
+        	self.wp_lat.pop()
+        	self.wp_lon.pop()
+        	self.wp_N.pop()
+        	self.wp_E.pop()
+        	rospy.logwarn('Last Waypoint removed')
+        	time.sleep(.25)
+        if (self.joy.axes[2] == -1) and self.joy.buttons[6]: # LT and Back button
             self.wp_lat = []
             self.wp_lon = []
             self.wp_N = []
@@ -259,11 +265,14 @@ class XBOX():
             # Send waypoints from txt file
             # SEND as NED
             with open('waypoints_to_be_sent_NED.txt') as file:
+                txt_N = []
+                txt_E = []
                 for line in f:
                     NED = line.split()
-                    self.wp_N.append(NED[0])
-                    self.wp_E.append(NED[1])
-            self.wp_pubs.SendWaypoints(self.wp_N, self.wp_E)
+                    txt_N.append(NED[0])
+                    txt_E.append(NED[1])
+            self.wp_pubs.SendWaypoints(txt_N, txt_E)
+            rospy.logwarn("Waypoints sent from txt file")
 
             # SEND AS gps
             # with open('waypoints_to_be_sent_gps.txt') as file:
