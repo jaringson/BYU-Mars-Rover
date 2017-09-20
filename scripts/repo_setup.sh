@@ -1,3 +1,4 @@
+# This script assumes you have cloned the BYU-Mars-Rover repository to ~/BYU-Mars-Rover
 sudo apt-get install ros-kinetic-gpsd-client
 sudo apt-get install ros-kinetic-razor-imu-9dof
 sudo apt-get install ros-kinetic-trac-ik-lib
